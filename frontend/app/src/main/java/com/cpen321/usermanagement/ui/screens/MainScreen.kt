@@ -6,6 +6,8 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -26,6 +28,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.TextUnit
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.cpen321.usermanagement.R
 import com.cpen321.usermanagement.ui.components.MessageSnackbar
@@ -40,7 +43,8 @@ import com.cpen321.usermanagement.ui.theme.LocalSpacing
 @Composable
 fun MainScreen(
     mainViewModel: MainViewModel,
-    onProfileClick: () -> Unit
+    onProfileClick: () -> Unit,
+    onTicketClick: () -> Unit
 ) {
     val uiState by mainViewModel.uiState.collectAsState()
     val snackBarHostState = remember { SnackbarHostState() }
@@ -58,6 +62,7 @@ fun MainScreen(
         uiState = uiState,
         snackBarHostState = snackBarHostState,
         onProfileClick = onProfileClick,
+        onTicketClick = { /*TODO*/ },
         onSuccessMessageShown = mainViewModel::clearSuccessMessage
     )
 }
@@ -67,13 +72,14 @@ private fun MainContent(
     uiState: MainUiState,
     snackBarHostState: SnackbarHostState,
     onProfileClick: () -> Unit,
+    onTicketClick: () -> Unit,
     onSuccessMessageShown: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Scaffold(
         modifier = modifier,
         topBar = {
-            MainTopBar(onProfileClick = onProfileClick)
+            MainTopBar(onProfileClick = onProfileClick, onTicketClick = { /*TODO*/ })
         },
         snackbarHost = {
             MainSnackbarHost(
@@ -94,6 +100,7 @@ private fun MainContent(
 @Composable
 private fun MainTopBar(
     onProfileClick: () -> Unit,
+    onTicketClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     TopAppBar(
@@ -102,6 +109,8 @@ private fun MainTopBar(
             AppTitle()
         },
         actions = {
+            BingoTicketActionButton(onClick = { /*TODO*/ })
+
             ProfileActionButton(onClick = onProfileClick)
         },
         colors = TopAppBarDefaults.topAppBarColors(
@@ -139,10 +148,35 @@ private fun ProfileActionButton(
 }
 
 @Composable
+private fun BingoTicketActionButton(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val spacing = LocalSpacing.current
+
+    IconButton(
+        onClick = onClick,
+        modifier = modifier.size(spacing.extraLarge2)
+    ) {
+        TicketIcon(onClick = onClick)
+    }
+}
+
+@Composable
 private fun ProfileIcon() {
     Icon(
         name = R.drawable.ic_account_circle,
     )
+}
+
+@Composable
+private fun TicketIcon(onClick: () -> Unit) {
+    IconButton(onClick = onClick) {
+        androidx.compose.material3.Icon(
+            imageVector = Icons.Filled.Add,
+            contentDescription = "Add"
+        )
+    }
 }
 
 @Composable
@@ -190,7 +224,7 @@ private fun WelcomeMessage(
     val fontSizes = LocalFontSizes.current
 
     val welcomeText = uiState.user?.let {
-        stringResource(R.string.welcome_to_your_app) + " " + uiState.user.name
+        stringResource(R.string.put_your_knowledge_to_the_test) + " " + uiState.user.name
     } ?: stringResource(R.string.welcome)
 
     Text(
@@ -199,6 +233,6 @@ private fun WelcomeMessage(
         fontSize = fontSizes.extraLarge3,
         lineHeight = 40.sp,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
-        modifier = modifier
+        modifier = modifier.padding(10.dp)
     )
 }

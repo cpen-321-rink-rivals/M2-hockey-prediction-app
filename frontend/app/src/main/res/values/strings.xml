@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">CPEN 321 - M1</string>
+    <string name="app_name">NHL predictions</string>
     <string name="auth_message">Please sign in to continue.</string>
     <string name="welcome">Welcome!</string>
-    <string name="welcome_to_your_app">Welcome to your app</string>
+    <string name="put_your_knowledge_to_the_test">Put your hockey knowledge to the test against your friends</string>
     <string name="hobbies">Hobbies</string>
     <string name="select_hobbies">Select your hobbies:</string>
     <string name="select_languages">Select your languages:</string>

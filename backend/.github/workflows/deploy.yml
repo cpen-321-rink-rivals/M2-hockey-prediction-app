@@ -19,7 +19,7 @@ jobs:
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_KEY }}
           source: '.'
-          target: '/home/ubuntu/cpen321_app'
+          target: '/home/ubuntu/m2_hockey_app'
 
       - name: Rebuild and Deploy
         uses: appleboy/ssh-action@master
@@ -28,7 +28,7 @@ jobs:
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_KEY }}
           script: |
-            cd /home/ubuntu/cpen321_app/
+            cd /home/ubuntu/m2_hockey_app/
             # Write secrets into .env file
             cat > .env <<EOF
             PORT=${{ secrets.PROD_PORT }}

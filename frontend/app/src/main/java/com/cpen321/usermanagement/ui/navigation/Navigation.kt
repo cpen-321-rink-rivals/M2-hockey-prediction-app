@@ -21,6 +21,7 @@ import com.cpen321.usermanagement.ui.screens.ManageProfileScreen
 import com.cpen321.usermanagement.ui.screens.ProfileScreenActions
 import com.cpen321.usermanagement.ui.screens.ProfileCompletionScreen
 import com.cpen321.usermanagement.ui.screens.ProfileScreen
+import com.cpen321.usermanagement.ui.screens.TicketsScreen
 import com.cpen321.usermanagement.ui.viewmodels.AuthViewModel
 import com.cpen321.usermanagement.ui.viewmodels.MainViewModel
 import com.cpen321.usermanagement.ui.viewmodels.NavigationViewModel
@@ -31,6 +32,7 @@ object NavRoutes {
     const val AUTH = "auth"
     const val MAIN = "main"
     const val PROFILE = "profile"
+    const val TICKETS = "tickets"
     const val MANAGE_PROFILE = "manage_profile"
     const val MANAGE_HOBBIES = "manage_hobbies"
     const val MANAGE_LANGUAGES_SPOKEN = "languages_spoken"
@@ -120,6 +122,11 @@ private fun handleNavigationEvent(
             navigationStateManager.clearNavigationEvent()
         }
 
+        is NavigationEvent.NavigateToTickets -> {
+            navController.navigate(NavRoutes.TICKETS)
+            navigationStateManager.clearNavigationEvent()
+        }
+
         is NavigationEvent.NavigateToManageProfile -> {
             navController.navigate(NavRoutes.MANAGE_PROFILE)
             navigationStateManager.clearNavigationEvent()
@@ -184,7 +191,8 @@ private fun AppNavHost(
         composable(NavRoutes.MAIN) {
             MainScreen(
                 mainViewModel = mainViewModel,
-                onProfileClick = { navigationStateManager.navigateToProfile() }
+                onProfileClick = { navigationStateManager.navigateToProfile() },
+                onTicketClick = { /*TODO*/ }
             )
         }
 
@@ -199,6 +207,12 @@ private fun AppNavHost(
                     onManageLanguagesSpokenClick = {navigationStateManager.navigateToLanguagesSpoken()},
                     onAccountDeleted = { navigationStateManager.handleAccountDeletion() }
                 )
+            )
+        }
+
+        composable(NavRoutes.TICKETS) {
+            TicketsScreen(
+                onNavigateBack = { navController.popBackStack() } // Example back navigation
             )
         }
 

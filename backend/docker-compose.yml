@@ -16,7 +16,7 @@ services:
       args:
         - PORT=${PORT}
     restart: always
-    container_name: cpen321_app
+    container_name: m2_hockey_app
     environment:
       - PORT=${PORT}
       - JWT_SECRET=${JWT_SECRET}
