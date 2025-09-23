@@ -22,10 +22,12 @@ import com.cpen321.usermanagement.ui.screens.ProfileScreenActions
 import com.cpen321.usermanagement.ui.screens.ProfileCompletionScreen
 import com.cpen321.usermanagement.ui.screens.ProfileScreen
 import com.cpen321.usermanagement.ui.screens.TicketsScreen
+import com.cpen321.usermanagement.ui.screens.TicketsScreenActions
 import com.cpen321.usermanagement.ui.viewmodels.AuthViewModel
 import com.cpen321.usermanagement.ui.viewmodels.MainViewModel
 import com.cpen321.usermanagement.ui.viewmodels.NavigationViewModel
 import com.cpen321.usermanagement.ui.viewmodels.ProfileViewModel
+import com.cpen321.usermanagement.ui.viewmodels.TicketsViewModel
 
 object NavRoutes {
     const val LOADING = "loading"
@@ -51,6 +53,7 @@ fun AppNavigation(
     val authViewModel: AuthViewModel = hiltViewModel()
     val profileViewModel: ProfileViewModel = hiltViewModel()
     val mainViewModel: MainViewModel = hiltViewModel()
+    val ticketsViewModel: TicketsViewModel = hiltViewModel()
 
     // Handle navigation events from NavigationStateManager
     LaunchedEffect(navigationEvent) {
@@ -68,6 +71,7 @@ fun AppNavigation(
         authViewModel = authViewModel,
         profileViewModel = profileViewModel,
         mainViewModel = mainViewModel,
+        ticketsViewModel = ticketsViewModel,
         navigationStateManager = navigationStateManager
     )
 }
@@ -162,6 +166,7 @@ private fun AppNavHost(
     navController: NavHostController,
     authViewModel: AuthViewModel,
     profileViewModel: ProfileViewModel,
+    ticketsViewModel: TicketsViewModel,
     mainViewModel: MainViewModel,
     navigationStateManager: NavigationStateManager
 ) {
@@ -212,7 +217,11 @@ private fun AppNavHost(
 
         composable(NavRoutes.TICKETS) {
             TicketsScreen(
-                onNavigateBack = { navController.popBackStack() } // Example back navigation
+                authViewModel = authViewModel,
+                ticketsViewModel = ticketsViewModel,
+                actions = TicketsScreenActions(
+                    onBackClick = { navigationStateManager.navigateBack() }
+                )
             )
         }
 

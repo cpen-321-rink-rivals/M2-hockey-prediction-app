@@ -1,108 +1,207 @@
 package com.cpen321.usermanagement.ui.screens
 
-import androidx.compose.foundation.layout.Arrangement
+import Icon
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.hilt.navigation.compose.hiltViewModel
-import com.cpen321.usermanagement.ui.theme.UserManagementTheme // Assuming you have a theme
-import com.cpen321.usermanagement.ui.viewmodels.TicketsViewModel
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.cpen321.usermanagement.R
+import com.cpen321.usermanagement.ui.viewmodels.AuthViewModel
 import com.cpen321.usermanagement.ui.viewmodels.TicketsUiState
+import com.cpen321.usermanagement.ui.viewmodels.TicketsViewModel
+
+
+data class TicketsScreenActions(
+    val onBackClick: () -> Unit
+)
+
+private data class TicketsScreenCallbacks(
+    val onBackClick: () -> Unit
+)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TicketsScreen(
-    viewModel: TicketsViewModel = hiltViewModel(),
-    onNavigateBack: (() -> Unit)? = null // Optional: for back navigation
-) {
-    val uiState by viewModel.uiState.collectAsState()
+    authViewModel: AuthViewModel,
+    actions: TicketsScreenActions,
+    ticketsViewModel: TicketsViewModel
 
+    ) {
+    val uiState by ticketsViewModel.uiState.collectAsState()
+
+    // Side effects
+    LaunchedEffect(Unit) {
+        ticketsViewModel.clearSuccessMessage()
+        ticketsViewModel.clearError()
+    }
+
+    TicketsContent(
+        uiState = uiState,
+        callbacks = TicketsScreenCallbacks(
+            onBackClick = actions.onBackClick
+        )
+    )
+
+}
+
+@Composable
+private fun TicketsContent(
+    modifier: Modifier = Modifier,
+    uiState: TicketsUiState,
+    callbacks: TicketsScreenCallbacks
+) {
     Scaffold(
+        modifier = modifier,
         topBar = {
-            TopAppBar(
-                title = { Text("My Tickets") },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimary
-                ),
-                // navigationIcon = { // If you need a back button
-                //     if (onNavigateBack != null) {
-                //         IconButton(onClick = onNavigateBack) {
-                //             Icon(
-                //                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                //                 contentDescription = "Back"
-                //             )
-                //         }
-                //     }
-                // }
+            TicketsTopBar(
+                onBackClick = { callbacks.onBackClick() }
             )
         }
     ) { paddingValues ->
-        TicketsContent(
-            modifier = Modifier.padding(paddingValues),
-            uiState = uiState
+        TicketsBody(
+            paddingValues = paddingValues,
+            isLoading = uiState.isLoadingTickets,
+            allTickets = uiState.allTickets
         )
     }
+
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun TicketsTopBar(
+    onBackClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    TopAppBar(
+        modifier = modifier,
+        title = {
+            Text(
+                text = stringResource(R.string.bingo_tickets),
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Medium
+            )
+        },
+        navigationIcon = {
+            IconButton(onClick = onBackClick) {
+                Icon(name = R.drawable.ic_arrow_back)
+            }
+        },
+        colors = TopAppBarDefaults.topAppBarColors(
+            containerColor = MaterialTheme.colorScheme.surface,
+            titleContentColor = MaterialTheme.colorScheme.onSurface
+        )
+    )
 }
 
 @Composable
-fun TicketsContent(
-    modifier: Modifier = Modifier,
-    uiState: TicketsUiState
-) {
-    Column(
-        modifier = modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
+private fun TicketsBody(
+    paddingValues: PaddingValues,
+    allTickets: List<String>,
+    isLoading: Boolean,
+    modifier: Modifier = Modifier
+){
+    Box(
+        modifier = modifier
+            .fillMaxSize()
+            .padding(paddingValues)
     ) {
-        if (uiState.isLoading) {
-            // CircularProgressIndicator() // Show a loader if needed
-            Text("Loading tickets...")
-        } else if (uiState.errorMessage != null) {
-            Text("Error: ${uiState.errorMessage}")
-        } else {
-            // TODO: Replace with your actual tickets list UI
-            Text(
-                text = "No tickets yet.",
-                style = MaterialTheme.typography.headlineSmall
-            )
-            Text(text = "This is where your tickets will be displayed.")
+        when {
+            isLoading -> {
+                LoadingIndicator(
+                    modifier = Modifier.align(Alignment.Center)
+                )
+            }
+            else -> {
+                TicketsList(
+                    modifier = Modifier.fillMaxSize(),
+                    allTickets = allTickets
+                )
+                AddTicketButton(
+                    onClick = {/* TODO */ },
+                    modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 32.dp).width(200.dp).height(60.dp)
+
+                )
+            }
         }
     }
 }
 
-@Preview(showBackground = true)
 @Composable
-fun TicketsScreenPreview() {
-    UserManagementTheme { // Apply your app's theme for the preview
-        TicketsScreen()
+fun TicketsList(
+    modifier: Modifier = Modifier,
+    allTickets: List<String> = emptyList(),
+) {
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(all = 10.dp)
+    ) {
+        LazyColumn {
+            items(
+                count = allTickets.size,
+                key = { index -> allTickets[index] }
+            ) {
+                ListItem(
+                    headlineContent = { Text(allTickets[it]) },
+                    modifier = Modifier
+                        .fillParentMaxWidth()
+                        .padding(10.dp)
+                        .background(MaterialTheme.colorScheme.background)
+                )
+            }
+        }
     }
 }
-
-@Preview(showBackground = true)
 @Composable
-fun TicketsContentPreview() {
-    UserManagementTheme {
-        TicketsContent(uiState = TicketsUiState(isLoading = false))
+private fun AddTicketButton(
+    onClick: () -> Unit,
+    modifier: Modifier,
+) {
+    Button(
+        onClick = { onClick() },
+        modifier = modifier,
+        ) {
+        Text("New Bingo Ticket")
     }
+
 }
 
-@Preview(showBackground = true)
 @Composable
-fun TicketsContentLoadingPreview() {
-    UserManagementTheme {
-        TicketsContent(uiState = TicketsUiState(isLoading = true))
-    }
+private fun LoadingIndicator(
+    modifier: Modifier = Modifier
+) {
+    CircularProgressIndicator(modifier = modifier)
 }
