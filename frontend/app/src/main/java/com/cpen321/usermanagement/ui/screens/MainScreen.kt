@@ -62,7 +62,7 @@ fun MainScreen(
         uiState = uiState,
         snackBarHostState = snackBarHostState,
         onProfileClick = onProfileClick,
-        onTicketClick = { /*TODO*/ },
+        onTicketClick = onTicketClick,
         onSuccessMessageShown = mainViewModel::clearSuccessMessage
     )
 }
@@ -79,7 +79,7 @@ private fun MainContent(
     Scaffold(
         modifier = modifier,
         topBar = {
-            MainTopBar(onProfileClick = onProfileClick, onTicketClick = { /*TODO*/ })
+            MainTopBar(onProfileClick = onProfileClick, onTicketClick = onTicketClick)
         },
         snackbarHost = {
             MainSnackbarHost(
@@ -109,7 +109,7 @@ private fun MainTopBar(
             AppTitle()
         },
         actions = {
-            BingoTicketActionButton(onClick = { /*TODO*/ })
+            BingoTicketActionButton(onClick = onTicketClick)
 
             ProfileActionButton(onClick = onProfileClick)
         },

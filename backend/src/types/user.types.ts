@@ -1,6 +1,7 @@
 import mongoose, { Document } from 'mongoose';
 import z from 'zod';
-import { HOBBIES } from './hobbies';
+import { HOBBIES } from '../hobbies';
+import { LANGUAGES_SPOKEN } from '../languagesSpoken';
 
 // User model
 // ------------------------------------------------------------
@@ -12,6 +13,7 @@ export interface IUser extends Document {
   profilePicture?: string;
   bio?: string;
   hobbies: string[];
+  languagesSpoken: string[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -25,6 +27,7 @@ export const createUserSchema = z.object({
   profilePicture: z.string().optional(),
   bio: z.string().max(500).optional(),
   hobbies: z.array(z.string()).default([]),
+  languagesSpoken: z.array(z.string()).default([]),
 });
 
 export const updateProfileSchema = z.object({
@@ -35,6 +38,15 @@ export const updateProfileSchema = z.object({
     .refine(val => val.length === 0 || val.every(v => HOBBIES.includes(v)), {
       message: 'Hobby must be in the available hobbies list',
     })
+    .optional(),
+  languagesSpoken: z
+    .array(z.string())
+    .refine(
+      val => val.length === 0 || val.every(v => LANGUAGES_SPOKEN.includes(v)),
+      {
+        message: 'Language spoken must be in the available list',
+      }
+    )
     .optional(),
   profilePicture: z.string().min(1).optional(),
 });

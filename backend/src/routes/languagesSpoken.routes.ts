@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { LanguagesSpokenController } from './languagesSpoken.controller';
+import { LanguagesSpokenController } from '../controllers/languagesSpoken.controller';
 
 const router = Router();
 const languagesSpokenController = new LanguagesSpokenController();

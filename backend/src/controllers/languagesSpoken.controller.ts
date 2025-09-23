@@ -1,8 +1,8 @@
 import { NextFunction, Request, Response } from 'express';
 
-import { LANGUAGES_SPOKEN } from './languagesSpoken';
-import logger from './logger.util';
-import { getAllLanguagesSpokenResponse } from './languagesSpoken.types';
+import { LANGUAGES_SPOKEN } from '../languagesSpoken';
+import logger from '../logger.util';
+import { getAllLanguagesSpokenResponse } from '../types/languagesSpoken.types';
 
 export class LanguagesSpokenController {
   getAllLanguagesSpoken(

@@ -192,7 +192,7 @@ private fun AppNavHost(
             MainScreen(
                 mainViewModel = mainViewModel,
                 onProfileClick = { navigationStateManager.navigateToProfile() },
-                onTicketClick = { /*TODO*/ }
+                onTicketClick = { navigationStateManager.navigateToTickets() }
             )
         }
 
