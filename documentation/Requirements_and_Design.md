@@ -71,7 +71,7 @@ Users can view a specific challenge and see the score of the real life game as w
 2. **[Accept challenge]**: The user can receive invites and accept them by creating a bingo ticket for the specific match they have been invited to.
 3. **[Decline challenge]**: The user can decline any incoming challenge.
 4. **[Close challenge]**: The challenge owner can close a challenge whereby the challenge will disappear for all members of the challenge.
-5. **[Leave challenge]**: The user can leave a challenge if the game has not begun.
+5. **[Leave challenge]**: The challenge member can leave a challenge if the game has not begun.
 
 - Use cases for feature 5: [View challenges]
 
