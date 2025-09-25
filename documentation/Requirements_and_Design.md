@@ -247,7 +247,7 @@ Users can view a specific challenge and see the score of the real life game as w
 
 ### **3.6. Screen Mock-ups**
 
-![Screen Mock-ups](/images/user-journey-sccreen-mockups.png)
+![Screen Mock-ups](/documentation/images/user-journey-sccreen-mockups.png)
 
 ### **3.7. Non-Functional Requirements**
 
