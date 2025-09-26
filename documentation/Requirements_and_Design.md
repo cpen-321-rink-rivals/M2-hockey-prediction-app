@@ -32,7 +32,7 @@ The user who created the challenge will become the challenge owner and can invit
 Users can view a specific challenge and see the score of the real life game as well as a points table of the challengers.
 
 ### **3.2. Use Case Diagram**
-![Use case diagram](documentation/images/UseCaseDiagram.png)
+![Use case diagram](/documentation/images/UseCaseDiagram.png)
 
 
 ### **3.3. Actors Description**
