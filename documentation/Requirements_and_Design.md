@@ -273,22 +273,27 @@ Users can view a specific challenge and see the score of the real life game as w
 
 ### **4.2. Databases**
 
-1. **[WRITE_NAME_HERE]**
-   - **Purpose**: ...
+1. **[MongoDB]**
+   - **Purpose**: Stores users/friends, tickets, challenges, and read-optimized projections (e.g., current rankings).
 2. ...
 
 ### **4.3. External Modules**
 
-1. **[WRITE_NAME_HERE]**
-   - **Purpose**: ...
+1. **[NHL API]**
+   - **Purpose**: Fetches schedule metadata and live event data to drive scoring and rankings updates.
 2. ...
 
-### **4.4. Frameworks**
+### **4.4. Frameworks and Libraries**
 
-1. **[WRITE_NAME_HERE]**
-   - **Purpose**: ...
-   - **Reason**: ...
-2. ...
+1. **[Express. js]**
+   - **Purpose**: Enable web development in Node.js
+   - **Reason**: It is the easiest way for us to get started develeping. It helps with routing, requests and responses.
+2. **[Retrofit]**
+   - **Purpose**: Make HTTP requests in Android.
+   - **Reason**: We need to show API data to the frontend. 
+3. **[Mongoose]**
+   - **Purpose**: Interacting with MongoDB 
+   - **Reason**: Making it easier to work with the database. 
 
 ### **4.5. Dependencies Diagram**
 
