@@ -93,11 +93,14 @@ Users can view a specific challenge and see the score of the real life game as w
 **Main success scenario**:
 
 1. The user selects an upcoming hockey game.
-2. The system generates a short list of prompts (~30).
-3. The user selects 9 prompts and places them in the 3×3 grid.
-4. The user assigns a name to the bingo ticket.
-5. The user saves the ticket.
-6. The system confirms the ticket has been created.
+2. The user assigns a name to the bingo ticket.
+3. The user creates the ticket.
+4. The system confirms the ticket has been created.
+5. The system generates a list of events to choose from (~30).
+6. The user selects 9 events and places them in the 3×3 grid.
+7. The system updates the ticket.
+8. The system confirms the ticket has been updated.
+
 
 **Alternate Triggers**
 1.1 The user enters from a challenge invitation.
@@ -107,22 +110,14 @@ Users can view a specific challenge and see the score of the real life game as w
 **Failure scenario(s)**:
 
 - 1a. No upcoming hockey games are available.
-
   - 1a1. The system displays an error message saying there are no upcoming games.
 
-- 3a. The user does not fill in the full bingo ticket.
+- 2a. The ticket name exceeds the character limit.
+  - 2a1. The system displays an error message telling the user to remain within the character limit.
 
-  - 3a1. The system displays an error message telling the user to fill in all slots in the bingo ticket.
-
-  - 3a2. The user fills in the remaining slots and continues.
-
-- 4a. The ticket name exceeds the character limit.
-
-  - 4a1. The system displays an error message telling the user to remain within the character limit.
-
-- 5a. The hockey game has begun while making the ticket.
-  - 5a1. The system displays an error message saying the game has already begun.
-  - 5a2. The user is returned to the main menu.
+- 3a. The hockey game has begun while naming the ticket.
+  - 3a1. The system displays an error message saying the game has already begun.
+  - 3a2. The user is returned to the main menu.
 
 ...
 
@@ -299,8 +294,8 @@ Users can view a specific challenge and see the score of the real life game as w
 
 ### **4.6. Use Case Sequence Diagram (5 Most Major Use Cases)**
 
-1. [**[WRITE_NAME_HERE]**](#uc1)\
-   [SEQUENCE_DIAGRAM_HERE]
+1. [**[Create Bingo Ticket]**](#uc1)\
+   ![Create bingo ticket use case sequence diagram](/documentation/images/createBingoTicketUseCase.svg)
 2. ...
 
 ### **4.7. Design and Ways to Test Non-Functional Requirements**
