@@ -263,25 +263,26 @@ Users can view a specific challenge and see the score of the real life game as w
 
 ### **4.1. Main Components**
 
-1. **[WRITE_NAME_HERE]**
-   - **Purpose**: ...
-   - **Interfaces**:
-     1. ...
-        - **Purpose**: ...
-     2. ...
-2. ...
+1. **[Users]**
+   - **Purpose**: Handles user profiles, and the friends graph (send/accept/decline/remove).
+2. **[Bingo Tickets]**
+   - **Purpose**: Handles creation, deletion, viewing and logic of bingo tickets.
+3. **[Challenges]**
+   - **Purpose**: Handles managing, viewing and logic of challenges.
+4. **[Live Event Ingest & Scoring Engine]**
+   - **Purpose**: Fetches, handles and updates NHL data so it can be accessed by the other components.
 
 ### **4.2. Databases**
 
 1. **[MongoDB]**
    - **Purpose**: Stores users/friends, tickets, challenges, and read-optimized projections (e.g., current rankings).
-2. ...
 
 ### **4.3. External Modules**
 
 1. **[NHL API]**
    - **Purpose**: Fetches schedule metadata and live event data to drive scoring and rankings updates.
-2. ...
+2. **[Google authentications]**
+   - **Purpose**: Handles user authentication when signing up/deleting account and logging in/out.
 
 ### **4.4. Frameworks and Libraries**
 
