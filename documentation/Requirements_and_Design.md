@@ -297,6 +297,9 @@ Users can view a specific challenge and see the score of the real life game as w
 
 ### **4.5. Dependencies Diagram**
 
+![Create bingo ticket use case sequence diagram](/documentation/images/high-level-backend-diagram.png)
+
+
 ### **4.6. Use Case Sequence Diagram (5 Most Major Use Cases)**
 
 1. [**[Create Bingo Ticket]**](#uc1)\
