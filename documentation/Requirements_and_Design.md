@@ -61,9 +61,9 @@ Users can view a specific challenge and see the score of the real life game as w
 
 - Use cases for feature 3: [Manage bingo tickets]
 
-3. **[Create a bingo ticket]**: All users can create a bingo ticket for an upcoming game by filling out a 3x3 grid with events from an event list and saving when done.
-4. **[Delete bingo ticket]**: All users can delete bingo tickets, if no challenges refer to this ticket.
-5. **[View bingo tickets]**: All users can view a list of their bingo tickets.
+1. **[Create a bingo ticket]**: All users can create a bingo ticket for an upcoming game by filling out a 3x3 grid with events from an event list and saving when done.
+2. **[Delete bingo ticket]**: All users can delete bingo tickets, if no challenges refer to this ticket.
+3. **[View bingo tickets]**: All users can view a list of their bingo tickets.
 
 - Use cases for feature 4: [Manage challenges]
 
