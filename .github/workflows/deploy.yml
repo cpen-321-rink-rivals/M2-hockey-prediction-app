@@ -43,6 +43,6 @@ jobs:
             chmod 600 .env
 
             # Build and run container
-            docker compose down
-            docker compose --env-file .env build
-            docker compose --env-file .env up -d
+            docker compose -f backend/docker-compose.yml --env-file .env down
+            docker compose -f backend/docker-compose.yml --env-file .env build
+            docker compose -f backend/docker-compose.yml --env-file .env up -d --remove-orphans
