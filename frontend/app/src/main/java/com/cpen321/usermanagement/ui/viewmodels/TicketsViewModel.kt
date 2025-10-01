@@ -19,13 +19,11 @@ data class TicketsUiState(
 )
 
 private val allTickets = listOf(
-    "Cupcake",
-    "Donut",
-    "Eclair",
-    "Froyo",
-    "Gingerbread",
-    "Honeycomb",
-    "Ice Cream Sandwich"
+    "22/9 Oilers vs. Canucks",
+    "23/9 Canucks vs. Sabres",
+    "24/10 Wednesday against Thomas and friends",
+    "20/10 Montréal vs. Sabres",
+    "22/10 Lets go Canucks!!"
 )
 
 
