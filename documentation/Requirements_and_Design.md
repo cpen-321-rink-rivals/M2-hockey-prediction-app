@@ -265,6 +265,10 @@ Users can view a specific challenge and see the score of the real life game as w
 
 1. **[Users]**
    - **Purpose**: Handles user profiles, and the friends graph (send/accept/decline/remove).
+   - **Interfaces**: 
+        1. ...
+            - **Purpose**: ...
+        2. ...
 2. **[Bingo Tickets]**
    - **Purpose**: Handles creation, deletion, viewing and logic of bingo tickets.
 3. **[Challenges]**
