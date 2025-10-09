@@ -1,0 +1,17 @@
+package com.cpen321.usermanagement.data.remote.api
+
+import com.cpen321.usermanagement.data.remote.dto.ApiResponse
+import com.cpen321.usermanagement.data.remote.dto.Challenge
+import retrofit2.Response
+import retrofit2.http.GET
+import retrofit2.http.Header
+
+interface ChallengesInterface {
+
+    // Defines the GET request to the "/challenges" endpoint
+    @GET("challenges")
+    suspend fun getChallenges(
+        @Header("Authorization") token: String
+    ): Response<ApiResponse<List<Challenge>>>
+}
+

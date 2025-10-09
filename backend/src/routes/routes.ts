@@ -7,6 +7,7 @@ import languagesSpokenRoutes from '../routes/languagesSpoken.routes';
 import mediaRoutes from './media.routes';
 import usersRoutes from '../routes/user.routes';
 import ticketsRoutes from './tickets.routes';
+import challengesRoutes from './challenges.routes';
 
 const router = Router();
 
@@ -19,6 +20,8 @@ router.use('/languages_spoken', authenticateToken, languagesSpokenRoutes);
 router.use('/user', authenticateToken, usersRoutes);
 
 router.use('/tickets', authenticateToken, ticketsRoutes);
+
+router.use('/challenges', authenticateToken, challengesRoutes);
 
 router.use('/media', authenticateToken, mediaRoutes);
 

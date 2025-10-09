@@ -13,6 +13,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.cpen321.usermanagement.R
 import com.cpen321.usermanagement.ui.screens.AuthScreen
+import com.cpen321.usermanagement.ui.screens.ChallengesScreen
+import com.cpen321.usermanagement.ui.screens.ChallengesScreenActions
 import com.cpen321.usermanagement.ui.screens.LoadingScreen
 import com.cpen321.usermanagement.ui.screens.MainScreen
 import com.cpen321.usermanagement.ui.screens.ManageHobbiesScreen
@@ -24,6 +26,7 @@ import com.cpen321.usermanagement.ui.screens.ProfileScreen
 import com.cpen321.usermanagement.ui.screens.TicketsScreen
 import com.cpen321.usermanagement.ui.screens.TicketsScreenActions
 import com.cpen321.usermanagement.ui.viewmodels.AuthViewModel
+import com.cpen321.usermanagement.ui.viewmodels.ChallengesViewModel
 import com.cpen321.usermanagement.ui.viewmodels.MainViewModel
 import com.cpen321.usermanagement.ui.viewmodels.NavigationViewModel
 import com.cpen321.usermanagement.ui.viewmodels.ProfileViewModel
@@ -35,6 +38,7 @@ object NavRoutes {
     const val MAIN = "main"
     const val PROFILE = "profile"
     const val TICKETS = "tickets"
+    const val CHALLENGES = "challenges"
     const val MANAGE_PROFILE = "manage_profile"
     const val MANAGE_HOBBIES = "manage_hobbies"
     const val MANAGE_LANGUAGES_SPOKEN = "languages_spoken"
@@ -54,6 +58,8 @@ fun AppNavigation(
     val profileViewModel: ProfileViewModel = hiltViewModel()
     val mainViewModel: MainViewModel = hiltViewModel()
     val ticketsViewModel: TicketsViewModel = hiltViewModel()
+    val challengesViewModel: ChallengesViewModel = hiltViewModel()
+
 
     // Handle navigation events from NavigationStateManager
     LaunchedEffect(navigationEvent) {
@@ -62,7 +68,7 @@ fun AppNavigation(
             navController,
             navigationStateManager,
             authViewModel,
-            mainViewModel
+            mainViewModel,
         )
     }
 
@@ -72,6 +78,7 @@ fun AppNavigation(
         profileViewModel = profileViewModel,
         mainViewModel = mainViewModel,
         ticketsViewModel = ticketsViewModel,
+        challengesViewModel = challengesViewModel,
         navigationStateManager = navigationStateManager
     )
 }
@@ -81,7 +88,7 @@ private fun handleNavigationEvent(
     navController: NavHostController,
     navigationStateManager: NavigationStateManager,
     authViewModel: AuthViewModel,
-    mainViewModel: MainViewModel
+    mainViewModel: MainViewModel,
 ) {
     when (navigationEvent) {
         is NavigationEvent.NavigateToAuth -> {
@@ -130,6 +137,10 @@ private fun handleNavigationEvent(
             navController.navigate(NavRoutes.TICKETS)
             navigationStateManager.clearNavigationEvent()
         }
+        is NavigationEvent.NavigateToChallenges -> {
+            navController.navigate(NavRoutes.CHALLENGES)
+            navigationStateManager.clearNavigationEvent()
+        }
 
         is NavigationEvent.NavigateToManageProfile -> {
             navController.navigate(NavRoutes.MANAGE_PROFILE)
@@ -167,6 +178,7 @@ private fun AppNavHost(
     authViewModel: AuthViewModel,
     profileViewModel: ProfileViewModel,
     ticketsViewModel: TicketsViewModel,
+    challengesViewModel: ChallengesViewModel,
     mainViewModel: MainViewModel,
     navigationStateManager: NavigationStateManager
 ) {
@@ -197,7 +209,8 @@ private fun AppNavHost(
             MainScreen(
                 mainViewModel = mainViewModel,
                 onProfileClick = { navigationStateManager.navigateToProfile() },
-                onTicketClick = { navigationStateManager.navigateToTickets() }
+                onTicketClick = { navigationStateManager.navigateToTickets() },
+                onChallengeClick = { navigationStateManager.navigateToChallenges() }
             )
         }
 
@@ -223,6 +236,16 @@ private fun AppNavHost(
                     onBackClick = { navigationStateManager.navigateBack() }
                 )
             )
+        }
+
+        composable(NavRoutes.CHALLENGES) {
+            ChallengesScreen(
+                challengesViewModel = challengesViewModel,
+                actions = ChallengesScreenActions(
+                    onBackClick = { navigationStateManager.navigateBack() }
+                )
+            )
+
         }
 
         composable(NavRoutes.MANAGE_PROFILE) {

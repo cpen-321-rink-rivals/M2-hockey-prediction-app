@@ -6,8 +6,6 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -20,14 +18,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.cpen321.usermanagement.R
@@ -44,7 +39,8 @@ import com.cpen321.usermanagement.ui.theme.LocalSpacing
 fun MainScreen(
     mainViewModel: MainViewModel,
     onProfileClick: () -> Unit,
-    onTicketClick: () -> Unit
+    onTicketClick: () -> Unit,
+    onChallengeClick: () -> Unit
 ) {
     val uiState by mainViewModel.uiState.collectAsState()
     val snackBarHostState = remember { SnackbarHostState() }
@@ -63,6 +59,7 @@ fun MainScreen(
         snackBarHostState = snackBarHostState,
         onProfileClick = onProfileClick,
         onTicketClick = onTicketClick,
+        onChallengeClick = onChallengeClick,
         onSuccessMessageShown = mainViewModel::clearSuccessMessage
     )
 }
@@ -73,13 +70,18 @@ private fun MainContent(
     snackBarHostState: SnackbarHostState,
     onProfileClick: () -> Unit,
     onTicketClick: () -> Unit,
+    onChallengeClick: () -> Unit,
     onSuccessMessageShown: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Scaffold(
         modifier = modifier,
         topBar = {
-            MainTopBar(onProfileClick = onProfileClick, onTicketClick = onTicketClick)
+            MainTopBar(
+                onProfileClick = onProfileClick,
+                onTicketClick = onTicketClick,
+                onChallengeClick = onChallengeClick
+            )
         },
         snackbarHost = {
             MainSnackbarHost(
@@ -101,6 +103,7 @@ private fun MainContent(
 private fun MainTopBar(
     onProfileClick: () -> Unit,
     onTicketClick: () -> Unit,
+    onChallengeClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     TopAppBar(
@@ -110,6 +113,7 @@ private fun MainTopBar(
         },
         actions = {
             BingoTicketActionButton(onClick = onTicketClick)
+            ChallengeActionButton(onClick = onChallengeClick)
 
             ProfileActionButton(onClick = onProfileClick)
         },
@@ -158,7 +162,22 @@ private fun BingoTicketActionButton(
         onClick = onClick,
         modifier = modifier.size(spacing.extraLarge2)
     ) {
-        TicketIcon(onClick = onClick)
+        BingoTicketIcon(onClick = onClick)
+    }
+}
+
+@Composable
+private fun ChallengeActionButton(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val spacing = LocalSpacing.current
+
+    IconButton(
+        onClick = onClick,
+        modifier = modifier.size(spacing.extraLarge2)
+    ) {
+        ChallengeIcon(onClick = onClick)
     }
 }
 
@@ -170,13 +189,17 @@ private fun ProfileIcon() {
 }
 
 @Composable
-private fun TicketIcon(onClick: () -> Unit) {
-    IconButton(onClick = onClick) {
-        androidx.compose.material3.Icon(
-            imageVector = Icons.Filled.Add,
-            contentDescription = "Add"
-        )
-    }
+private fun ChallengeIcon(onClick: () -> Unit) {
+    Icon(
+        name = R.drawable.swords_icon,
+    )
+}
+
+@Composable
+private fun BingoTicketIcon(onClick: () -> Unit) {
+    Icon(
+        name = R.drawable.bingo_ticket,
+    )
 }
 
 @Composable
