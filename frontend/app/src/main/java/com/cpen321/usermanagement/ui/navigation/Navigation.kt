@@ -242,7 +242,8 @@ private fun AppNavHost(
             ChallengesScreen(
                 challengesViewModel = challengesViewModel,
                 actions = ChallengesScreenActions(
-                    onBackClick = { navigationStateManager.navigateBack() }
+                    onBackClick = { navigationStateManager.navigateBack() },
+                    onAddChallengeClick = { challengesViewModel.createChallenge() }
                 )
             )
 

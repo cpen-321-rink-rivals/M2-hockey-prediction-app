@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.cpen321.usermanagement.data.remote.dto.Challenge
+import com.cpen321.usermanagement.data.remote.dto.CreateChallengeRequest
 import com.cpen321.usermanagement.data.repository.ChallengesRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -65,12 +66,36 @@ class ChallengesViewModel @Inject constructor(
                     errorMessage = errorMessage
                 )
             }
+        }
+    }
 
+    fun createChallenge() {
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(isLoadingChallenges = true, errorMessage = null)
 
+            val challengeRequest = CreateChallengeRequest(
+                title = "Frontend creation tester Challenge",
+                description = "This is a test challenge",
+                gameId = "testerGame123"
+            )
 
+            val challengesResult = challengesRepository.createChallenge(challengeRequest)
 
+            _uiState.value = _uiState.value.copy(
+                isLoadingChallenges = false,
+            )
+            loadChallenges()
 
+            if (challengesResult.isFailure) {
+                val error = challengesResult.exceptionOrNull()
+                val errorMessage = error?.message ?: "Failed to load challenges"
+                Log.e(TAG, "Failed to load profile", error)
 
+                _uiState.value = _uiState.value.copy(
+                    isLoadingChallenges = false,
+                    errorMessage = errorMessage
+                )
+            }
         }
     }
 }

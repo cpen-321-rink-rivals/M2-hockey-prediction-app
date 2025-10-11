@@ -195,6 +195,10 @@ class NavigationStateManager @Inject constructor() {
     }
 
     /**
+     * Navigate to add challenge screen
+     */
+
+    /**
      * Handle account deletion
      */
     fun handleAccountDeletion() {
