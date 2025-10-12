@@ -10,6 +10,15 @@ import ticketsRoutes from './tickets.routes';
 
 const router = Router();
 
+/** Public healthcheck endpoint (no auth) */
+router.get('/ping', (req, res) => {
+  res.status(200).json({
+    status: 'ok',
+    uptime: process.uptime(),
+    timestamp: new Date().toISOString(),
+  });
+});
+
 router.use('/auth', authRoutes);
 
 router.use('/hobbies', authenticateToken, hobbiesRoutes);
