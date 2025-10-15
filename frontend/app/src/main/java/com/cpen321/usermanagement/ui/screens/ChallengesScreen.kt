@@ -53,12 +53,14 @@ import com.cpen321.usermanagement.ui.viewmodels.ChallengesUiState
 
 private data class ChallengesScreenCallbacks(
     val onBackClick: () -> Unit,
-    val onAddChallengeClick: () -> Unit
+    val onAddChallengeClick: () -> Unit,
+    val onChallengeClick: (challengeId: String) -> Unit
 )
 
 data class ChallengesScreenActions(
     val onBackClick: () -> Unit,
-    val onAddChallengeClick: () -> Unit
+    val onAddChallengeClick: () -> Unit,
+    val onChallengeClick: (challengeId: String) -> Unit
 )
 
 private const val TAG = "ChallengesScreen"
@@ -68,7 +70,6 @@ private const val TAG = "ChallengesScreen"
 fun ChallengesScreen(
     challengesViewModel: ChallengesViewModel,
     actions: ChallengesScreenActions
-
 
 ) {
 
@@ -87,7 +88,8 @@ fun ChallengesScreen(
         uiState = uiState,
         callbacks = ChallengesScreenCallbacks(
             onBackClick = actions.onBackClick,
-            onAddChallengeClick = actions.onAddChallengeClick
+            onAddChallengeClick = actions.onAddChallengeClick,
+            onChallengeClick = actions.onChallengeClick
         )
     )
 
@@ -110,9 +112,7 @@ private fun ChallengesContent(
         ChallengesBody(
             paddingValues = paddingValues,
             uiState = uiState,
-            onAddChallengeClick = {
-                Log.d(TAG, "Challenges Content hit")
-                callbacks.onAddChallengeClick() }
+            callbacks = callbacks,
         )
     }
 
@@ -149,7 +149,7 @@ fun ChallengesTopBar(
 private fun ChallengesBody(
     paddingValues: PaddingValues,
     uiState: ChallengesUiState,
-    onAddChallengeClick: () -> Unit,
+    callbacks: ChallengesScreenCallbacks,
     modifier: Modifier = Modifier
 
 ) {
@@ -189,13 +189,17 @@ private fun ChallengesBody(
                     LazyColumn(modifier = Modifier.fillMaxSize()) {
                         items(challenges) { challenge ->
                             // Replace with your actual ChallengeItem Composable
-                            ChallengeItem(challenge = challenge)
+                            ChallengeItem(
+                                challenge = challenge,
+                                onClick = { callbacks.onChallengeClick(challenge.id)
+                                }
+                            )
                         }
                     }
                     AddChallengeButton(
                         onClick = {
                             Log.d(TAG, "ChallengesBody hit")
-                            onAddChallengeClick()
+                            callbacks.onAddChallengeClick()
                         },
                         modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 32.dp).width(200.dp).height(60.dp)
 

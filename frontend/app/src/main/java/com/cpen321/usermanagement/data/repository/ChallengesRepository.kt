@@ -7,7 +7,13 @@ interface ChallengesRepository {
 
     suspend fun getChallenges(): Result<List<Challenge>>
 
+    suspend fun getChallenge(challengeId: String): Result<Challenge>
+
     suspend fun createChallenge(challengeRequest: CreateChallengeRequest): Result<Challenge>
+
+    suspend fun updateChallenge(challenge: Challenge): Result<Challenge>
+
+    suspend fun deleteChallenge(challengeId: String): Result<Unit>
 }
 
 

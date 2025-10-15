@@ -1,2 +1,525 @@
 package com.cpen321.usermanagement.ui.screens
 
+// Your existing imports...
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
+import com.cpen321.usermanagement.R
+import com.cpen321.usermanagement.data.remote.dto.Challenge
+import com.cpen321.usermanagement.data.remote.dto.ChallengeStatus
+import com.cpen321.usermanagement.ui.viewmodels.ChallengesViewModel
+import java.text.SimpleDateFormat
+import java.util.*
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun EditChallengeScreen(
+    challengeId: String,
+    challengesViewModel: ChallengesViewModel,
+    onBackClick: () -> Unit
+) {
+    val uiState by challengesViewModel.uiState.collectAsState()
+    val isOwner = true // TODO: Replace with actual logic
+
+    // Side effects
+    LaunchedEffect(Unit) {
+        challengesViewModel.loadChallenge(challengeId)
+    }
+
+    // When the screen detects the selected challenge has been cleared (e.g., after deletion), navigate back.
+    LaunchedEffect(uiState.selectedChallenge) {
+        if (uiState.selectedChallenge?.id != challengeId) {
+            onBackClick()
+        }
+    }
+
+    val challenge = uiState.selectedChallenge
+
+    if (challenge == null || challenge.id != challengeId) {
+        // Use a LaunchedEffect to ensure onBackClick is called safely within composition.
+        LaunchedEffect(Unit) {
+            onBackClick()
+        }
+        // Return early to avoid rendering the content for a frame.
+        return
+    }
+    EditChallengeContent(
+        challenge = challenge,
+        isOwner = isOwner,
+        onBackClick = onBackClick,
+        onSaveChallenge = { updatedChallenge ->
+            // TODO: Call ViewModel to save/update the challenge
+            onBackClick()
+        },
+        onDeleteChallenge = {
+            challengesViewModel.deleteChallenge(challenge.id)
+            onBackClick()
+        }
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun EditChallengeContent(
+    challenge: Challenge,
+    isOwner: Boolean,
+    onBackClick: () -> Unit,
+    onSaveChallenge: (Challenge) -> Unit,
+    onDeleteChallenge: () -> Unit // Added this callback
+) {
+    var title by remember { mutableStateOf(challenge.title) }
+    var description by remember { mutableStateOf(challenge.description) }
+    var maxMembers by remember { mutableStateOf(challenge.maxMembers.toString()) }
+
+    // A challenge can be edited by the owner if it's still pending or active.
+    val canEdit = isOwner && (challenge.status == ChallengeStatus.PENDING || challenge.status == ChallengeStatus.ACTIVE)
+
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = {
+                    Text(
+                        text = "Edit Challenge",
+                        fontWeight = FontWeight.Bold
+                    )
+                },
+                navigationIcon = {
+                    IconButton(onClick = onBackClick) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Back"
+                        )
+                    }
+                },
+                actions = {
+                    if (canEdit) {
+                        Button(
+                            onClick = {
+                                val updatedChallenge = challenge.copy(
+                                    title = title,
+                                    description = description,
+                                    maxMembers = maxMembers.toIntOrNull() ?: challenge.maxMembers
+                                )
+                                onSaveChallenge(updatedChallenge)
+                            }
+                        ) {
+                            Text("Save")
+                        }
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.primaryContainer
+                )
+            )
+        }
+    ) { paddingValues ->
+        // Use a Box to allow placing the delete button at the bottom
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+        ) {
+            // Scrollable Content
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
+                    // Add padding at the bottom to make space for the delete button
+                    .padding(bottom = 80.dp)
+                    .padding(horizontal = 16.dp, vertical = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                StatusCard(challenge = challenge)
+
+                if (canEdit) {
+                    EditFieldsCard(
+                        title = title,
+                        onTitleChange = { title = it },
+                        description = description,
+                        onDescriptionChange = { description = it },
+                        maxMembers = maxMembers,
+                        onMaxMembersChange = { maxMembers = it }
+                    )
+                } else {
+                    ReadOnlyFieldsCard(challenge = challenge)
+                }
+
+                GameInfoCard(challenge = challenge)
+                MembersCard(challenge = challenge)
+            }
+
+            // Delete button at the bottom
+            if (isOwner) {
+                DeleteChallengeButton(
+                    onClick = onDeleteChallenge,
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .padding(16.dp)
+                        .fillMaxWidth()
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun StatusCard(challenge: Challenge) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Default.Info,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurface
+            )
+            Column {
+                Text(
+                    text = "Challenge Status",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Text(
+                    text = challenge.toString(),//challenge.status.name.lowercase().replaceFirstChar { it.uppercase() },
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun EditFieldsCard(
+    title: String,
+    onTitleChange: (String) -> Unit,
+    description: String,
+    onDescriptionChange: (String) -> Unit,
+    maxMembers: String,
+    onMaxMembersChange: (String) -> Unit
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Edit,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary
+                )
+                Text(
+                    text = "Edit Details",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+
+            OutlinedTextField(
+                value = title,
+                onValueChange = onTitleChange,
+                label = { Text("Challenge Title") },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true
+            )
+
+            OutlinedTextField(
+                value = description,
+                onValueChange = onDescriptionChange,
+                label = { Text("Description") },
+                modifier = Modifier
+                    .fillMaxWidth(),
+                minLines = 3,
+                maxLines = 5
+            )
+
+            OutlinedTextField(
+                value = maxMembers,
+                onValueChange = onMaxMembersChange,
+                label = { Text("Max Members") },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true
+            )
+        }
+    }
+}
+
+@Composable
+private fun ReadOnlyFieldsCard(challenge: Challenge) {
+    Card(
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            InfoRow(
+                icon = R.drawable.ic_edit,
+                label = "Title",
+                value = challenge.title
+            )
+
+            InfoRow(
+                icon = R.drawable.info_outlined_icon,
+                label = "Description",
+                value = challenge.description
+            )
+
+            InfoRow(
+                icon = R.drawable.group_outlined_icon,
+                label = "Max Members",
+                value = challenge.maxMembers.toString()
+            )
+        }
+    }
+}
+
+@Composable
+private fun GameInfoCard(challenge: Challenge) {
+    Card(
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Icon(painter = painterResource(id = R.drawable.hockey_outlined_icon), contentDescription = null)
+                Text(
+                    text = "Game Information",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+
+            InfoRow(
+                icon = R.drawable.hockey_outlined_icon,
+                label = "Game ID",
+                value = challenge.gameId
+            )
+
+            challenge.gameStartTime?.let { startTime ->
+                InfoRow(
+                    icon = R.drawable.calendar_clock_icon,
+                    label = "Game Start Time",
+                    value = formatDateTime(startTime)
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun MembersCard(challenge: Challenge) {
+    Card(
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Icon(
+                    painter = painterResource(id = R.drawable.group_outlined_icon),
+                    contentDescription = null
+                )
+                Text(
+                    text = "Members (${challenge.memberIds.size}/${challenge.maxMembers})",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+
+            if (challenge.memberIds.isNotEmpty()) {
+                challenge.memberIds.forEach { memberId ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 4.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.group_outlined_icon),
+                            contentDescription = null
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = memberId,
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    }
+                }
+            } else {
+                Text(
+                    text = "No members yet",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+
+            if (challenge.invitedUserIds.isNotEmpty()) {
+                Divider(modifier = Modifier.padding(vertical = 8.dp))
+                Text(
+                    text = "Pending Invitations (${challenge.invitedUserIds.size})",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                challenge.invitedUserIds.forEach { invitedId ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 2.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.calendar_clock_icon),
+                            contentDescription = null
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = invitedId,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun InfoRow(
+    icon: Int,
+    label: String,
+    value: String
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Icon(
+            painter = painterResource(id = icon),
+            contentDescription = null
+        )
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Text(
+                text = value,
+                style = MaterialTheme.typography.bodyMedium,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis
+            )
+        }
+    }
+}
+
+@Composable
+private fun DeleteChallengeButton(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    var showDialog by remember { mutableStateOf(false) }
+
+    // The confirmation dialog
+    if (showDialog) {
+        AlertDialog(
+            onDismissRequest = { showDialog = false },
+            title = { Text("Delete Challenge") },
+            text = { Text("Are you sure you want to permanently delete this challenge? This action cannot be undone.") },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        showDialog = false
+                        onClick() // This calls viewModel.deleteChallenge(...)
+                    },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.error
+                    )
+                ) {
+                    Text("Delete")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDialog = false }) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
+
+    // The actual button shown on the screen
+    Button(
+        onClick = { showDialog = true }, // Show the dialog on click
+        modifier = modifier,
+        colors = ButtonDefaults.buttonColors(
+            containerColor = MaterialTheme.colorScheme.errorContainer,
+            contentColor = MaterialTheme.colorScheme.onErrorContainer
+        )
+    ) {
+        Icon(
+            imageVector = Icons.Default.Delete,
+            contentDescription = null
+        )
+        Spacer(modifier = Modifier.width(8.dp))
+        Text("Delete Challenge")
+    }
+}
+
+private fun formatDateTime(dateTimeString: String): String {
+    return try {
+        val inputFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault())
+        val outputFormat = SimpleDateFormat("MMM dd, yyyy 'at' hh:mm a", Locale.getDefault())
+        val date = inputFormat.parse(dateTimeString)
+        outputFormat.format(date ?: Date())
+    } catch (e: Exception) {
+        dateTimeString // Return original string if parsing fails
+    }
+}

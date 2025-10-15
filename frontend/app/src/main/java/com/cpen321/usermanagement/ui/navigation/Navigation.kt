@@ -8,13 +8,16 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.cpen321.usermanagement.R
 import com.cpen321.usermanagement.ui.screens.AuthScreen
 import com.cpen321.usermanagement.ui.screens.ChallengesScreen
 import com.cpen321.usermanagement.ui.screens.ChallengesScreenActions
+import com.cpen321.usermanagement.ui.screens.EditChallengeScreen
 import com.cpen321.usermanagement.ui.screens.LoadingScreen
 import com.cpen321.usermanagement.ui.screens.MainScreen
 import com.cpen321.usermanagement.ui.screens.ManageHobbiesScreen
@@ -39,6 +42,11 @@ object NavRoutes {
     const val PROFILE = "profile"
     const val TICKETS = "tickets"
     const val CHALLENGES = "challenges"
+
+    // Dynamic route format
+    const val EDIT_CHALLENGE_ROUTE = "edit_challenge"
+    const val EDIT_CHALLENGE_ARG = "challengeId"
+    const val EDIT_CHALLENGE = "$EDIT_CHALLENGE_ROUTE/{$EDIT_CHALLENGE_ARG}"
     const val MANAGE_PROFILE = "manage_profile"
     const val MANAGE_HOBBIES = "manage_hobbies"
     const val MANAGE_LANGUAGES_SPOKEN = "languages_spoken"
@@ -142,6 +150,12 @@ private fun handleNavigationEvent(
             navigationStateManager.clearNavigationEvent()
         }
 
+        is NavigationEvent.NavigateToEditChallenge -> {
+            navController.navigate("${NavRoutes.EDIT_CHALLENGE_ROUTE}/${navigationEvent.challengeId}")
+            navigationStateManager.clearNavigationEvent()
+        }
+
+
         is NavigationEvent.NavigateToManageProfile -> {
             navController.navigate(NavRoutes.MANAGE_PROFILE)
             navigationStateManager.clearNavigationEvent()
@@ -243,10 +257,31 @@ private fun AppNavHost(
                 challengesViewModel = challengesViewModel,
                 actions = ChallengesScreenActions(
                     onBackClick = { navigationStateManager.navigateBack() },
-                    onAddChallengeClick = { challengesViewModel.createChallenge() }
+                    onAddChallengeClick = { challengesViewModel.createChallenge() },
+                    onChallengeClick = { challengeId ->
+                        navigationStateManager.navigateToEditChallenge(challengeId)
+                    }
                 )
             )
 
+        }
+
+        composable(
+            route = NavRoutes.EDIT_CHALLENGE,
+            arguments = listOf(navArgument(NavRoutes.EDIT_CHALLENGE_ARG) {type = NavType.StringType})
+        ) { backStackEntry ->
+            val challengeId = backStackEntry.arguments?.getString(NavRoutes.EDIT_CHALLENGE_ARG)
+
+            if (challengeId != null) {
+                EditChallengeScreen(
+                    challengeId = challengeId,
+                    challengesViewModel = challengesViewModel,
+                    onBackClick = { navigationStateManager.navigateBack() }
+                )
+            } else {
+                Log.e("AppNavigation", "Challenge ID is null, navigating back.")
+                navigationStateManager.navigateBack()
+            }
         }
 
         composable(NavRoutes.MANAGE_PROFILE) {

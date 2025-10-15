@@ -35,8 +35,33 @@ class ChallengesRepositoryImpl @Inject constructor(
                 val errorMessage =
                     parseErrorMessage(errorBodyString, "Failed to fetch challenges.")
                 Log.e(TAG, "Failed to get challenges: $errorMessage")
-                tokenManager.clearToken()
-                RetrofitClient.setAuthToken(null)
+                Result.failure(Exception(errorMessage))
+            }
+        } catch (e: java.net.SocketTimeoutException) {
+            Log.e(TAG, "Network timeout while getting challenges", e)
+            Result.failure(e)
+        } catch (e: java.net.UnknownHostException) {
+            Log.e(TAG, "Network connection failed while getting challenges", e)
+            Result.failure(e)
+        } catch (e: java.io.IOException) {
+            Log.e(TAG, "IO error while getting challenges", e)
+            Result.failure(e)
+        } catch (e: retrofit2.HttpException) {
+            Log.e(TAG, "HTTP error while getting challenges: ${e.code()}", e)
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun getChallenge(challengeId: String): Result<Challenge> {
+        return try {
+            val response = challengeInterface.getChallenge("", challengeId = challengeId)
+            if (response.isSuccessful && response.body()?.data != null) {
+                Result.success(response.body()!!.data!!)
+            } else {
+                val errorBodyString = response.errorBody()?.string()
+                val errorMessage =
+                    parseErrorMessage(errorBodyString, "Failed to fetch challenges.")
+                Log.e(TAG, "Failed to get challenges: $errorMessage")
                 Result.failure(Exception(errorMessage))
             }
         } catch (e: java.net.SocketTimeoutException) {
@@ -69,8 +94,6 @@ class ChallengesRepositoryImpl @Inject constructor(
                 val errorMessage =
                     parseErrorMessage(errorBodyString, "Failed to fetch challenges.")
                 Log.e(TAG, "Failed to get challenges: $errorMessage")
-                tokenManager.clearToken()
-                RetrofitClient.setAuthToken(null)
                 Result.failure(Exception(errorMessage))
             }
         } catch (e: java.net.SocketTimeoutException) {
@@ -87,4 +110,65 @@ class ChallengesRepositoryImpl @Inject constructor(
             Result.failure(e)
         }
     }
+
+
+    override suspend fun updateChallenge(challenge: Challenge): Result<Challenge> {
+        return try {
+            val response = challengeInterface.updateChallenge("", challenge.id, challenge)
+
+            if (response.isSuccessful && response.body()?.data != null) {
+                Result.success(response.body()!!.data!!)
+            } else {
+                val errorBodyString = response.errorBody()?.string()
+                val errorMessage =
+                    parseErrorMessage(errorBodyString, "Failed to fetch challenges.")
+                Log.e(TAG, "Failed to get challenges: $errorMessage")
+                Result.failure(Exception(errorMessage))
+            }
+
+        } catch (e: java.net.SocketTimeoutException) {
+            Log.e(TAG, "Network timeout while updating challenge", e)
+            Result.failure(e)
+        } catch (e: java.net.UnknownHostException) {
+            Log.e(TAG, "Network connection failed while updating challenge", e)
+            Result.failure(e)
+        } catch (e: java.io.IOException) {
+            Log.e(TAG, "IO error while updating challenge", e)
+            Result.failure(e)
+        } catch (e: retrofit2.HttpException) {
+            Log.e(TAG, "HTTP error while updating challenge: ${e.code()}", e)
+            Result.failure(e)
+        }
+
+    }
+
+    override suspend fun deleteChallenge(challengeId: String): Result<Unit> {
+        return try {
+            val response = challengeInterface.deleteChallenge("", challengeId)
+
+            if (response.isSuccessful && response.body()?.data != null) {
+                Result.success(response.body()!!.data!!)
+            } else {
+                val errorBodyString = response.errorBody()?.string()
+                val errorMessage =
+                    parseErrorMessage(errorBodyString, "Failed to delete challenge.")
+                Log.e(TAG, "Failed to delete challenge: $errorMessage")
+                Result.failure(Exception(errorMessage))
+            }
+
+        } catch (e: java.net.SocketTimeoutException) {
+            Log.e(TAG, "Network timeout while deleting challenge", e)
+            Result.failure(e)
+        } catch (e: java.net.UnknownHostException) {
+            Log.e(TAG, "Network connection failed while deleting challenge", e)
+            Result.failure(e)
+        } catch (e: java.io.IOException) {
+            Log.e(TAG, "IO error while deleting challenge", e)
+            Result.failure(e)
+        } catch (e: retrofit2.HttpException) {
+            Log.e(TAG, "HTTP error while deleting challenge: ${e.code()}", e)
+            Result.failure(e)
+        }
+    }
+
 }

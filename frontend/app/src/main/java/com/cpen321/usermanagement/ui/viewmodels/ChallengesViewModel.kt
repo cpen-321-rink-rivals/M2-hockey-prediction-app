@@ -1,6 +1,7 @@
 package com.cpen321.usermanagement.ui.viewmodels
 
 import android.util.Log
+import androidx.compose.animation.core.copy
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.cpen321.usermanagement.data.remote.dto.Challenge
@@ -14,8 +15,11 @@ import javax.inject.Inject
 
 data class ChallengesUiState(
     val isLoadingChallenges: Boolean = false,
+    val isLoadingChallenge: Boolean = false,
 
     val allChallenges: List<Challenge>? = null,
+    val selectedChallenge: Challenge? = null,
+
 
     val errorMessage: String? = null,
     val successMessage: String? = null,
@@ -69,6 +73,35 @@ class ChallengesViewModel @Inject constructor(
         }
     }
 
+    fun loadChallenge(challengeId: String) {
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(isLoadingChallenge = true, errorMessage = null)
+            val challengeResult = challengesRepository.getChallenge(challengeId)
+            val challenge = challengeResult.getOrNull()
+            _uiState.value = _uiState.value.copy(
+                isLoadingChallenge = false,
+                selectedChallenge = challenge
+            )
+            if (challengeResult.isFailure) {
+                val error = challengeResult.exceptionOrNull()
+                val errorMessage = error?.message ?: "Failed to load challenge"
+                Log.e(TAG, "Failed to load profile", error)
+
+                _uiState.value = _uiState.value.copy(
+                    isLoadingChallenges = false,
+                    errorMessage = errorMessage
+                )
+            }
+
+
+        }
+    }
+
+    fun getChallenge(challengeId: String): Challenge? {
+        val challenge = _uiState.value.allChallenges?.find { it.id == challengeId }
+        return challenge
+    }
+
     fun createChallenge() {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoadingChallenges = true, errorMessage = null)
@@ -91,6 +124,56 @@ class ChallengesViewModel @Inject constructor(
                 val errorMessage = error?.message ?: "Failed to load challenges"
                 Log.e(TAG, "Failed to load profile", error)
 
+                _uiState.value = _uiState.value.copy(
+                    isLoadingChallenges = false,
+                    errorMessage = errorMessage
+                )
+            }
+        }
+    }
+
+    fun updateChallenge(challenge: Challenge) {
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(isLoadingChallenges = true, errorMessage = null)
+
+            val updatedChallengeResult = challengesRepository.updateChallenge(challenge)
+            _uiState.value = _uiState.value.copy(
+                isLoadingChallenges = false,
+            )
+            loadChallenges()
+
+            if (updatedChallengeResult.isFailure) {
+                val error = updatedChallengeResult.exceptionOrNull()
+                val errorMessage = error?.message ?: "Failed to update challenge"
+                Log.e(TAG, "Failed to update challenge", error)
+
+                _uiState.value = _uiState.value.copy(
+                    isLoadingChallenges = false,
+                    errorMessage = errorMessage
+                )
+            }
+        }
+    }
+
+    fun deleteChallenge(challengeId: String) {
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(isLoadingChallenges = true, errorMessage = null)
+
+            val deleteResult = challengesRepository.deleteChallenge(challengeId)
+
+            val updatedList = uiState.value.allChallenges?.filterNot { it.id == challengeId }
+            _uiState.value = _uiState.value.copy(
+                isLoadingChallenges = false,
+                allChallenges = updatedList, // Set the updated list
+                selectedChallenge = null, // Clear the selected challenge
+                successMessage = "Challenge deleted successfully!"
+            )
+
+
+            if (deleteResult.isFailure) {
+                val error = deleteResult.exceptionOrNull()
+                val errorMessage = error?.message ?: "Failed to delete challenge"
+                Log.e(TAG, "Failed to delete challenge", error)
                 _uiState.value = _uiState.value.copy(
                     isLoadingChallenges = false,
                     errorMessage = errorMessage
