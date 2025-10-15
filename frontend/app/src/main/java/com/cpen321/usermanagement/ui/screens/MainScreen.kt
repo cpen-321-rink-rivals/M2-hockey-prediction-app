@@ -40,7 +40,7 @@ fun MainScreen(
     mainViewModel: MainViewModel,
     onProfileClick: () -> Unit,
     onTicketClick: () -> Unit,
-    onFriendsClick: () -> Unit
+    onFriendsClick: () -> Unit,
     onChallengeClick: () -> Unit
 ) {
     val uiState by mainViewModel.uiState.collectAsState()

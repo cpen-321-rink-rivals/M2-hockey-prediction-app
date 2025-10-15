@@ -52,6 +52,10 @@ object NetworkModule {
     @Singleton
     fun provideFriendsService(): FriendsInterface {
         return RetrofitClient.friendsInterface
+    }
+
+    @Provides
+    @Singleton
     fun provideChallengesService(): ChallengesInterface {
         return RetrofitClient.challengesInterface
     }
