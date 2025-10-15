@@ -39,10 +39,13 @@ object RetrofitClient {
     val userInterface: UserInterface = retrofit.create(UserInterface::class.java)
     val hobbyInterface: HobbyInterface = retrofit.create(HobbyInterface::class.java)
     val languageInterface: LanguageInterface = retrofit.create(LanguageInterface::class.java)
+    val friendsInterface: FriendsInterface = retrofit.create(FriendsInterface::class.java)
 
     fun setAuthToken(token: String?) {
         authToken = token
     }
+
+    fun getAuthToken(): String? = authToken
 
     fun getPictureUri(picturePath: String): String {
         return if (picturePath.startsWith("uploads/")) {

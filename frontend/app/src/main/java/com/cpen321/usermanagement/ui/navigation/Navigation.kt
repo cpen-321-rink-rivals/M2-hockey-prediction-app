@@ -13,6 +13,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.cpen321.usermanagement.R
 import com.cpen321.usermanagement.ui.screens.AuthScreen
+import com.cpen321.usermanagement.ui.screens.FriendsScreen
 import com.cpen321.usermanagement.ui.screens.LoadingScreen
 import com.cpen321.usermanagement.ui.screens.MainScreen
 import com.cpen321.usermanagement.ui.screens.ManageHobbiesScreen
@@ -35,6 +36,7 @@ object NavRoutes {
     const val MAIN = "main"
     const val PROFILE = "profile"
     const val TICKETS = "tickets"
+    const val FRIENDS = "friends"
     const val MANAGE_PROFILE = "manage_profile"
     const val MANAGE_HOBBIES = "manage_hobbies"
     const val MANAGE_LANGUAGES_SPOKEN = "languages_spoken"
@@ -131,6 +133,11 @@ private fun handleNavigationEvent(
             navigationStateManager.clearNavigationEvent()
         }
 
+        is NavigationEvent.NavigateToFriends -> {
+            navController.navigate(NavRoutes.FRIENDS)
+            navigationStateManager.clearNavigationEvent()
+        }
+
         is NavigationEvent.NavigateToManageProfile -> {
             navController.navigate(NavRoutes.MANAGE_PROFILE)
             navigationStateManager.clearNavigationEvent()
@@ -197,7 +204,8 @@ private fun AppNavHost(
             MainScreen(
                 mainViewModel = mainViewModel,
                 onProfileClick = { navigationStateManager.navigateToProfile() },
-                onTicketClick = { navigationStateManager.navigateToTickets() }
+                onTicketClick = { navigationStateManager.navigateToTickets() },
+                onFriendsClick = { navigationStateManager.navigateToFriends() }
             )
         }
 
@@ -222,6 +230,14 @@ private fun AppNavHost(
                 actions = TicketsScreenActions(
                     onBackClick = { navigationStateManager.navigateBack() }
                 )
+            )
+        }
+
+        composable(NavRoutes.FRIENDS) {
+            FriendsScreen(
+                viewModel = hiltViewModel(),       // FriendsViewModel scoped to screen
+                authViewModel = authViewModel,     // pass the shared AuthViewModel
+                onBackClick = { navigationStateManager.navigateBack() }
             )
         }
 

@@ -44,7 +44,8 @@ import com.cpen321.usermanagement.ui.theme.LocalSpacing
 fun MainScreen(
     mainViewModel: MainViewModel,
     onProfileClick: () -> Unit,
-    onTicketClick: () -> Unit
+    onTicketClick: () -> Unit,
+    onFriendsClick: () -> Unit
 ) {
     val uiState by mainViewModel.uiState.collectAsState()
     val snackBarHostState = remember { SnackbarHostState() }
@@ -63,6 +64,7 @@ fun MainScreen(
         snackBarHostState = snackBarHostState,
         onProfileClick = onProfileClick,
         onTicketClick = onTicketClick,
+        onFriendsClick = onFriendsClick,
         onSuccessMessageShown = mainViewModel::clearSuccessMessage
     )
 }
@@ -73,13 +75,14 @@ private fun MainContent(
     snackBarHostState: SnackbarHostState,
     onProfileClick: () -> Unit,
     onTicketClick: () -> Unit,
+    onFriendsClick: () -> Unit,
     onSuccessMessageShown: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Scaffold(
         modifier = modifier,
         topBar = {
-            MainTopBar(onProfileClick = onProfileClick, onTicketClick = onTicketClick)
+            MainTopBar(onProfileClick = onProfileClick, onTicketClick = onTicketClick, onFriendsClick = onFriendsClick)
         },
         snackbarHost = {
             MainSnackbarHost(
@@ -101,6 +104,7 @@ private fun MainContent(
 private fun MainTopBar(
     onProfileClick: () -> Unit,
     onTicketClick: () -> Unit,
+    onFriendsClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     TopAppBar(
@@ -110,6 +114,8 @@ private fun MainTopBar(
         },
         actions = {
             BingoTicketActionButton(onClick = onTicketClick)
+
+            FriendsActionButton(onClick = onFriendsClick)
 
             ProfileActionButton(onClick = onProfileClick)
         },
@@ -159,6 +165,23 @@ private fun BingoTicketActionButton(
         modifier = modifier.size(spacing.extraLarge2)
     ) {
         TicketIcon(onClick = onClick)
+    }
+}
+
+@Composable
+private fun FriendsActionButton(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val spacing = LocalSpacing.current
+
+    IconButton(
+        onClick = onClick,
+        modifier = modifier.size(spacing.extraLarge2)
+    ) {
+        Icon(
+            name = R.drawable.ic_heart_smile, // or another icon you prefer
+        )
     }
 }
 
