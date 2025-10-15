@@ -38,26 +38,26 @@ fun EditChallengeScreen(
     val uiState by challengesViewModel.uiState.collectAsState()
 
     // Side effects
-    LaunchedEffect(Unit) {
+    LaunchedEffect(challengeId) {
         challengesViewModel.loadChallenge(challengeId)
         challengesViewModel.loadProfile()
     }
 
     val challenge = uiState.selectedChallenge
 
-
-    if (challenge != null) {
+    // make sure the challenge is not null and that it's the correct challenge (avoid stale data)
+    if (challenge != null && challenge.id == challengeId) {
         EditChallengeContent(
             challenge = challenge,
             isOwner = challenge.ownerId == uiState.user?._id,
             onBackClick = onBackClick,
             onSaveChallenge = { updatedChallenge ->
                 challengesViewModel.updateChallenge(updatedChallenge)
-                onBackClick()
+                onBackClick() // Navigate back after saving
             },
             onDeleteChallenge = {
                 challengesViewModel.deleteChallenge(challenge.id)
-                onBackClick()
+                onBackClick() // Navigate back after deleting
             }
         )
     } else {
