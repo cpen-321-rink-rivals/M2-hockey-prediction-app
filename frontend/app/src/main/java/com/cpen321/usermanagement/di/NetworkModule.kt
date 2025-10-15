@@ -1,6 +1,7 @@
 package com.cpen321.usermanagement.di
 
 import com.cpen321.usermanagement.data.remote.api.AuthInterface
+import com.cpen321.usermanagement.data.remote.api.ChallengesInterface
 import com.cpen321.usermanagement.data.remote.api.HobbyInterface
 import com.cpen321.usermanagement.data.remote.api.LanguageInterface
 import com.cpen321.usermanagement.data.remote.api.ImageInterface
@@ -51,5 +52,7 @@ object NetworkModule {
     @Singleton
     fun provideFriendsService(): FriendsInterface {
         return RetrofitClient.friendsInterface
+    fun provideChallengesService(): ChallengesInterface {
+        return RetrofitClient.challengesInterface
     }
 }

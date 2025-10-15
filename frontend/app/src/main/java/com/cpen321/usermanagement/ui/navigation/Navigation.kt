@@ -8,12 +8,17 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.cpen321.usermanagement.R
 import com.cpen321.usermanagement.ui.screens.AuthScreen
 import com.cpen321.usermanagement.ui.screens.FriendsScreen
+import com.cpen321.usermanagement.ui.screens.ChallengesScreen
+import com.cpen321.usermanagement.ui.screens.ChallengesScreenActions
+import com.cpen321.usermanagement.ui.screens.EditChallengeScreen
 import com.cpen321.usermanagement.ui.screens.LoadingScreen
 import com.cpen321.usermanagement.ui.screens.MainScreen
 import com.cpen321.usermanagement.ui.screens.ManageHobbiesScreen
@@ -25,6 +30,7 @@ import com.cpen321.usermanagement.ui.screens.ProfileScreen
 import com.cpen321.usermanagement.ui.screens.TicketsScreen
 import com.cpen321.usermanagement.ui.screens.TicketsScreenActions
 import com.cpen321.usermanagement.ui.viewmodels.AuthViewModel
+import com.cpen321.usermanagement.ui.viewmodels.ChallengesViewModel
 import com.cpen321.usermanagement.ui.viewmodels.MainViewModel
 import com.cpen321.usermanagement.ui.viewmodels.NavigationViewModel
 import com.cpen321.usermanagement.ui.viewmodels.ProfileViewModel
@@ -37,6 +43,12 @@ object NavRoutes {
     const val PROFILE = "profile"
     const val TICKETS = "tickets"
     const val FRIENDS = "friends"
+    const val CHALLENGES = "challenges"
+
+    // Dynamic route format
+    const val EDIT_CHALLENGE_ROUTE = "edit_challenge"
+    const val EDIT_CHALLENGE_ARG = "challengeId"
+    const val EDIT_CHALLENGE = "$EDIT_CHALLENGE_ROUTE/{$EDIT_CHALLENGE_ARG}"
     const val MANAGE_PROFILE = "manage_profile"
     const val MANAGE_HOBBIES = "manage_hobbies"
     const val MANAGE_LANGUAGES_SPOKEN = "languages_spoken"
@@ -56,6 +68,8 @@ fun AppNavigation(
     val profileViewModel: ProfileViewModel = hiltViewModel()
     val mainViewModel: MainViewModel = hiltViewModel()
     val ticketsViewModel: TicketsViewModel = hiltViewModel()
+    val challengesViewModel: ChallengesViewModel = hiltViewModel()
+
 
     // Handle navigation events from NavigationStateManager
     LaunchedEffect(navigationEvent) {
@@ -64,7 +78,7 @@ fun AppNavigation(
             navController,
             navigationStateManager,
             authViewModel,
-            mainViewModel
+            mainViewModel,
         )
     }
 
@@ -74,6 +88,7 @@ fun AppNavigation(
         profileViewModel = profileViewModel,
         mainViewModel = mainViewModel,
         ticketsViewModel = ticketsViewModel,
+        challengesViewModel = challengesViewModel,
         navigationStateManager = navigationStateManager
     )
 }
@@ -83,7 +98,7 @@ private fun handleNavigationEvent(
     navController: NavHostController,
     navigationStateManager: NavigationStateManager,
     authViewModel: AuthViewModel,
-    mainViewModel: MainViewModel
+    mainViewModel: MainViewModel,
 ) {
     when (navigationEvent) {
         is NavigationEvent.NavigateToAuth -> {
@@ -132,6 +147,16 @@ private fun handleNavigationEvent(
             navController.navigate(NavRoutes.TICKETS)
             navigationStateManager.clearNavigationEvent()
         }
+        is NavigationEvent.NavigateToChallenges -> {
+            navController.navigate(NavRoutes.CHALLENGES)
+            navigationStateManager.clearNavigationEvent()
+        }
+
+        is NavigationEvent.NavigateToEditChallenge -> {
+            navController.navigate("${NavRoutes.EDIT_CHALLENGE_ROUTE}/${navigationEvent.challengeId}")
+            navigationStateManager.clearNavigationEvent()
+        }
+
 
         is NavigationEvent.NavigateToFriends -> {
             navController.navigate(NavRoutes.FRIENDS)
@@ -174,6 +199,7 @@ private fun AppNavHost(
     authViewModel: AuthViewModel,
     profileViewModel: ProfileViewModel,
     ticketsViewModel: TicketsViewModel,
+    challengesViewModel: ChallengesViewModel,
     mainViewModel: MainViewModel,
     navigationStateManager: NavigationStateManager
 ) {
@@ -206,6 +232,7 @@ private fun AppNavHost(
                 onProfileClick = { navigationStateManager.navigateToProfile() },
                 onTicketClick = { navigationStateManager.navigateToTickets() },
                 onFriendsClick = { navigationStateManager.navigateToFriends() }
+                onChallengeClick = { navigationStateManager.navigateToChallenges() }
             )
         }
 
@@ -239,6 +266,36 @@ private fun AppNavHost(
                 authViewModel = authViewModel,     // pass the shared AuthViewModel
                 onBackClick = { navigationStateManager.navigateBack() }
             )
+        composable(NavRoutes.CHALLENGES) {
+            ChallengesScreen(
+                challengesViewModel = challengesViewModel,
+                actions = ChallengesScreenActions(
+                    onBackClick = { navigationStateManager.navigateBack() },
+                    onAddChallengeClick = { challengesViewModel.createChallenge() },
+                    onChallengeClick = { challengeId ->
+                        navigationStateManager.navigateToEditChallenge(challengeId)
+                    }
+                )
+            )
+
+        }
+
+        composable(
+            route = NavRoutes.EDIT_CHALLENGE,
+            arguments = listOf(navArgument(NavRoutes.EDIT_CHALLENGE_ARG) {type = NavType.StringType})
+        ) { backStackEntry ->
+            val challengeId = backStackEntry.arguments?.getString(NavRoutes.EDIT_CHALLENGE_ARG)
+
+            if (challengeId != null) {
+                EditChallengeScreen(
+                    challengeId = challengeId,
+                    challengesViewModel = challengesViewModel,
+                    onBackClick = { navigationStateManager.navigateBack() }
+                )
+            } else {
+                Log.e("AppNavigation", "Challenge ID is null, navigating back.")
+                navigationStateManager.navigateBack()
+            }
         }
 
         composable(NavRoutes.MANAGE_PROFILE) {
