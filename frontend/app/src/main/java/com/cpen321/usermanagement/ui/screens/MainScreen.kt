@@ -40,6 +40,7 @@ fun MainScreen(
     mainViewModel: MainViewModel,
     onProfileClick: () -> Unit,
     onTicketClick: () -> Unit,
+    onFriendsClick: () -> Unit
     onChallengeClick: () -> Unit
 ) {
     val uiState by mainViewModel.uiState.collectAsState()
@@ -59,6 +60,7 @@ fun MainScreen(
         snackBarHostState = snackBarHostState,
         onProfileClick = onProfileClick,
         onTicketClick = onTicketClick,
+        onFriendsClick = onFriendsClick,
         onChallengeClick = onChallengeClick,
         onSuccessMessageShown = mainViewModel::clearSuccessMessage
     )
@@ -70,6 +72,7 @@ private fun MainContent(
     snackBarHostState: SnackbarHostState,
     onProfileClick: () -> Unit,
     onTicketClick: () -> Unit,
+    onFriendsClick: () -> Unit,
     onChallengeClick: () -> Unit,
     onSuccessMessageShown: () -> Unit,
     modifier: Modifier = Modifier
@@ -77,11 +80,8 @@ private fun MainContent(
     Scaffold(
         modifier = modifier,
         topBar = {
-            MainTopBar(
-                onProfileClick = onProfileClick,
-                onTicketClick = onTicketClick,
-                onChallengeClick = onChallengeClick
-            )
+            MainTopBar(onProfileClick = onProfileClick, onTicketClick = onTicketClick, onFriendsClick = onFriendsClick, onChallengeClick = onChallengeClick)
+            
         },
         snackbarHost = {
             MainSnackbarHost(
@@ -103,6 +103,7 @@ private fun MainContent(
 private fun MainTopBar(
     onProfileClick: () -> Unit,
     onTicketClick: () -> Unit,
+    onFriendsClick: () -> Unit,
     onChallengeClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -114,6 +115,8 @@ private fun MainTopBar(
         actions = {
             BingoTicketActionButton(onClick = onTicketClick)
             ChallengeActionButton(onClick = onChallengeClick)
+
+            FriendsActionButton(onClick = onFriendsClick)
 
             ProfileActionButton(onClick = onProfileClick)
         },
@@ -178,6 +181,23 @@ private fun ChallengeActionButton(
         modifier = modifier.size(spacing.extraLarge2)
     ) {
         ChallengeIcon(onClick = onClick)
+    }
+}
+
+@Composable
+private fun FriendsActionButton(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val spacing = LocalSpacing.current
+
+    IconButton(
+        onClick = onClick,
+        modifier = modifier.size(spacing.extraLarge2)
+    ) {
+        Icon(
+            name = R.drawable.ic_heart_smile, // or another icon you prefer
+        )
     }
 }
 

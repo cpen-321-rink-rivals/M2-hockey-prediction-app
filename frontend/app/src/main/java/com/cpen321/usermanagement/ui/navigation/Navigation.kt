@@ -15,6 +15,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.cpen321.usermanagement.R
 import com.cpen321.usermanagement.ui.screens.AuthScreen
+import com.cpen321.usermanagement.ui.screens.FriendsScreen
 import com.cpen321.usermanagement.ui.screens.ChallengesScreen
 import com.cpen321.usermanagement.ui.screens.ChallengesScreenActions
 import com.cpen321.usermanagement.ui.screens.EditChallengeScreen
@@ -41,6 +42,7 @@ object NavRoutes {
     const val MAIN = "main"
     const val PROFILE = "profile"
     const val TICKETS = "tickets"
+    const val FRIENDS = "friends"
     const val CHALLENGES = "challenges"
 
     // Dynamic route format
@@ -156,6 +158,11 @@ private fun handleNavigationEvent(
         }
 
 
+        is NavigationEvent.NavigateToFriends -> {
+            navController.navigate(NavRoutes.FRIENDS)
+            navigationStateManager.clearNavigationEvent()
+        }
+
         is NavigationEvent.NavigateToManageProfile -> {
             navController.navigate(NavRoutes.MANAGE_PROFILE)
             navigationStateManager.clearNavigationEvent()
@@ -224,6 +231,7 @@ private fun AppNavHost(
                 mainViewModel = mainViewModel,
                 onProfileClick = { navigationStateManager.navigateToProfile() },
                 onTicketClick = { navigationStateManager.navigateToTickets() },
+                onFriendsClick = { navigationStateManager.navigateToFriends() }
                 onChallengeClick = { navigationStateManager.navigateToChallenges() }
             )
         }
@@ -252,6 +260,12 @@ private fun AppNavHost(
             )
         }
 
+        composable(NavRoutes.FRIENDS) {
+            FriendsScreen(
+                viewModel = hiltViewModel(),       // FriendsViewModel scoped to screen
+                authViewModel = authViewModel,     // pass the shared AuthViewModel
+                onBackClick = { navigationStateManager.navigateBack() }
+            )
         composable(NavRoutes.CHALLENGES) {
             ChallengesScreen(
                 challengesViewModel = challengesViewModel,
