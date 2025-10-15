@@ -17,7 +17,6 @@ import javax.inject.Singleton
 class ChallengesRepositoryImpl @Inject constructor(
     @ApplicationContext private val context: Context,
     private val challengeInterface: ChallengesInterface,
-    private val tokenManager: TokenManager
 ) : ChallengesRepository {
 
     companion object {
@@ -55,7 +54,6 @@ class ChallengesRepositoryImpl @Inject constructor(
     override suspend fun getChallenge(challengeId: String): Result<Challenge> {
         return try {
             val response = challengeInterface.getChallenge("", challengeId = challengeId)
-            Log.d("ChallengeRepositoryImpl", "Response: $response, Body: ${response.body()}, Data: ${response.body()?.data}" )
             if (response.isSuccessful && response.body()?.data != null) {
                 Result.success(response.body()!!.data!!)
             } else {
@@ -116,14 +114,13 @@ class ChallengesRepositoryImpl @Inject constructor(
     override suspend fun updateChallenge(challenge: Challenge): Result<Challenge> {
         return try {
             val response = challengeInterface.updateChallenge("", challenge.id, challenge)
-
             if (response.isSuccessful && response.body()?.data != null) {
                 Result.success(response.body()!!.data!!)
             } else {
                 val errorBodyString = response.errorBody()?.string()
                 val errorMessage =
-                    parseErrorMessage(errorBodyString, "Failed to fetch challenges.")
-                Log.e(TAG, "Failed to get challenges: $errorMessage")
+                    parseErrorMessage(errorBodyString, "Failed to update challenge.")
+                Log.e(TAG, "Failed to update challenge: $errorMessage")
                 Result.failure(Exception(errorMessage))
             }
 

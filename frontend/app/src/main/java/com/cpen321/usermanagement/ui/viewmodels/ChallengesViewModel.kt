@@ -6,7 +6,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.cpen321.usermanagement.data.remote.dto.Challenge
 import com.cpen321.usermanagement.data.remote.dto.CreateChallengeRequest
+import com.cpen321.usermanagement.data.remote.dto.User
 import com.cpen321.usermanagement.data.repository.ChallengesRepository
+import com.cpen321.usermanagement.data.repository.ProfileRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -14,13 +16,21 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 data class ChallengesUiState(
+
+    // loading states
     val isLoadingChallenges: Boolean = false,
     val isLoadingChallenge: Boolean = false,
+    val isLoadingProfile: Boolean = false,
+    val isDeletingChallenge: Boolean = false,
+    val isUpdatingChallenge: Boolean = false,
 
+
+    //data states
+    val user: User? = null,
     val allChallenges: List<Challenge>? = null,
     val selectedChallenge: Challenge? = null,
 
-
+    // message states
     val errorMessage: String? = null,
     val successMessage: String? = null,
 )
@@ -29,7 +39,8 @@ data class ChallengesUiState(
 
 @HiltViewModel
 class ChallengesViewModel @Inject constructor(
-    private val challengesRepository: ChallengesRepository
+    private val challengesRepository: ChallengesRepository,
+    private val profileRepository: ProfileRepository
     // Inject repositories here if needed in the future
 ) : ViewModel() {
     companion object {
@@ -45,6 +56,39 @@ class ChallengesViewModel @Inject constructor(
 
     fun clearSuccessMessage() {
         _uiState.value = _uiState.value.copy(successMessage = null)
+    }
+
+    fun loadProfile() {
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(isLoadingProfile = true, errorMessage = null)
+
+            val profileResult = profileRepository.getProfile()
+
+            val user = profileResult.getOrNull()
+
+
+
+            _uiState.value = _uiState.value.copy(
+                isLoadingProfile = false,
+                user = user,
+            )
+
+            if (profileResult.isFailure) {
+                val error = profileResult.exceptionOrNull()
+                val errorMessage = error?.message ?: "Failed to load profile"
+                Log.e(TAG, "Failed to load profile", error)
+
+                _uiState.value = _uiState.value.copy(
+                    isLoadingProfile = false,
+                    errorMessage = errorMessage
+                )
+            } else {
+                _uiState.value = _uiState.value.copy(
+                    isLoadingProfile = false,
+                    errorMessage = null
+                )
+            }
+        }
     }
 
     fun loadChallenges() {
@@ -77,7 +121,6 @@ class ChallengesViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoadingChallenge = true, errorMessage = null)
             val challengeResult = challengesRepository.getChallenge(challengeId)
-            Log.d("ChallengesViewModel", "Loaded challenge: $challengeResult")
             val challenge = challengeResult.getOrNull()
             _uiState.value = _uiState.value.copy(
                 isLoadingChallenge = false,
@@ -96,11 +139,6 @@ class ChallengesViewModel @Inject constructor(
 
 
         }
-    }
-
-    fun getChallenge(challengeId: String): Challenge? {
-        val challenge = _uiState.value.allChallenges?.find { it.id == challengeId }
-        return challenge
     }
 
     fun createChallenge() {
@@ -135,11 +173,11 @@ class ChallengesViewModel @Inject constructor(
 
     fun updateChallenge(challenge: Challenge) {
         viewModelScope.launch {
-            _uiState.value = _uiState.value.copy(isLoadingChallenges = true, errorMessage = null)
+            _uiState.value = _uiState.value.copy(isUpdatingChallenge = true, errorMessage = null)
 
             val updatedChallengeResult = challengesRepository.updateChallenge(challenge)
             _uiState.value = _uiState.value.copy(
-                isLoadingChallenges = false,
+                isUpdatingChallenge = false,
             )
             loadChallenges()
 
@@ -149,7 +187,7 @@ class ChallengesViewModel @Inject constructor(
                 Log.e(TAG, "Failed to update challenge", error)
 
                 _uiState.value = _uiState.value.copy(
-                    isLoadingChallenges = false,
+                    isUpdatingChallenge = false,
                     errorMessage = errorMessage
                 )
             }

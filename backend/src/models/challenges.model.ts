@@ -8,6 +8,7 @@ import {
 } from '../types/challenges.types';
 import logger from '../logger.util';
 import z from 'zod';
+import { log } from 'console';
 
 // Type-safe input types derived from Zod schemas
 export type CreateChallengeInput = z.infer<typeof createChallengeSchema>;
@@ -91,6 +92,7 @@ export class ChallengesModel {
         id: new mongoose.Types.ObjectId().toString(),
         ownerId,
         status: ChallengeStatus.PENDING,
+        maxMembers: validated.maxMembers || 10, // Use validated data or default to 10
         memberIds: [ownerId], // Owner is automatically a member
       };
 
@@ -112,6 +114,8 @@ export class ChallengesModel {
     data: Partial<IChallenge>
   ): Promise<IChallenge | null> {
     try {
+      logger.info('Updating challenge with data:', data);
+      logger.info('data:', data);
       const validated = updateChallengeSchema.parse(data);
       const updated = await this.challenge.findOneAndUpdate({ id }, validated, {
         new: true,

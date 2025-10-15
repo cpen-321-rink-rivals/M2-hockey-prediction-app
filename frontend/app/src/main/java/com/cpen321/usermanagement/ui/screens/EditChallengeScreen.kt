@@ -36,36 +36,35 @@ fun EditChallengeScreen(
     onBackClick: () -> Unit
 ) {
     val uiState by challengesViewModel.uiState.collectAsState()
-    val isOwner = true // TODO: Replace with actual logic
 
     // Side effects
     LaunchedEffect(Unit) {
         challengesViewModel.loadChallenge(challengeId)
-        // log loaded challenge
-        Log.d("EditChallengeScreen", "Loaded challenge: ${uiState.selectedChallenge}")
+        challengesViewModel.loadProfile()
     }
 
     val challenge = uiState.selectedChallenge
 
-    if (challenge == null || challenge.id != challengeId) {
-        LaunchedEffect(Unit) {
-            onBackClick()
-        }
-        // Return early to avoid rendering the content for a frame.
+
+    if (challenge != null) {
+        EditChallengeContent(
+            challenge = challenge,
+            isOwner = challenge.ownerId == uiState.user?._id,
+            onBackClick = onBackClick,
+            onSaveChallenge = { updatedChallenge ->
+                challengesViewModel.updateChallenge(updatedChallenge)
+                onBackClick()
+            },
+            onDeleteChallenge = {
+                challengesViewModel.deleteChallenge(challenge.id)
+                onBackClick()
+            }
+        )
+    } else {
+        Log.e("EditChallengeScreen", "Challenge not found")
         return
     }
-    EditChallengeContent(
-        challenge = challenge,
-        isOwner = isOwner,
-        onBackClick = onBackClick,
-        onSaveChallenge = { updatedChallenge ->
-            // TODO: Call ViewModel to save/update the challenge
-            onBackClick()
-        },
-        onDeleteChallenge = {
-            challengesViewModel.deleteChallenge(challenge.id)
-        }
-    )
+
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -196,7 +195,7 @@ private fun StatusCard(challenge: Challenge) {
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Text(
-                    text = challenge.toString(),//challenge.status.name.lowercase().replaceFirstChar { it.uppercase() },
+                    text = challenge.status.name.lowercase().replaceFirstChar { it.uppercase() },
                     style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.Bold
                 )
