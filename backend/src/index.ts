@@ -7,6 +7,7 @@ import router from './routes/routes';
 import path from 'path';
 
 dotenv.config();
+console.log('JWT_SECRET on server =', process.env.JWT_SECRET); // DEBUG
 
 const app = express();
 const PORT = process.env.PORT ?? 3000;

@@ -1,0 +1,15 @@
+curls
+
+curl "http://localhost:3000/api/nhl/games?date=2025-10-12" ^
+  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJkZXYtdXNlciIsInJvbGUiOiJ0ZXN0ZXIiLCJpYXQiOjE3NjAzMDMzMTQsImV4cCI6MTc2MDMwNjkxNH0.R-a7UC2-hYp9ixDb9LNneCkVofa6J1DKuMkCsiRz7Bo"
+
+
+
+# stop containers and remove them + named volumes
+docker compose down -v --remove-orphans
+
+# (optional) clear cached layers for a truly fresh app build
+docker compose build --no-cache
+
+# (re)start everything in the background, recreating containers
+docker compose up -d --force-recreate

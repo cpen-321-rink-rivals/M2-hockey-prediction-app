@@ -8,6 +8,9 @@ import mediaRoutes from './media.routes';
 import usersRoutes from '../routes/user.routes';
 import ticketsRoutes from './tickets.routes';
 
+// NHL SERVICE
+import nhlRoutes from './nhl.routes';
+
 const router = Router();
 
 /** Public healthcheck endpoint (no auth) */
@@ -30,5 +33,7 @@ router.use('/user', authenticateToken, usersRoutes);
 router.use('/tickets', authenticateToken, ticketsRoutes);
 
 router.use('/media', authenticateToken, mediaRoutes);
+
+router.use('/nhl', authenticateToken, nhlRoutes);
 
 export default router;
