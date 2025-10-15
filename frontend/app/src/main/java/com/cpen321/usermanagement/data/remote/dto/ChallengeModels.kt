@@ -1,5 +1,7 @@
 package com.cpen321.usermanagement.data.remote.dto
 
+import com.google.gson.annotations.SerializedName
+
 data class Challenge(
     val id: String,
     val title: String,
@@ -15,11 +17,20 @@ data class Challenge(
     val updatedAt: String? = null,
     val gameStartTime: String? = null,
 )
-enum class ChallengeStatus{
+enum class ChallengeStatus {
+    @SerializedName("pending")
     PENDING,
+
+    @SerializedName("active")
     ACTIVE,
+
+    @SerializedName("live")
     LIVE,
+
+    @SerializedName("finished")
     FINISHED,
+
+    @SerializedName("cancelled")
     CANCELLED
 }
 

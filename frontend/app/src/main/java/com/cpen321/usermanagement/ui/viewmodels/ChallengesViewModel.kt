@@ -77,6 +77,7 @@ class ChallengesViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoadingChallenge = true, errorMessage = null)
             val challengeResult = challengesRepository.getChallenge(challengeId)
+            Log.d("ChallengesViewModel", "Loaded challenge: $challengeResult")
             val challenge = challengeResult.getOrNull()
             _uiState.value = _uiState.value.copy(
                 isLoadingChallenge = false,

@@ -1,6 +1,7 @@
 package com.cpen321.usermanagement.ui.screens
 
 // Your existing imports...
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -40,19 +41,13 @@ fun EditChallengeScreen(
     // Side effects
     LaunchedEffect(Unit) {
         challengesViewModel.loadChallenge(challengeId)
-    }
-
-    // When the screen detects the selected challenge has been cleared (e.g., after deletion), navigate back.
-    LaunchedEffect(uiState.selectedChallenge) {
-        if (uiState.selectedChallenge?.id != challengeId) {
-            onBackClick()
-        }
+        // log loaded challenge
+        Log.d("EditChallengeScreen", "Loaded challenge: ${uiState.selectedChallenge}")
     }
 
     val challenge = uiState.selectedChallenge
 
     if (challenge == null || challenge.id != challengeId) {
-        // Use a LaunchedEffect to ensure onBackClick is called safely within composition.
         LaunchedEffect(Unit) {
             onBackClick()
         }
@@ -69,7 +64,6 @@ fun EditChallengeScreen(
         },
         onDeleteChallenge = {
             challengesViewModel.deleteChallenge(challenge.id)
-            onBackClick()
         }
     )
 }

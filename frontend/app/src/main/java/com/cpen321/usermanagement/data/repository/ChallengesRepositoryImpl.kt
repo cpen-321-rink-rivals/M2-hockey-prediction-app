@@ -55,6 +55,7 @@ class ChallengesRepositoryImpl @Inject constructor(
     override suspend fun getChallenge(challengeId: String): Result<Challenge> {
         return try {
             val response = challengeInterface.getChallenge("", challengeId = challengeId)
+            Log.d("ChallengeRepositoryImpl", "Response: $response, Body: ${response.body()}, Data: ${response.body()?.data}" )
             if (response.isSuccessful && response.body()?.data != null) {
                 Result.success(response.body()!!.data!!)
             } else {
