@@ -109,6 +109,7 @@ private data class ProfileFieldsData(
     val name: String,
     val email: String,
     val bio: String,
+    val friendCode: String,
     val onNameChange: (String) -> Unit,
     val onBioChange: (String) -> Unit
 )
@@ -317,6 +318,7 @@ private fun ProfileForm(
                 name = data.formState.name,
                 email = data.user.email,
                 bio = data.formState.bio,
+                friendCode = data.user.friendCode,
                 onNameChange = data.onNameChange,
                 onBioChange = data.onBioChange
             )
@@ -446,7 +448,16 @@ private fun ProfileFields(
             enabled = false
         )
 
-            OutlinedTextField(
+        OutlinedTextField(
+            value = data.friendCode,
+            onValueChange = { /* Read-only */ },
+            label = { Text("Friend Code") },
+            modifier = Modifier.fillMaxWidth(),
+            singleLine = true,
+            enabled = false
+        )
+
+        OutlinedTextField(
                 value = data.bio,
                 onValueChange = data.onBioChange,
                 label = { Text(stringResource(R.string.bio)) },

@@ -12,6 +12,7 @@ sealed class NavigationEvent {
     object NavigateToProfileCompletion : NavigationEvent()
     object NavigateToProfile : NavigationEvent()
     object NavigateToTickets : NavigationEvent()
+    object NavigateToFriends : NavigationEvent()
     object NavigateToManageProfile : NavigationEvent()
     object NavigateToManageHobbies : NavigationEvent()
     object NavigateToLanguagesSpoken: NavigationEvent()
@@ -148,6 +149,14 @@ class NavigationStateManager @Inject constructor() {
     fun navigateToTickets() {
         _navigationEvent.value = NavigationEvent.NavigateToTickets
         _navigationState.value = _navigationState.value.copy(currentRoute = NavRoutes.TICKETS)
+    }
+
+    /**
+     * Navigate to Friends screen
+     */
+    fun navigateToFriends() {
+        _navigationEvent.value = NavigationEvent.NavigateToFriends
+        _navigationState.value = _navigationState.value.copy(currentRoute = NavRoutes.FRIENDS)
     }
 
     /**

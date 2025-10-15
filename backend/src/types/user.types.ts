@@ -16,6 +16,7 @@ export interface IUser extends Document {
   languagesSpoken: string[];
   createdAt: Date;
   updatedAt: Date;
+  friendCode: string;
 }
 
 // Zod schemas
@@ -28,6 +29,7 @@ export const createUserSchema = z.object({
   bio: z.string().max(500).optional(),
   hobbies: z.array(z.string()).default([]),
   languagesSpoken: z.array(z.string()).default([]),
+  friendCode: z.string().optional(),
 });
 
 export const updateProfileSchema = z.object({
