@@ -1,6 +1,7 @@
 package com.cpen321.usermanagement.data.remote.dto
 
 import com.google.gson.annotations.SerializedName
+import java.util.Date
 
 data class Challenge(
     val id: String,
@@ -15,7 +16,7 @@ data class Challenge(
     val ticketIds: Map<String, String>,
     val createdAt: String? = null,
     val updatedAt: String? = null,
-    val gameStartTime: String? = null,
+    val gameStartTime: Date? = null,
 )
 enum class ChallengeStatus {
     @SerializedName("pending")
@@ -38,9 +39,9 @@ data class CreateChallengeRequest(
     val title: String,
     val description: String,
     val gameId: String,
-    val invitees: List<String>? = null,
+    val invitedUserIds: List<String>? = null,
     val maxMembers: Int? = null,
-    val gameStartTime: String? = null
+    val gameStartTime: Date? = null
 )
 
 

@@ -83,6 +83,7 @@ class ChallengesRepositoryImpl @Inject constructor(
     override suspend fun createChallenge(challengeRequest: CreateChallengeRequest): Result<Challenge> {
         return try {
             // API response from backend!!
+            Log.d(TAG, "Creating challenge with request: $challengeRequest")
             val response = challengeInterface.createChallenge("", challengeRequest)
 
 

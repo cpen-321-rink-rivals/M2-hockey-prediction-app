@@ -15,6 +15,8 @@ sealed class NavigationEvent {
     object NavigateToFriends : NavigationEvent()
     object NavigateToChallenges : NavigationEvent()
     data class NavigateToEditChallenge(val challengeId: String) : NavigationEvent()
+
+    object NavigateToAddChallenge : NavigationEvent()
     object NavigateToManageProfile : NavigationEvent()
     object NavigateToManageHobbies : NavigationEvent()
     object NavigateToLanguagesSpoken: NavigationEvent()
@@ -175,8 +177,12 @@ class NavigationStateManager @Inject constructor() {
     fun navigateToEditChallenge(challengeId: String) {
         _navigationEvent.value = NavigationEvent.NavigateToEditChallenge(challengeId)
     }
-
-
+    /**
+     * Navigate to add challenge screen
+     */
+    fun navigateToAddChallenge() {
+        _navigationEvent.value = NavigationEvent.NavigateToAddChallenge
+    }
 
     /**
      * Navigate to manage profile screen

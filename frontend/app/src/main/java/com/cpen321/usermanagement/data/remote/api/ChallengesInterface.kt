@@ -14,36 +14,36 @@ import retrofit2.http.Path
 
 interface ChallengesInterface {
 
-    // Defines the GET request to the "/challenges" endpoint
     @GET("challenges")
     suspend fun getChallenges(
         @Header("Authorization") token: String
-    ): Response<ApiResponse<List<Challenge>>>
+    ): Response<ApiResponse<List<Challenge>>> // gets a list of all challenges for the user
 
     @GET("challenges/{challengeId}")
     suspend fun getChallenge(
         @Header("Authorization") token: String,
         @Path("challengeId") challengeId: String
-    ): Response<ApiResponse<Challenge>>
+    ): Response<ApiResponse<Challenge>> // gets a specific challenge
 
-    // Defines the POST request to the "/challenges" endpoint
     @POST("challenges")
     suspend fun createChallenge(
         @Header("Authorization") token: String,
         @Body request: CreateChallengeRequest
-    ): Response<ApiResponse<Challenge>> // Assuming the backend returns the newly created challenge
+    ): Response<ApiResponse<Challenge>> // creates a new challenge and returns it.
+
 
     @PUT("challenges/{challengeId}")
     suspend fun updateChallenge(
         @Header("Authorization") token: String,
         @Path("challengeId") challengeId: String,
         @Body updatedChallenge: Challenge
-    ): Response<ApiResponse<Challenge>>
+    ): Response<ApiResponse<Challenge>> // updates a challenge and returns it.
+
 
     @DELETE("challenges/{challengeId}")
     suspend fun deleteChallenge(
         @Header("Authorization") token: String,
         @Path("challengeId") challengeId: String
-    ): Response<ApiResponse<Unit>>
+    ): Response<ApiResponse<Unit>> // deletes a challenge
 }
 

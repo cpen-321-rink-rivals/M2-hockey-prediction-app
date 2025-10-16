@@ -328,13 +328,13 @@ private fun GameInfoCard(challenge: Challenge) {
                 value = challenge.gameId
             )
 
-            challenge.gameStartTime?.let { startTime ->
+            /*challenge.gameStartTime?.let { startTime ->
                 InfoRow(
                     icon = R.drawable.calendar_clock_icon,
                     label = "Game Start Time",
                     value = formatDateTime(startTime)
                 )
-            }
+            }*/ // TODO: fix problem with date type
         }
     }
 }

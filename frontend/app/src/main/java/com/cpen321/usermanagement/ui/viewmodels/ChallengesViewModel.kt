@@ -141,15 +141,11 @@ class ChallengesViewModel @Inject constructor(
         }
     }
 
-    fun createChallenge() {
+    fun createChallenge(challengeRequest: CreateChallengeRequest) {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoadingChallenges = true, errorMessage = null)
 
-            val challengeRequest = CreateChallengeRequest(
-                title = "Frontend creation tester Challenge",
-                description = "This is a test challenge",
-                gameId = "testerGame123"
-            )
+            Log.d(TAG, "Creating challenge with request: $challengeRequest")
 
             val challengesResult = challengesRepository.createChallenge(challengeRequest)
 
