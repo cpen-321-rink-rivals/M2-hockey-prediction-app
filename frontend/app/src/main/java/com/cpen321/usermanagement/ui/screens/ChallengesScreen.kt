@@ -79,7 +79,7 @@ fun ChallengesScreen(
     LaunchedEffect(Unit) {
         challengesViewModel.clearSuccessMessage()
         challengesViewModel.clearError()
-
+        challengesViewModel.loadProfile()
         challengesViewModel.loadChallenges()
 
     }

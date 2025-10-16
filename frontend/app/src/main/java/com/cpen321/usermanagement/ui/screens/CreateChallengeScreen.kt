@@ -27,6 +27,7 @@ import androidx.compose.ui.window.Dialog
 import com.cpen321.usermanagement.R
 import com.cpen321.usermanagement.data.remote.dto.CreateChallengeRequest
 import com.cpen321.usermanagement.ui.viewmodels.ChallengesViewModel
+import com.cpen321.usermanagement.ui.viewmodels.Friend
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -46,18 +47,29 @@ data class BingoTicket(
     val events: List<String> = emptyList()
 )
 
-data class Friend(
-    val id: String,
-    val username: String,
-    val displayName: String? = null
-)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CreateChallengeScreen(
     challengesViewModel: ChallengesViewModel,
     onBackClick: () -> Unit,
+    onChallengeCreated: () -> Unit
 ) {
+    // Collect UI state from ViewModel
+    val uiState by challengesViewModel.uiState.collectAsState()
+    
+    // Load user profile and friends when screen opens
+    LaunchedEffect(Unit) {
+        challengesViewModel.loadProfile()
+    }
+    
+    // Load friends once we have the user ID
+    LaunchedEffect(uiState.user?._id) {
+        uiState.user?._id?.let { userId ->
+            challengesViewModel.loadFriends(userId)
+        }
+    }
+    
     // State variables
     var selectedGame by remember { mutableStateOf<Game?>(null) }
     var selectedTicket by remember { mutableStateOf<BingoTicket?>(null) }
@@ -89,14 +101,8 @@ fun CreateChallengeScreen(
         )
     }
     
-    val availableFriends = remember {
-        listOf(
-            Friend("friend1", "john_doe", "John Doe"),
-            Friend("friend2", "sarah_123", "Sarah Wilson"),
-            Friend("friend3", "mike_hockey", "Mike Chen"),
-            Friend("friend4", "emma_fan", "Emma Thompson")
-        )
-    }
+    // Use friends from ViewModel state instead of dummy data
+    val availableFriends = uiState.allFriends ?: emptyList()
     
     // Filter tickets based on selected game
     val gameTickets = availableTickets.filter { it.gameId == selectedGame?.id }
@@ -150,10 +156,9 @@ fun CreateChallengeScreen(
                                 //gameStartTime = selectedGame!!.startTime.
                             )
                             
+                            // Call ViewModel to create challenge
                             challengesViewModel.createChallenge(challengeRequest)
-                            onBackClick() // navigate back to challenges screen
-                            
-
+                            onChallengeCreated()
                         }
                     },
                     enabled = canCreateChallenge
@@ -206,6 +211,7 @@ fun CreateChallengeScreen(
             // Friends Selection Card
             FriendsSelectionCard(
                 selectedFriends = selectedFriends,
+                isLoading = uiState.isLoadingFriends,
                 onClick = { showFriendsPicker = true }
             )
             
@@ -383,12 +389,13 @@ private fun ChallengeDetailsCard(
 @Composable
 private fun FriendsSelectionCard(
     selectedFriends: Set<Friend>,
+    isLoading: Boolean,
     onClick: () -> Unit
 ) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { onClick() }
+            .clickable(enabled = !isLoading) { onClick() }
     ) {
         Row(
             modifier = Modifier
@@ -408,29 +415,44 @@ private fun FriendsSelectionCard(
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-                Text(
-                    text = if (selectedFriends.isEmpty()) 
-                        "No friends selected" 
-                    else 
-                        "${selectedFriends.size} friend${if (selectedFriends.size != 1) "s" else ""} selected",
-                    style = MaterialTheme.typography.bodyLarge
-                )
-                if (selectedFriends.isNotEmpty()) {
+                if (isLoading) {
                     Text(
-                        text = selectedFriends.take(3).joinToString(", ") { it.displayName ?: it.username } +
-                               if (selectedFriends.size > 3) " and ${selectedFriends.size - 3} more" else "",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
+                        text = "Loading friends...",
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
+                } else {
+                    Text(
+                        text = if (selectedFriends.isEmpty()) 
+                            "No friends selected" 
+                        else 
+                            "${selectedFriends.size} friend${if (selectedFriends.size != 1) "s" else ""} selected",
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                    if (selectedFriends.isNotEmpty()) {
+                        Text(
+                            text = selectedFriends.take(3).joinToString(", ") { it.name } +
+                                   if (selectedFriends.size > 3) " and ${selectedFriends.size - 3} more" else "",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
                 }
             }
-            Icon(
-                imageVector = Icons.Default.ArrowForward,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+            if (isLoading) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(20.dp),
+                    strokeWidth = 2.dp
+                )
+            } else {
+                Icon(
+                    imageVector = Icons.Default.ArrowForward,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
         }
     }
 }
@@ -676,17 +698,10 @@ private fun FriendItem(
             )
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = friend.displayName ?: friend.username,
+                    text = friend.name,
                     style = MaterialTheme.typography.bodyLarge,
                     fontWeight = FontWeight.Medium
                 )
-                if (friend.displayName != null) {
-                    Text(
-                        text = "@${friend.username}",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
             }
             if (isSelected) {
                 Icon(

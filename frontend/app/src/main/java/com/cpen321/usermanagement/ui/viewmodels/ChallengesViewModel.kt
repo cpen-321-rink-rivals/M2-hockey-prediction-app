@@ -8,6 +8,7 @@ import com.cpen321.usermanagement.data.remote.dto.Challenge
 import com.cpen321.usermanagement.data.remote.dto.CreateChallengeRequest
 import com.cpen321.usermanagement.data.remote.dto.User
 import com.cpen321.usermanagement.data.repository.ChallengesRepository
+import com.cpen321.usermanagement.data.repository.FriendsRepository
 import com.cpen321.usermanagement.data.repository.ProfileRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -21,12 +22,14 @@ data class ChallengesUiState(
     val isLoadingChallenges: Boolean = false,
     val isLoadingChallenge: Boolean = false,
     val isLoadingProfile: Boolean = false,
+    val isLoadingFriends: Boolean = false,
     val isDeletingChallenge: Boolean = false,
     val isUpdatingChallenge: Boolean = false,
 
 
     //data states
     val user: User? = null,
+    val allFriends: List<Friend>? = null,
     val allChallenges: List<Challenge>? = null,
     val selectedChallenge: Challenge? = null,
 
@@ -40,7 +43,8 @@ data class ChallengesUiState(
 @HiltViewModel
 class ChallengesViewModel @Inject constructor(
     private val challengesRepository: ChallengesRepository,
-    private val profileRepository: ProfileRepository
+    private val profileRepository: ProfileRepository,
+    private val friendsRepository: FriendsRepository,
     // Inject repositories here if needed in the future
 ) : ViewModel() {
     companion object {
@@ -88,6 +92,39 @@ class ChallengesViewModel @Inject constructor(
                     errorMessage = null
                 )
             }
+        }
+    }
+
+    fun loadFriends(userId: String) {
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(isLoadingFriends = true, errorMessage = null)
+
+            val friendsResult = friendsRepository.getFriends(userId)
+            val friends = friendsResult.getOrNull()
+
+            _uiState.value = _uiState.value.copy(
+                isLoadingFriends = false,
+                allFriends = friends
+            )
+
+            if (friendsResult.isFailure) {
+                val error = friendsResult.exceptionOrNull()
+                val errorMessage = error?.message ?: "Failed to load friends"
+                Log.e(TAG, "Failed to load friends", error)
+
+                _uiState.value = _uiState.value.copy(
+                    isLoadingFriends = false,
+                    errorMessage = errorMessage
+                )
+            } else {
+                _uiState.value = _uiState.value.copy(
+                    isLoadingFriends = false,
+                    errorMessage = null
+                )
+            }
+
+
+
         }
     }
 
@@ -216,4 +253,6 @@ class ChallengesViewModel @Inject constructor(
             }
         }
     }
+
+
 }
