@@ -24,7 +24,7 @@ class ChallengesRepositoryImpl @Inject constructor(
     }
 
 
-    override suspend fun getChallenges(): Result<List<Challenge>> {
+    override suspend fun getChallenges(): Result<Map<String, List<Challenge>>> {
         return try {
             val response = challengeInterface.getChallenges("")
             if (response.isSuccessful && response.body()?.data != null) {

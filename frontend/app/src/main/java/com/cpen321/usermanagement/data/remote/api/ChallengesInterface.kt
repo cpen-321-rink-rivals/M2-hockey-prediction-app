@@ -14,10 +14,20 @@ import retrofit2.http.Path
 
 interface ChallengesInterface {
 
-    @GET("challenges")
+    @GET("challenges/user")
     suspend fun getChallenges(
         @Header("Authorization") token: String
-    ): Response<ApiResponse<List<Challenge>>> // gets a list of all challenges for the user
+    ): Response<ApiResponse<Map<String, List<Challenge>>>>
+    /* RESPONSE:
+    Divided by status like:
+    {
+        "pending": [],
+        "active": [],
+        "live": [],
+        "finished": [],
+        "cancelled": []
+    }
+    */
 
     @GET("challenges/{challengeId}")
     suspend fun getChallenge(

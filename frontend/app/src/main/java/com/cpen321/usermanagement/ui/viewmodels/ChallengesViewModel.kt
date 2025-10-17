@@ -30,7 +30,12 @@ data class ChallengesUiState(
     //data states
     val user: User? = null,
     val allFriends: List<Friend>? = null,
-    val allChallenges: List<Challenge>? = null,
+    val allChallenges: Map<String, List<Challenge>>? = null,
+    val allPendingChallenges: List<Challenge>? = null,
+    val allActiveChallenges: List<Challenge>? = null,
+    val allLiveChallenges: List<Challenge>? = null,
+    val allFinishedChallenges: List<Challenge>? = null,
+    val allCancelledChallenges: List<Challenge>? = null,
     val selectedChallenge: Challenge? = null,
 
     // message states
@@ -138,7 +143,12 @@ class ChallengesViewModel @Inject constructor(
 
             _uiState.value = _uiState.value.copy(
                 isLoadingChallenges = false,
-                allChallenges = challenges
+                allChallenges = challenges,
+                allPendingChallenges = challenges?.get("pending"),
+                allActiveChallenges = challenges?.get("active"),
+                allLiveChallenges = challenges?.get("live"),
+                allFinishedChallenges = challenges?.get("finished"),
+                allCancelledChallenges = challenges?.get("cancelled")
             )
 
             if (challengesResult.isFailure) {
@@ -233,10 +243,8 @@ class ChallengesViewModel @Inject constructor(
 
             val deleteResult = challengesRepository.deleteChallenge(challengeId)
 
-            val updatedList = uiState.value.allChallenges?.filterNot { it.id == challengeId }
             _uiState.value = _uiState.value.copy(
                 isLoadingChallenges = false,
-                allChallenges = updatedList, // Set the updated list
                 selectedChallenge = null, // Clear the selected challenge
                 successMessage = "Challenge deleted successfully!"
             )

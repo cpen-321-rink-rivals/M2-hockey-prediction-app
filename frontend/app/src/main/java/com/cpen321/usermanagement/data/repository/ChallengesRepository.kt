@@ -5,7 +5,7 @@ import com.cpen321.usermanagement.data.remote.dto.CreateChallengeRequest
 
 interface ChallengesRepository {
 
-    suspend fun getChallenges(): Result<List<Challenge>>
+    suspend fun getChallenges(): Result<Map<String, List<Challenge>>>
 
     suspend fun getChallenge(challengeId: String): Result<Challenge>
 

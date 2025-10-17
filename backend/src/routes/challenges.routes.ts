@@ -15,7 +15,7 @@ const challengeController = new ChallengesController();
 // GET /challenges - Get all challenges with pagination
 router.get('/', challengeController.getAll.bind(challengeController));
 
-// GET /challenges/user - Get current user's challenges
+// GET /challenges/user - Get current user's challenges - owned, joined, and invited
 router.get(
   '/user',
   challengeController.getUserChallenges.bind(challengeController)

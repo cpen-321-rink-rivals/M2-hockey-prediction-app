@@ -188,6 +188,7 @@ export class ChallengesModel {
         $or: [
           { ownerId: userId }, // User created this challenge
           { memberIds: userId }, // User joined this challenge
+          { invitedUserIds: userId }, // User invited to this challenge
         ],
       };
 
