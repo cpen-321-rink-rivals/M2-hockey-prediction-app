@@ -28,6 +28,9 @@ import com.cpen321.usermanagement.ui.viewmodels.ChallengesViewModel
 import java.text.SimpleDateFormat
 import java.util.*
 
+
+
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EditChallengeScreen(
@@ -40,16 +43,31 @@ fun EditChallengeScreen(
     // Side effects
     LaunchedEffect(challengeId) {
         challengesViewModel.loadChallenge(challengeId)
+        // challengesViewModel.loadUserTickets()
         challengesViewModel.loadProfile()
     }
 
+    // State variables // BingoTicket data class should be changed.
+    var selectedTicketForJoining by remember { mutableStateOf<BingoTicket?>(null) }
+    val availableTicketsForJoining = remember {
+        listOf(
+            BingoTicket("ticket1", "game1", "Rangers vs Devils Predictions"),
+            BingoTicket("ticket2", "game1", "My Rangers Ticket"),
+            BingoTicket("ticket3", "game2", "Bruins Game Ticket"),
+            BingoTicket("ticket4", "game3", "Penguins vs Flyers")
+        )
+    }
+
+    // These states now live here, to be controlled by the screen
     val challenge = uiState.selectedChallenge
+    val userId = uiState.user?._id
 
     // make sure the challenge is not null and that it's the correct challenge (avoid stale data)
     if (challenge != null && challenge.id == challengeId) {
         EditChallengeContent(
             challenge = challenge,
-            isOwner = challenge.ownerId == uiState.user?._id,
+            isOwner = challenge.ownerId == userId,
+            isInvitee = challenge.invitedUserIds.contains(userId),
             onBackClick = onBackClick,
             onSaveChallenge = { updatedChallenge ->
                 challengesViewModel.updateChallenge(updatedChallenge)
@@ -58,6 +76,16 @@ fun EditChallengeScreen(
             onDeleteChallenge = {
                 challengesViewModel.deleteChallenge(challenge.id)
                 onBackClick() // Navigate back after deleting
+            },
+            availableTickets = availableTicketsForJoining.filter { it.gameId == challenge.gameId }, // Filter tickets for the correct game
+            selectedTicket = selectedTicketForJoining,
+            onTicketSelected = { ticket -> selectedTicketForJoining = ticket },
+            onJoinChallenge = {
+                Log.d("EditChallengeScreen", "Joining challenge with ticket: $selectedTicketForJoining")
+                selectedTicketForJoining?.let { ticket ->
+                    challengesViewModel.joinChallenge(challenge.id, ticketId = ticket.id)
+                    onBackClick() // Navigate back after joining
+                }
             }
         )
     } else {
@@ -72,9 +100,14 @@ fun EditChallengeScreen(
 private fun EditChallengeContent(
     challenge: Challenge,
     isOwner: Boolean,
+    isInvitee: Boolean,
     onBackClick: () -> Unit,
     onSaveChallenge: (Challenge) -> Unit,
-    onDeleteChallenge: () -> Unit // Added this callback
+    onDeleteChallenge: () -> Unit, // Added this callback
+    availableTickets: List<BingoTicket>,
+    selectedTicket: BingoTicket?,
+    onTicketSelected: (BingoTicket) -> Unit,
+    onJoinChallenge: () -> Unit,
 ) {
     var title by remember { mutableStateOf(challenge.title) }
     var description by remember { mutableStateOf(challenge.description) }
@@ -161,6 +194,18 @@ private fun EditChallengeContent(
             if (isOwner) {
                 DeleteChallengeButton(
                     onClick = onDeleteChallenge,
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .padding(16.dp)
+                        .fillMaxWidth()
+                )
+            }
+            if (isInvitee) {
+                JoinChallengeCard(
+                    availableTickets = availableTickets,
+                    selectedTicket = selectedTicket,
+                    onTicketSelected = onTicketSelected,
+                    onJoinClick = onJoinChallenge,
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
                         .padding(16.dp)
@@ -503,6 +548,92 @@ private fun DeleteChallengeButton(
         )
         Spacer(modifier = Modifier.width(8.dp))
         Text("Delete Challenge")
+    }
+}
+
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun JoinChallengeCard(
+    availableTickets: List<BingoTicket>,
+    selectedTicket: BingoTicket?,
+    onTicketSelected: (BingoTicket) -> Unit,    onJoinClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    var isDropdownExpanded by remember { mutableStateOf(false) }
+
+    Card(
+        modifier = modifier,
+        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceBright)
+    ) {
+        Column(
+            modifier = Modifier
+                .padding(16.dp)
+                .fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            Text(
+                text = "You're Invited!",
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+
+            // Exposed Dropdown Menu for ticket selection
+            ExposedDropdownMenuBox(
+                expanded = isDropdownExpanded,
+                onExpandedChange = { isDropdownExpanded = !isDropdownExpanded }
+            ) {
+                OutlinedTextField(
+                    value = selectedTicket?.title ?: "Select a ticket to use",
+                    onValueChange = {},
+                    readOnly = true,
+                    label = { Text("Your Bingo Ticket") },
+                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = isDropdownExpanded) },
+                    colors = ExposedDropdownMenuDefaults.textFieldColors(),
+                    modifier = Modifier
+                        .menuAnchor() // Anchor for the dropdown
+                        .fillMaxWidth()
+                )
+
+                ExposedDropdownMenu(
+                    expanded = isDropdownExpanded,
+                    onDismissRequest = { isDropdownExpanded = false }
+                ) {
+                    if (availableTickets.isEmpty()) {
+                        DropdownMenuItem(
+                            text = { Text("No tickets available for this game") },
+                            onClick = { },
+                            enabled = false
+                        )
+                    } else {
+                        availableTickets.forEach { ticket ->
+                            DropdownMenuItem(
+                                text = { Text(ticket.title) },
+                                onClick = {
+                                    onTicketSelected(ticket)
+                                    isDropdownExpanded = false
+                                }
+                            )
+                        }
+                    }
+                }
+            }
+
+            Button(
+                onClick = onJoinClick,
+                enabled = selectedTicket != null, // Button is enabled only when a ticket is selected
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Icon(
+                    painter = painterResource(id = R.drawable.group_outlined_icon),
+                    contentDescription = null
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("Accept Invitation & Join")
+            }
+        }
     }
 }
 

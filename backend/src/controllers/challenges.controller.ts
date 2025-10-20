@@ -143,11 +143,11 @@ export class ChallengesController {
         });
       }
 
-      const { id } = req.params;
+      const { id: challengeId } = req.params; // Destructure 'id' and rename to 'challengeId'
       const { ticketId } = req.body;
 
       const challenge = await challengeModel.joinChallenge(
-        id,
+        challengeId,
         req.user.id,
         ticketId
       );
@@ -160,7 +160,7 @@ export class ChallengesController {
         });
       }
 
-      logger.info(`User ${req.user.id} joined challenge ${id}`);
+      logger.info(`User ${req.user.id} joined challenge ${challengeId}`);
 
       res.status(200).json({
         success: true,

@@ -25,6 +25,8 @@ data class ChallengesUiState(
     val isLoadingFriends: Boolean = false,
     val isDeletingChallenge: Boolean = false,
     val isUpdatingChallenge: Boolean = false,
+    val isJoiningChallenge: Boolean = false,
+    val isLeavingChallenge: Boolean = false,
 
 
     //data states
@@ -239,12 +241,12 @@ class ChallengesViewModel @Inject constructor(
 
     fun deleteChallenge(challengeId: String) {
         viewModelScope.launch {
-            _uiState.value = _uiState.value.copy(isLoadingChallenges = true, errorMessage = null)
+            _uiState.value = _uiState.value.copy(isDeletingChallenge = true, errorMessage = null)
 
             val deleteResult = challengesRepository.deleteChallenge(challengeId)
 
             _uiState.value = _uiState.value.copy(
-                isLoadingChallenges = false,
+                isDeletingChallenge = false,
                 selectedChallenge = null, // Clear the selected challenge
                 successMessage = "Challenge deleted successfully!"
             )
@@ -255,7 +257,55 @@ class ChallengesViewModel @Inject constructor(
                 val errorMessage = error?.message ?: "Failed to delete challenge"
                 Log.e(TAG, "Failed to delete challenge", error)
                 _uiState.value = _uiState.value.copy(
-                    isLoadingChallenges = false,
+                    isDeletingChallenge = false,
+                    errorMessage = errorMessage
+                )
+            }
+        }
+    }
+
+    fun joinChallenge(challengeId: String, ticketId: String) {
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(isJoiningChallenge = true, errorMessage = null)
+
+            val joinResult = challengesRepository.joinChallenge(challengeId = challengeId, ticketId = ticketId)
+
+            _uiState.value = _uiState.value.copy(
+                isJoiningChallenge = false,
+                successMessage = "Challenge joined successfully!"
+            )
+
+
+            if (joinResult.isFailure) {
+                val error = joinResult.exceptionOrNull()
+                val errorMessage = error?.message ?: "Failed to join challenge"
+                Log.e(TAG, "Failed to join challenge", error)
+                _uiState.value = _uiState.value.copy(
+                    isJoiningChallenge = false,
+                    errorMessage = errorMessage
+                )
+            }
+        }
+    }
+
+    fun leaveChallenge(challengeId: String) {
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(isLeavingChallenge = true, errorMessage = null)
+
+            val joinResult = challengesRepository.leaveChallenge(challengeId = challengeId)
+
+            _uiState.value = _uiState.value.copy(
+                isLeavingChallenge = false,
+                successMessage = "Challenge left successfully!"
+            )
+
+
+            if (joinResult.isFailure) {
+                val error = joinResult.exceptionOrNull()
+                val errorMessage = error?.message ?: "Failed to leave challenge"
+                Log.e(TAG, "Failed to leave challenge", error)
+                _uiState.value = _uiState.value.copy(
+                    isLeavingChallenge = false,
                     errorMessage = errorMessage
                 )
             }

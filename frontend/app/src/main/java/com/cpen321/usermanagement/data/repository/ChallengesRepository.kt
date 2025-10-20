@@ -14,6 +14,10 @@ interface ChallengesRepository {
     suspend fun updateChallenge(challenge: Challenge): Result<Challenge>
 
     suspend fun deleteChallenge(challengeId: String): Result<Unit>
+
+    suspend fun joinChallenge(challengeId: String, ticketId: String): Result<Unit>
+
+    suspend fun leaveChallenge(challengeId: String): Result<Unit>
 }
 
 

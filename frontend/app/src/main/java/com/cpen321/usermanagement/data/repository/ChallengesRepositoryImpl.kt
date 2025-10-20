@@ -170,4 +170,68 @@ class ChallengesRepositoryImpl @Inject constructor(
         }
     }
 
+    override suspend fun joinChallenge(challengeId: String, ticketId: String): Result<Unit> {
+        return try {
+            Log.d(TAG, "Joining challenge with ticket: $ticketId")
+            val requestBody = mapOf("ticketId" to ticketId) // ✅ Create proper JSON object
+            val response = challengeInterface.joinChallenge("", challengeId, requestBody)
+
+            if (response.isSuccessful && response.body()?.data != null) {
+                Result.success(response.body()!!.data!!)
+            } else {
+                val errorBodyString = response.errorBody()?.string()
+                val errorMessage =
+                    parseErrorMessage(errorBodyString, "Failed to join challenge.")
+                Log.e(TAG, "Failed to join challenge: $errorMessage")
+                Result.failure(Exception(errorMessage))
+            }
+
+        } catch (e: java.net.SocketTimeoutException) {
+            Log.e(TAG, "Network timeout while joining challenge", e)
+            Result.failure(e)
+        } catch (e: java.net.UnknownHostException) {
+            Log.e(TAG, "Network connection failed while joining challenge", e)
+            Result.failure(e)
+        } catch (e: java.io.IOException) {
+            Log.e(TAG, "IO error while joining challenge", e)
+            Result.failure(e)
+        } catch (e: retrofit2.HttpException) {
+            Log.e(TAG, "HTTP error while joining challenge: ${e.code()}", e)
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun leaveChallenge(challengeId: String): Result<Unit> {
+        return try {
+            val response = challengeInterface.leaveChallenge("", challengeId)
+
+            if (response.isSuccessful && response.body()?.data != null) {
+                Result.success(response.body()!!.data!!)
+            } else {
+                val errorBodyString = response.errorBody()?.string()
+                val errorMessage =
+                    parseErrorMessage(errorBodyString, "Failed to leave challenge.")
+                Log.e(TAG, "Failed to leave challenge: $errorMessage")
+                Result.failure(Exception(errorMessage))
+            }
+
+        } catch (e: java.net.SocketTimeoutException) {
+            Log.e(TAG, "Network timeout while leaving challenge", e)
+            Result.failure(e)
+        } catch (e: java.net.UnknownHostException) {
+            Log.e(TAG, "Network connection failed while leaving challenge", e)
+            Result.failure(e)
+        } catch (e: java.io.IOException) {
+            Log.e(TAG, "IO error while leaving challenge", e)
+            Result.failure(e)
+        } catch (e: retrofit2.HttpException) {
+            Log.e(TAG, "HTTP error while leaving challenge: ${e.code()}", e)
+            Result.failure(e)
+        }
+    }
+
+
+
+
+
 }

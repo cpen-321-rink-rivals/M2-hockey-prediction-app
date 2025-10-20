@@ -55,5 +55,18 @@ interface ChallengesInterface {
         @Header("Authorization") token: String,
         @Path("challengeId") challengeId: String
     ): Response<ApiResponse<Unit>> // deletes a challenge
+
+    @POST("challenges/{challengeId}/join")
+    suspend fun joinChallenge(
+        @Header("Authorization") token: String,
+        @Path("challengeId") challengeId: String,
+        @Body body: Map<String, String>, // ✅ Send as JSON object
+    ): Response<ApiResponse<Unit>> // joins a challenge
+
+    @POST("challenges/{challengeId}/leave")
+    suspend fun leaveChallenge(
+        @Header("Authorization") token: String,
+        @Path("challengeId") challengeId: String,
+    ): Response<ApiResponse<Unit>> // leaves a challenge
 }
 
