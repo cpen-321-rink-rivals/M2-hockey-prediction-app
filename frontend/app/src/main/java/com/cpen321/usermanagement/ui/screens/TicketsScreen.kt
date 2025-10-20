@@ -37,11 +37,13 @@ import com.cpen321.usermanagement.ui.viewmodels.TicketsViewModel
 
 
 data class TicketsScreenActions(
-    val onBackClick: () -> Unit
+    val onBackClick: () -> Unit,
+    val onCreateTicketClick: () -> Unit
 )
 
 private data class TicketsScreenCallbacks(
-    val onBackClick: () -> Unit
+    val onBackClick: () -> Unit,
+    val onCreateTicketClick: () -> Unit
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -63,7 +65,8 @@ fun TicketsScreen(
     TicketsContent(
         uiState = uiState,
         callbacks = TicketsScreenCallbacks(
-            onBackClick = actions.onBackClick
+            onBackClick = actions.onBackClick,
+            onCreateTicketClick = actions.onCreateTicketClick
         )
     )
 
@@ -86,7 +89,8 @@ private fun TicketsContent(
         TicketsBody(
             paddingValues = paddingValues,
             isLoading = uiState.isLoadingTickets,
-            allTickets = uiState.allTickets
+            allTickets = uiState.allTickets,
+            onCreateTicketClick = callbacks.onCreateTicketClick
         )
     }
 
@@ -124,6 +128,7 @@ private fun TicketsBody(
     paddingValues: PaddingValues,
     allTickets: List<String>,
     isLoading: Boolean,
+    onCreateTicketClick: () -> Unit,
     modifier: Modifier = Modifier
 ){
     Box(
@@ -143,7 +148,7 @@ private fun TicketsBody(
                     allTickets = allTickets
                 )
                 AddTicketButton(
-                    onClick = {/* TODO */ },
+                    onClick = onCreateTicketClick,
                     modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 32.dp).width(200.dp).height(60.dp)
 
                 )
