@@ -8,6 +8,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Info
@@ -62,12 +63,19 @@ fun EditChallengeScreen(
     val challenge = uiState.selectedChallenge
     val userId = uiState.user?._id
 
+
+
     // make sure the challenge is not null and that it's the correct challenge (avoid stale data)
     if (challenge != null && challenge.id == challengeId) {
+        val isOwner = challenge.ownerId == userId
+        val isInvitee = challenge.invitedUserIds.contains(userId)
+        val canLeave = !isOwner && challenge.memberIds.contains(userId)
+
         EditChallengeContent(
             challenge = challenge,
-            isOwner = challenge.ownerId == userId,
-            isInvitee = challenge.invitedUserIds.contains(userId),
+            isOwner,
+            isInvitee,
+            canLeave,
             onBackClick = onBackClick,
             onSaveChallenge = { updatedChallenge ->
                 challengesViewModel.updateChallenge(updatedChallenge)
@@ -86,6 +94,10 @@ fun EditChallengeScreen(
                     challengesViewModel.joinChallenge(challenge.id, ticketId = ticket.id)
                     onBackClick() // Navigate back after joining
                 }
+            },
+            onLeaveChallenge = {
+                challengesViewModel.leaveChallenge(challenge.id)
+                onBackClick() // Navigate back after leaving
             }
         )
     } else {
@@ -101,6 +113,7 @@ private fun EditChallengeContent(
     challenge: Challenge,
     isOwner: Boolean,
     isInvitee: Boolean,
+    canLeave: Boolean,
     onBackClick: () -> Unit,
     onSaveChallenge: (Challenge) -> Unit,
     onDeleteChallenge: () -> Unit, // Added this callback
@@ -108,6 +121,7 @@ private fun EditChallengeContent(
     selectedTicket: BingoTicket?,
     onTicketSelected: (BingoTicket) -> Unit,
     onJoinChallenge: () -> Unit,
+    onLeaveChallenge: () -> Unit
 ) {
     var title by remember { mutableStateOf(challenge.title) }
     var description by remember { mutableStateOf(challenge.description) }
@@ -194,6 +208,15 @@ private fun EditChallengeContent(
             if (isOwner) {
                 DeleteChallengeButton(
                     onClick = onDeleteChallenge,
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .padding(16.dp)
+                        .fillMaxWidth()
+                )
+            }
+            if (canLeave) {
+                LeaveChallengeButton(
+                    onClick = onLeaveChallenge,
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
                         .padding(16.dp)
@@ -634,6 +657,58 @@ private fun JoinChallengeCard(
                 Text("Accept Invitation & Join")
             }
         }
+    }
+}
+
+@Composable
+private fun LeaveChallengeButton(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    var showDialog by remember { mutableStateOf(false) }
+
+    // The confirmation dialog
+    if (showDialog) {
+        AlertDialog(
+            onDismissRequest = { showDialog = false },
+            title = { Text("Leave Challenge") },
+            text = { Text("Are you sure you want to leave this challenge?") },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        showDialog = false
+                        onClick() // This calls viewModel.deleteChallenge(...)
+                    },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.error
+                    )
+                ) {
+                    Text("Leave")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDialog = false }) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
+
+    // The actual button shown on the screen
+    Button(
+        onClick = { showDialog = true }, // Show the dialog on click
+        modifier = modifier,
+        colors = ButtonDefaults.buttonColors(
+            containerColor = MaterialTheme.colorScheme.errorContainer,
+            contentColor = MaterialTheme.colorScheme.onErrorContainer
+        )
+    ) {
+        Icon(
+            imageVector = Icons.Default.ArrowBack,
+            contentDescription = null
+        )
+        Spacer(modifier = Modifier.width(8.dp))
+        Text("Leave Challenge")
     }
 }
 
