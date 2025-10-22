@@ -2,10 +2,15 @@ import { NextFunction, Request, Response } from 'express';
 
 import logger from '../logger.util';
 import { MediaService } from '../media.service';
-import { GetProfileResponse, UpdateProfileRequest } from '../types/user.types';
+import {
+  GetProfileResponse,
+  PublicUserInfo,
+  UpdateProfileRequest,
+} from '../types/user.types';
 import { userModel } from '../models/user.model';
 
 export class UserController {
+  // get current user's profile
   getProfile(req: Request, res: Response<GetProfileResponse>) {
     const user = req.user!;
 
@@ -13,6 +18,39 @@ export class UserController {
       message: 'Profile fetched successfully',
       data: { user },
     });
+  }
+
+  // get user by id
+  async getUserInfoById(
+    req: Request,
+    res: Response<{ message: string; data?: { userInfo: PublicUserInfo } }>,
+    next: NextFunction
+  ) {
+    try {
+      const userId = req.params.id;
+      const userInfo = await userModel.findUserInfoById(userId);
+
+      if (!userInfo) {
+        return res.status(404).json({
+          message: 'User info not found',
+        });
+      }
+
+      res.status(200).json({
+        message: 'User info fetched successfully',
+        data: { userInfo },
+      });
+    } catch (error) {
+      logger.error('Failed to fetch user info by ID:', error);
+
+      if (error instanceof Error) {
+        return res.status(500).json({
+          message: error.message || 'Failed to fetch user info by ID',
+        });
+      }
+
+      next(error);
+    }
   }
 
   async updateProfile(

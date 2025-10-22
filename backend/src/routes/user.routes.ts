@@ -10,6 +10,9 @@ const userController = new UserController();
 // GET /user/profile - Get current user's profile
 router.get('/profile', userController.getProfile);
 
+// GET /user/:id - Get user info by ID
+router.get('/:id', userController.getUserInfoById);
+
 // PUT /user/profile - Update current user's profile
 router.put(
   '/profile',
