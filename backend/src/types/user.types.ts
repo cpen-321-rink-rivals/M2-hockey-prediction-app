@@ -72,3 +72,12 @@ export type GoogleUserInfo = {
   name: string;
   profilePicture?: string;
 };
+
+export type PublicUserInfo = {
+  _id: mongoose.Types.ObjectId;
+  name: string;
+  profilePicture?: string;
+  bio?: string;
+  hobbies: string[];
+  friendCode: string;
+};
