@@ -57,6 +57,7 @@ private data class ProfileScreenCallbacks(
     val onManageProfileClick: () -> Unit,
     val onManageHobbiesClick: () -> Unit,
     val onManageLanguagesSpokenClick: () -> Unit,
+    val onSignOutClick: () -> Unit,
     val onDeleteAccountClick: () -> Unit,
     val onDeleteDialogDismiss: () -> Unit,
     val onDeleteDialogConfirm: () -> Unit,
@@ -82,6 +83,16 @@ fun ProfileScreen(
     LaunchedEffect(Unit) {
         profileViewModel.clearSuccessMessage()
         profileViewModel.clearError()
+        profileViewModel.resetDeletionState() // Reset deletion flag when entering profile screen
+    }
+
+    // Handle account deletion completion
+    LaunchedEffect(uiState.isProfileDeleted) {
+        if (uiState.isProfileDeleted) {
+            // Profile deleted successfully, now clear tokens and navigate
+            authViewModel.handleAccountDeletion()
+            actions.onAccountDeleted()
+        }
     }
 
     ProfileContent(
@@ -93,7 +104,10 @@ fun ProfileScreen(
             onManageProfileClick = actions.onManageProfileClick,
             onManageHobbiesClick = actions.onManageHobbiesClick,
             onManageLanguagesSpokenClick = actions.onManageLanguagesSpokenClick,
-                    onDeleteAccountClick = {
+            onSignOutClick = {
+                authViewModel.signOut()
+            },
+            onDeleteAccountClick = {
                 dialogState = dialogState.copy(showDeleteDialog = true)
             },
             onDeleteDialogDismiss = {
@@ -101,8 +115,8 @@ fun ProfileScreen(
             },
             onDeleteDialogConfirm = {
                 dialogState = dialogState.copy(showDeleteDialog = false)
-                authViewModel.handleAccountDeletion()
-                actions.onAccountDeleted()
+                // Only trigger the deletion, don't handle navigation here
+                profileViewModel.deleteProfile()
             },
             onSuccessMessageShown = profileViewModel::clearSuccessMessage,
             onErrorMessageShown = profileViewModel::clearError
@@ -142,6 +156,7 @@ private fun ProfileContent(
             onManageProfileClick = callbacks.onManageProfileClick,
             onManageHobbiesClick = callbacks.onManageHobbiesClick,
             onManageLanguagesSpokenClick = callbacks.onManageLanguagesSpokenClick,
+            onSignOutClick = callbacks.onSignOutClick,
             onDeleteAccountClick = callbacks.onDeleteAccountClick
         )
     }
@@ -188,6 +203,7 @@ private fun ProfileBody(
     onManageProfileClick: () -> Unit,
     onManageHobbiesClick: () -> Unit,
     onManageLanguagesSpokenClick: () -> Unit,
+    onSignOutClick: () -> Unit,
     onDeleteAccountClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -208,6 +224,7 @@ private fun ProfileBody(
                     onManageProfileClick = onManageProfileClick,
                     onManageHobbiesClick = onManageHobbiesClick,
                     onManageLanguagesSpokenClick = onManageLanguagesSpokenClick,
+                    onSignOutClick = onSignOutClick,
                     onDeleteAccountClick = onDeleteAccountClick
                 )
             }
@@ -220,6 +237,7 @@ private fun ProfileMenuItems(
     onManageProfileClick: () -> Unit,
     onManageHobbiesClick: () -> Unit,
     onManageLanguagesSpokenClick: () -> Unit,
+    onSignOutClick: () -> Unit,
     onDeleteAccountClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -240,6 +258,7 @@ private fun ProfileMenuItems(
         )
 
         AccountSection(
+            onSignOutClick = onSignOutClick,
             onDeleteAccountClick = onDeleteAccountClick
         )
     }
@@ -264,6 +283,7 @@ private fun ProfileSection(
 
 @Composable
 private fun AccountSection(
+    onSignOutClick: () -> Unit,
     onDeleteAccountClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -271,6 +291,7 @@ private fun AccountSection(
         modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(LocalSpacing.current.medium)
     ) {
+        SignOutButton(onClick = onSignOutClick)
         DeleteAccountButton(onClick = onDeleteAccountClick)
     }
 }
@@ -308,6 +329,16 @@ private fun ManageLanguagesSpokenButton(
    )
 }
 
+@Composable
+private fun SignOutButton(
+    onClick: () -> Unit,
+) {
+    MenuButtonItem(
+        text = stringResource(R.string.signout),
+        iconRes = R.drawable.ic_arrow_back,
+        onClick = onClick,
+    )
+}
 @Composable
 private fun DeleteAccountButton(
     onClick: () -> Unit,

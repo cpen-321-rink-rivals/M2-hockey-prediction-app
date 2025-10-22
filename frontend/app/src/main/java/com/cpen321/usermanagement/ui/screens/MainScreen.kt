@@ -267,7 +267,7 @@ private fun WelcomeMessage(
     val fontSizes = LocalFontSizes.current
 
     val welcomeText = uiState.user?.let {
-        stringResource(R.string.put_your_knowledge_to_the_test) + " " + uiState.user.name
+        stringResource(R.string.put_your_knowledge_to_the_test) + ", " + uiState.user.name
     } ?: stringResource(R.string.welcome)
 
     Text(

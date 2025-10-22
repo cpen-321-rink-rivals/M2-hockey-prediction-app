@@ -111,6 +111,22 @@ class AuthViewModel @Inject constructor(
     suspend fun signInWithGoogle(context: Context): Result<GoogleIdTokenCredential> {
         return authRepository.signInWithGoogle(context)
     }
+    fun signOut() {
+        viewModelScope.launch {
+            // For stateless JWT, we only need to clear the token locally
+            // No backend call needed since JWTs can't be invalidated server-side
+            authRepository.clearToken()
+            _uiState.value = AuthUiState(
+                isAuthenticated = false,
+                isCheckingAuth = false,
+                shouldSkipAuthCheck = true // Skip auth check after manual sign out
+            )
+            
+            // Trigger navigation to auth screen
+            navigationStateManager.navigateToAuth()
+        }
+    }
+
 
     private fun handleGoogleAuthResult(
         credential: GoogleIdTokenCredential,

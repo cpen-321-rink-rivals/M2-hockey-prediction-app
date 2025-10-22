@@ -2,24 +2,9 @@ package com.cpen321.usermanagement.ui.screens
 
 import Icon
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.ListItem
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -30,18 +15,19 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.cpen321.usermanagement.R
+import com.cpen321.usermanagement.data.remote.dto.BingoTicket
+import com.cpen321.usermanagement.data.remote.dto.TicketsUiState
 import com.cpen321.usermanagement.ui.viewmodels.AuthViewModel
-import com.cpen321.usermanagement.ui.viewmodels.ChallengesUiState
-import com.cpen321.usermanagement.ui.viewmodels.TicketsUiState
 import com.cpen321.usermanagement.ui.viewmodels.TicketsViewModel
 
-
 data class TicketsScreenActions(
-    val onBackClick: () -> Unit
+    val onBackClick: () -> Unit,
+    val onCreateTicketClick: () -> Unit
 )
 
 private data class TicketsScreenCallbacks(
-    val onBackClick: () -> Unit
+    val onBackClick: () -> Unit,
+    val onCreateTicketClick: () -> Unit
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -50,46 +36,51 @@ fun TicketsScreen(
     authViewModel: AuthViewModel,
     actions: TicketsScreenActions,
     ticketsViewModel: TicketsViewModel
-
-    ) {
+) {
     val uiState by ticketsViewModel.uiState.collectAsState()
+    val authState by authViewModel.uiState.collectAsState()
+    val userId = authState.user?._id ?: ""
 
-    // Side effects
-    LaunchedEffect(Unit) {
-        ticketsViewModel.clearSuccessMessage()
-        ticketsViewModel.clearError()
+    // Side effects: clear messages and load tickets
+    LaunchedEffect(userId) {
+        if (userId.isNotBlank()) {
+            ticketsViewModel.clearSuccessMessage()
+            ticketsViewModel.clearError()
+            ticketsViewModel.loadTickets(userId)
+        }
     }
 
     TicketsContent(
         uiState = uiState,
+        ticketsViewModel = ticketsViewModel,
         callbacks = TicketsScreenCallbacks(
-            onBackClick = actions.onBackClick
+            onBackClick = actions.onBackClick,
+            onCreateTicketClick = actions.onCreateTicketClick
         )
     )
-
 }
 
 @Composable
 private fun TicketsContent(
     modifier: Modifier = Modifier,
     uiState: TicketsUiState,
+    ticketsViewModel: TicketsViewModel,
     callbacks: TicketsScreenCallbacks
 ) {
     Scaffold(
         modifier = modifier,
         topBar = {
-            TicketsTopBar(
-                onBackClick = { callbacks.onBackClick() }
-            )
+            TicketsTopBar(onBackClick = { callbacks.onBackClick() })
         }
     ) { paddingValues ->
         TicketsBody(
             paddingValues = paddingValues,
+            allTickets = uiState.allTickets,
             isLoading = uiState.isLoadingTickets,
-            allTickets = uiState.allTickets
+            ticketsViewModel = ticketsViewModel,
+            onCreateTicketClick = callbacks.onCreateTicketClick
         )
     }
-
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -122,10 +113,12 @@ fun TicketsTopBar(
 @Composable
 private fun TicketsBody(
     paddingValues: PaddingValues,
-    allTickets: List<String>,
+    allTickets: List<BingoTicket>,
     isLoading: Boolean,
+    ticketsViewModel: TicketsViewModel,
+    onCreateTicketClick: () -> Unit,
     modifier: Modifier = Modifier
-){
+) {
     Box(
         modifier = modifier
             .fillMaxSize()
@@ -133,19 +126,21 @@ private fun TicketsBody(
     ) {
         when {
             isLoading -> {
-                LoadingIndicator(
-                    modifier = Modifier.align(Alignment.Center)
-                )
+                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
             }
             else -> {
                 TicketsList(
                     modifier = Modifier.fillMaxSize(),
-                    allTickets = allTickets
+                    allTickets = allTickets,
+                    ticketsViewModel = ticketsViewModel
                 )
                 AddTicketButton(
-                    onClick = {/* TODO */ },
-                    modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 32.dp).width(200.dp).height(60.dp)
-
+                    onClick = onCreateTicketClick,
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .padding(bottom = 32.dp)
+                        .width(200.dp)
+                        .height(60.dp)
                 )
             }
         }
@@ -155,47 +150,50 @@ private fun TicketsBody(
 @Composable
 fun TicketsList(
     modifier: Modifier = Modifier,
-    allTickets: List<String> = emptyList(),
+    allTickets: List<BingoTicket> = emptyList(),
+    ticketsViewModel: TicketsViewModel
 ) {
-
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(all = 10.dp)
-    ) {
-        LazyColumn {
+    if (allTickets.isEmpty()) {
+        Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            Text("No bingo tickets yet.")
+        }
+    } else {
+        LazyColumn(
+            modifier = modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+            contentPadding = PaddingValues(bottom = 100.dp) // leave space for button
+        ) {
             items(
                 count = allTickets.size,
-                key = { index -> allTickets[index] }
-            ) {
-                ListItem(
-                    headlineContent = { Text(allTickets[it]) },
+                key = { index -> allTickets[index]._id }
+            ) { index ->
+                val ticket = allTickets[index]
+                Row(
                     modifier = Modifier
-                        .fillParentMaxWidth()
-                        .padding(10.dp)
-                        .background(MaterialTheme.colorScheme.background)
-                )
+                        .fillMaxWidth()
+                        .padding(vertical = 4.dp)
+                        .background(MaterialTheme.colorScheme.surfaceVariant)
+                        .padding(8.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column {
+                        Text(ticket.name, style = MaterialTheme.typography.bodyLarge)
+                    }
+                    TextButton(onClick = { ticketsViewModel.deleteTicket(ticket._id) }) {
+                        Text("Remove")
+                    }
+                }
             }
         }
     }
 }
+
 @Composable
 private fun AddTicketButton(
     onClick: () -> Unit,
-    modifier: Modifier,
+    modifier: Modifier
 ) {
-    Button(
-        onClick = { onClick() },
-        modifier = modifier,
-        ) {
+    Button(onClick = onClick, modifier = modifier) {
         Text("New Bingo Ticket")
     }
-
-}
-
-@Composable
-private fun LoadingIndicator(
-    modifier: Modifier = Modifier
-) {
-    CircularProgressIndicator(modifier = modifier)
 }

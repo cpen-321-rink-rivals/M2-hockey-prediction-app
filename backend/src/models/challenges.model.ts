@@ -8,6 +8,7 @@ import {
 } from '../types/challenges.types';
 import logger from '../logger.util';
 import z from 'zod';
+import { log } from 'console';
 
 // Type-safe input types derived from Zod schemas
 export type CreateChallengeInput = z.infer<typeof createChallengeSchema>;
@@ -91,6 +92,7 @@ export class ChallengesModel {
         id: new mongoose.Types.ObjectId().toString(),
         ownerId,
         status: ChallengeStatus.PENDING,
+        maxMembers: validated.maxMembers || 10, // Use validated data or default to 10
         memberIds: [ownerId], // Owner is automatically a member
       };
 
@@ -112,6 +114,8 @@ export class ChallengesModel {
     data: Partial<IChallenge>
   ): Promise<IChallenge | null> {
     try {
+      logger.info('Updating challenge with data:', data);
+      logger.info('data:', data);
       const validated = updateChallengeSchema.parse(data);
       const updated = await this.challenge.findOneAndUpdate({ id }, validated, {
         new: true,
@@ -150,6 +154,56 @@ export class ChallengesModel {
     }
   }
 
+  // Find challenge by ID with populated data (manual approach)
+  async findByIdWithDetails(id: string): Promise<any | null> {
+    try {
+      const challenge = await this.challenge.findOne({ id });
+      if (!challenge) return null;
+
+      // Manual population - you would call other services/models here
+      // Example structure (you'd need to implement these services):
+      
+      // 1. Get member details from memberIds
+      // const memberDetails = await Promise.all(
+      //   challenge.memberIds.map(userId => userService.findById(userId))
+      // );
+      
+      // 2. Get game details from gameId  
+      // const gameDetails = await gameService.findById(challenge.gameId);
+      
+      // 3. Get owner details
+      // const ownerDetails = await userService.findById(challenge.ownerId);
+
+      return {
+        ...challenge.toObject(),
+        // members: memberDetails.filter(Boolean), // Remove any null results
+        // game: gameDetails,
+        // owner: ownerDetails,
+        
+        // For now, return structure with placeholders:
+        members: challenge.memberIds.map(id => ({
+          id,
+          username: `user_${id.slice(-4)}`, // Placeholder
+          displayName: `User ${id.slice(-4)}`
+        })),
+        game: {
+          id: challenge.gameId,
+          homeTeam: "Team A", // Placeholder
+          awayTeam: "Team B",
+          startTime: challenge.gameStartTime
+        },
+        owner: {
+          id: challenge.ownerId,
+          username: `owner_${challenge.ownerId.slice(-4)}`,
+          displayName: `Owner ${challenge.ownerId.slice(-4)}`
+        }
+      };
+    } catch (error) {
+      logger.error('Error finding challenge with details:', error);
+      throw new Error('Failed to find challenge with details');
+    }
+  }
+
   // Get all challenges (paginated)
   async findAll(
     page: number = 1,
@@ -184,6 +238,7 @@ export class ChallengesModel {
         $or: [
           { ownerId: userId }, // User created this challenge
           { memberIds: userId }, // User joined this challenge
+          { invitedUserIds: userId }, // User invited to this challenge
         ],
       };
 

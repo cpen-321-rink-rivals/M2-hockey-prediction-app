@@ -3,6 +3,7 @@ package com.cpen321.usermanagement.ui.screens
 import Icon
 import android.graphics.drawable.Icon
 import android.util.Log
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -46,6 +47,7 @@ import androidx.compose.ui.semantics.onClick
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.toLowerCase
 import com.cpen321.usermanagement.R
 import com.cpen321.usermanagement.data.remote.dto.Challenge
 import com.cpen321.usermanagement.ui.viewmodels.ChallengesUiState
@@ -79,7 +81,7 @@ fun ChallengesScreen(
     LaunchedEffect(Unit) {
         challengesViewModel.clearSuccessMessage()
         challengesViewModel.clearError()
-
+        challengesViewModel.loadProfile()
         challengesViewModel.loadChallenges()
 
     }
@@ -180,32 +182,46 @@ private fun ChallengesBody(
             }
 
             // 3. Success State (handle null and empty cases)
-            challenges != null -> {
-                if (challenges.isEmpty()) {
-                    // Success, but the list is empty
-                    Text("No challenges available right now.")
-                } else {
-                    // Success, and there are challenges to display
-                    LazyColumn(modifier = Modifier.fillMaxSize()) {
-                        items(challenges) { challenge ->
-                            // Replace with your actual ChallengeItem Composable
-                            ChallengeItem(
-                                challenge = challenge,
-                                onClick = { callbacks.onChallengeClick(challenge.id)
-                                }
+
+
+            (challenges != null) -> {
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    challenges.forEach { (challengeType, challengeList) ->
+
+                        item {
+                            Text(
+                                text = challengeType.lowercase().replaceFirstChar { it.uppercase() },
+                                style = MaterialTheme.typography.titleMedium,
+                                modifier = Modifier.padding(vertical = 8.dp)
                             )
                         }
-                    }
-                    AddChallengeButton(
-                        onClick = {
-                            Log.d(TAG, "ChallengesBody hit")
-                            callbacks.onAddChallengeClick()
-                        },
-                        modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 32.dp).width(200.dp).height(60.dp)
 
-                    )
+                        if (challengeList.isEmpty()) {
+                            item {
+                                Text(
+                                    text = "No ${challengeType} challenges available right now.",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.padding(start = 8.dp)
+                                )
+                            }
+                        } else {
+                            items(challengeList) { challenge ->
+                                ChallengeItem(
+                                    challenge = challenge,
+                                    onClick = { callbacks.onChallengeClick(challenge.id) }
+                                )
+                            }
+                        }
+                    }
                 }
             }
+
 
             // 4. Initial state before loading has started (optional, but good practice)
             // This case is hit if isLoading is false, errorMessage is null, and challenges is null.
@@ -213,6 +229,14 @@ private fun ChallengesBody(
                 Text("Welcome to challenges!")
             }
         }
+        AddChallengeButton(
+            onClick = {
+                Log.d(TAG, "ChallengesBody hit")
+                callbacks.onAddChallengeClick()
+            },
+            modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 32.dp).width(200.dp).height(60.dp)
+
+        )
     }
 
 }

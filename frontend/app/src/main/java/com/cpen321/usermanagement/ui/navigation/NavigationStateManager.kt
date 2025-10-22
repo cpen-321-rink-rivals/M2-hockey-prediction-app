@@ -12,9 +12,12 @@ sealed class NavigationEvent {
     object NavigateToProfileCompletion : NavigationEvent()
     object NavigateToProfile : NavigationEvent()
     object NavigateToTickets : NavigationEvent()
+    object NavigateToCreateTicket : NavigationEvent()
     object NavigateToFriends : NavigationEvent()
     object NavigateToChallenges : NavigationEvent()
     data class NavigateToEditChallenge(val challengeId: String) : NavigationEvent()
+
+    object NavigateToAddChallenge : NavigationEvent()
     object NavigateToManageProfile : NavigationEvent()
     object NavigateToManageHobbies : NavigationEvent()
     object NavigateToLanguagesSpoken: NavigationEvent()
@@ -152,6 +155,14 @@ class NavigationStateManager @Inject constructor() {
         _navigationEvent.value = NavigationEvent.NavigateToTickets
         _navigationState.value = _navigationState.value.copy(currentRoute = NavRoutes.TICKETS)
     }
+    /**
+     * Navigate to Create Tickets screen
+     */
+    fun navigateToCreateTicket() {
+        _navigationEvent.value = NavigationEvent.NavigateToCreateTicket
+        _navigationState.value = _navigationState.value.copy(currentRoute = NavRoutes.CREATE_TICKET)
+    }
+
 
     /**
      * Navigate to Friends screen
@@ -175,8 +186,12 @@ class NavigationStateManager @Inject constructor() {
     fun navigateToEditChallenge(challengeId: String) {
         _navigationEvent.value = NavigationEvent.NavigateToEditChallenge(challengeId)
     }
-
-
+    /**
+     * Navigate to add challenge screen
+     */
+    fun navigateToAddChallenge() {
+        _navigationEvent.value = NavigationEvent.NavigateToAddChallenge
+    }
 
     /**
      * Navigate to manage profile screen

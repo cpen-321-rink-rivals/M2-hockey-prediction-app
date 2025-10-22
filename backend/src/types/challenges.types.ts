@@ -33,7 +33,7 @@ export interface IChallenge {
   memberIds: string[]; // Users who joined the challenge
   invitedUserIds: string[]; // Users invited but not yet responded
   maxMembers?: number; // Optional member limit
-  ticketIds: { [userId: string]: string }; // Map user to their ticket
+  ticketIds: { [userId: string]: string }; // Map user to their ticket e.g. { userId: ticketId }
   createdAt: Date;
   updatedAt: Date;
   gameStartTime?: Date; // When the hockey game starts

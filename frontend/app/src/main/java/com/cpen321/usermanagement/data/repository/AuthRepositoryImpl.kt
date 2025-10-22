@@ -150,6 +150,7 @@ class AuthRepositoryImpl @Inject constructor(
         }
     }
 
+
     override suspend fun clearToken(): Result<Unit> {
         tokenManager.clearToken()
         RetrofitClient.setAuthToken(null)

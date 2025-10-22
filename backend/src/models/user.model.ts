@@ -6,6 +6,7 @@ import {
   createUserSchema,
   GoogleUserInfo,
   IUser,
+  PublicUserInfo,
   updateProfileSchema,
 } from '../types/user.types';
 import logger from '../logger.util';
@@ -91,11 +92,11 @@ export class UserModel {
       let isUnique = false;
       do {
         friendCode = generateFriendCode();
-       const existing = await this.user.findOne({ friendCode });
+        const existing = await this.user.findOne({ friendCode });
         if (!existing) isUnique = true;
       } while (!isUnique);
 
-    return await this.user.create({ ...validatedData, friendCode });
+      return await this.user.create({ ...validatedData, friendCode });
     } catch (error) {
       if (error instanceof z.ZodError) {
         console.error('Validation error:', error.issues);
@@ -148,6 +149,31 @@ export class UserModel {
     } catch (error) {
       console.error('Error finding user by Google ID:', error);
       throw new Error('Failed to find user');
+    }
+  }
+
+  async findUserInfoById(userId: string): Promise<PublicUserInfo | null> {
+    try {
+      const user = await this.user.findById(userId);
+
+      if (!user) {
+        return null;
+      }
+
+      // get only public info
+      const publicInfo: PublicUserInfo = {
+        _id: user._id,
+        name: user.name,
+        profilePicture: user.profilePicture,
+        bio: user.bio,
+        hobbies: user.hobbies,
+        friendCode: user.friendCode,
+      };
+
+      return publicInfo;
+    } catch (error) {
+      console.error('Error finding user info by ID:', error);
+      throw new Error('Failed to find user info');
     }
   }
 

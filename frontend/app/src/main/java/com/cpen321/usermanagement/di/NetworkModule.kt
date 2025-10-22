@@ -8,6 +8,7 @@ import com.cpen321.usermanagement.data.remote.api.ImageInterface
 import com.cpen321.usermanagement.data.remote.api.RetrofitClient
 import com.cpen321.usermanagement.data.remote.api.UserInterface
 import com.cpen321.usermanagement.data.remote.api.FriendsInterface
+import com.cpen321.usermanagement.data.remote.api.TicketsInterface
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -58,5 +59,11 @@ object NetworkModule {
     @Singleton
     fun provideChallengesService(): ChallengesInterface {
         return RetrofitClient.challengesInterface
+    }
+
+    @Provides
+    @Singleton
+    fun provideTicketsService(): TicketsInterface {
+        return RetrofitClient.ticketsInterface
     }
 }

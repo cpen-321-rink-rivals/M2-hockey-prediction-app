@@ -14,36 +14,59 @@ import retrofit2.http.Path
 
 interface ChallengesInterface {
 
-    // Defines the GET request to the "/challenges" endpoint
-    @GET("challenges")
+    @GET("challenges/user")
     suspend fun getChallenges(
         @Header("Authorization") token: String
-    ): Response<ApiResponse<List<Challenge>>>
+    ): Response<ApiResponse<Map<String, List<Challenge>>>>
+    /* RESPONSE:
+    Divided by status like:
+    {
+        "pending": [],
+        "active": [],
+        "live": [],
+        "finished": [],
+        "cancelled": []
+    }
+    */
 
     @GET("challenges/{challengeId}")
     suspend fun getChallenge(
         @Header("Authorization") token: String,
         @Path("challengeId") challengeId: String
-    ): Response<ApiResponse<Challenge>>
+    ): Response<ApiResponse<Challenge>> // gets a specific challenge
 
-    // Defines the POST request to the "/challenges" endpoint
     @POST("challenges")
     suspend fun createChallenge(
         @Header("Authorization") token: String,
         @Body request: CreateChallengeRequest
-    ): Response<ApiResponse<Challenge>> // Assuming the backend returns the newly created challenge
+    ): Response<ApiResponse<Challenge>> // creates a new challenge and returns it.
+
 
     @PUT("challenges/{challengeId}")
     suspend fun updateChallenge(
         @Header("Authorization") token: String,
         @Path("challengeId") challengeId: String,
         @Body updatedChallenge: Challenge
-    ): Response<ApiResponse<Challenge>>
+    ): Response<ApiResponse<Challenge>> // updates a challenge and returns it.
+
 
     @DELETE("challenges/{challengeId}")
     suspend fun deleteChallenge(
         @Header("Authorization") token: String,
         @Path("challengeId") challengeId: String
-    ): Response<ApiResponse<Unit>>
+    ): Response<ApiResponse<Unit>> // deletes a challenge
+
+    @POST("challenges/{challengeId}/join")
+    suspend fun joinChallenge(
+        @Header("Authorization") token: String,
+        @Path("challengeId") challengeId: String,
+        @Body body: Map<String, String>, // ✅ Send as JSON object
+    ): Response<ApiResponse<Unit>> // joins a challenge
+
+    @POST("challenges/{challengeId}/leave")
+    suspend fun leaveChallenge(
+        @Header("Authorization") token: String,
+        @Path("challengeId") challengeId: String,
+    ): Response<ApiResponse<Unit>> // leaves a challenge
 }
 

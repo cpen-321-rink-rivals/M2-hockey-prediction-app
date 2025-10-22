@@ -9,6 +9,7 @@ import com.cpen321.usermanagement.data.remote.api.LanguageInterface
 import com.cpen321.usermanagement.data.remote.api.ImageInterface
 import com.cpen321.usermanagement.data.remote.api.RetrofitClient
 import com.cpen321.usermanagement.data.remote.api.UserInterface
+import com.cpen321.usermanagement.data.remote.dto.PublicProfileData
 import com.cpen321.usermanagement.data.remote.dto.UpdateProfileRequest
 import com.cpen321.usermanagement.data.remote.dto.User
 import com.cpen321.usermanagement.utils.JsonUtils.parseErrorMessage
@@ -62,6 +63,35 @@ class ProfileRepositoryImpl @Inject constructor(
         }
     }
 
+    override suspend fun getUserInfoById(userId: String): Result<PublicProfileData> {
+        return try {
+            val response = userInterface.getUserInfoById("", userId) // Auth header is handled by interceptor
+            if (response.isSuccessful && response.body()?.data != null) {
+                Result.success(response.body()!!.data!!)
+            } else {
+                val errorBodyString = response.errorBody()?.string()
+                val errorMessage =
+                    parseErrorMessage(errorBodyString, "Failed to fetch user information.")
+                Log.e(TAG, "Failed to get profile info: $errorMessage")
+                tokenManager.clearToken()
+                RetrofitClient.setAuthToken(null)
+                Result.failure(Exception(errorMessage))
+            }
+        } catch (e: java.net.SocketTimeoutException) {
+            Log.e(TAG, "Network timeout while getting profile info", e)
+            Result.failure(e)
+        } catch (e: java.net.UnknownHostException) {
+            Log.e(TAG, "Network connection failed while getting profile info", e)
+            Result.failure(e)
+        } catch (e: java.io.IOException) {
+            Log.e(TAG, "IO error while getting profile info", e)
+            Result.failure(e)
+        } catch (e: retrofit2.HttpException) {
+            Log.e(TAG, "HTTP error while getting profile info: ${e.code()}", e)
+            Result.failure(e)
+        }
+    }
+
     override suspend fun updateProfile(
         name: String?,
         bio: String?,
@@ -95,8 +125,34 @@ class ProfileRepositoryImpl @Inject constructor(
         }
     }
 
-
-
+    override suspend fun deleteProfile(): Result<Unit> {
+        return try {
+            val response = userInterface.deleteProfile("") // Auth header is handled by interceptor
+            if (response.isSuccessful) {
+                // Clear tokens after successful deletion since user no longer exists
+                tokenManager.clearToken()
+                RetrofitClient.setAuthToken(null)
+                Result.success(Unit)
+            } else {
+                val errorBodyString = response.errorBody()?.string()
+                val errorMessage = parseErrorMessage(errorBodyString, "Failed to delete profile.")
+                Log.e(TAG, "Failed to delete profile: $errorMessage")
+                Result.failure(Exception(errorMessage))
+            }
+        } catch (e: java.net.SocketTimeoutException) {
+            Log.e(TAG, "Network timeout while deleting profile", e)
+            Result.failure(e)
+        } catch (e: java.net.UnknownHostException) {
+            Log.e(TAG, "Network connection failed while deleting profile", e)
+            Result.failure(e)
+        } catch (e: java.io.IOException) {
+            Log.e(TAG, "IO error while deleting profile", e)
+            Result.failure(e)
+        } catch (e: retrofit2.HttpException) {
+            Log.e(TAG, "HTTP error while deleting profile: ${e.code()}", e)
+            Result.failure(e)
+        }
+    }
 
 
     override suspend fun getAvailableHobbies(): Result<List<String>> {
