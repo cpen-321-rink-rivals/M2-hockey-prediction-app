@@ -40,8 +40,8 @@ object RetrofitClient {
     val hobbyInterface: HobbyInterface = retrofit.create(HobbyInterface::class.java)
     val languageInterface: LanguageInterface = retrofit.create(LanguageInterface::class.java)
     val friendsInterface: FriendsInterface = retrofit.create(FriendsInterface::class.java)
-
     val challengesInterface: ChallengesInterface = retrofit.create(ChallengesInterface::class.java)
+    val ticketsInterface: TicketsInterface = retrofit.create(TicketsInterface::class.java)
 
     fun setAuthToken(token: String?) {
         authToken = token

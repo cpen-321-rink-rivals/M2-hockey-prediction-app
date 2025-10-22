@@ -15,31 +15,27 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.cpen321.usermanagement.R
+import com.cpen321.usermanagement.ui.viewmodels.AuthViewModel
 import com.cpen321.usermanagement.ui.viewmodels.TicketsViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CreateBingoTicketScreen(
     ticketsViewModel: TicketsViewModel,
+    authViewModel: AuthViewModel,
     onBackClick: () -> Unit
 ) {
-    // Dummy data
     val dummyGames = listOf("Canucks vs Oilers", "Canadiens vs Flames", "Jets vs Senators")
     val dummyEvents = listOf(
-        "Goal scored",
-        "Penalty called",
-        "Power play starts",
-        "Fight breaks out",
-        "Coach challenge",
-        "Goalie save",
-        "Offside",
-        "Icing",
-        "Faceoff in zone",
-        "Player injury",
-        "Shootout attempt"
+        "Goal scored", "Penalty called", "Power play starts", "Fight breaks out",
+        "Coach challenge", "Goalie save", "Offside", "Icing", "Faceoff in zone",
+        "Player injury", "Shootout attempt"
     )
+    val uiState by ticketsViewModel.uiState.collectAsState()
+    val authState by authViewModel.uiState.collectAsState()
+    val userId = authState.user?._id ?: ""
 
-    // State
+    var ticketName by remember { mutableStateOf("") }  // 🆕 Ticket name state
     var selectedGame by remember { mutableStateOf<String?>(null) }
     var selectedEvents by remember { mutableStateOf(List(9) { "" }) }
     var showEventPickerForIndex by remember { mutableStateOf<Int?>(null) }
@@ -47,22 +43,12 @@ fun CreateBingoTicketScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = {
-                    Text(
-                        text = "Create Bingo Ticket",
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Medium
-                    )
-                },
+                title = { Text("Create Bingo Ticket") },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
                         Icon(name = R.drawable.ic_arrow_back)
                     }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface,
-                    titleContentColor = MaterialTheme.colorScheme.onSurface
-                )
+                }
             )
         }
     ) { paddingValues ->
@@ -73,6 +59,16 @@ fun CreateBingoTicketScreen(
                 .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            // 🆕 Step 0: Enter Ticket Name
+            OutlinedTextField(
+                value = ticketName,
+                onValueChange = { ticketName = it },
+                label = { Text("Ticket Name") },
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
             // Step 1: Select Game
             Text("Select an upcoming game:", style = MaterialTheme.typography.titleMedium)
             Spacer(modifier = Modifier.height(8.dp))
@@ -95,16 +91,23 @@ fun CreateBingoTicketScreen(
                 Spacer(modifier = Modifier.height(24.dp))
                 Button(
                     onClick = {
-                        // In future: submit to ViewModel or API
+                        if (userId.isNotBlank()) {
+                            ticketsViewModel.createTicket(
+                                userId = userId,
+                                name = ticketName,
+                                game = selectedGame!!,
+                                events = selectedEvents
+                            )
+                        }
                     },
-                    enabled = selectedEvents.none { it.isBlank() },
+                    enabled = !uiState.isCreating && userId.isNotBlank() && ticketName.isNotBlank() && selectedEvents.none { it.isBlank() },
                 ) {
                     Text("Save Bingo Ticket")
                 }
             }
         }
 
-        // Step 3: Event Picker Dialog
+        // Event Picker Dialog
         showEventPickerForIndex?.let { index ->
             EventPickerDialog(
                 allEvents = dummyEvents,
@@ -212,7 +215,7 @@ private fun BingoSquare(
                         .align(Alignment.TopEnd)
                         .size(20.dp)
                 ) {
-                    Icon(name = R.drawable.ic_launcher_background)
+                    Icon(name = R.drawable.ic_delete_forever)
                 }
             }
         }

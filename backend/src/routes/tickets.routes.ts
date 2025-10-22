@@ -1,9 +1,10 @@
-import { TicketsController } from '../controllers/tickets.controller';
-import { Router } from 'express';
+import { Router } from "express";
+import { createBingoTicket, getUserTickets, deleteTicket } from "../controllers/tickets.controller";
 
 const router = Router();
-const ticketsController = new TicketsController();
 
-router.get('/', ticketsController.getAllTickets);
+router.post("/", createBingoTicket);
+router.get("/:userId", getUserTickets);
+router.delete("/:id", deleteTicket);
 
 export default router;

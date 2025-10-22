@@ -264,7 +264,7 @@ private fun AppNavHost(
                 ticketsViewModel = ticketsViewModel,
                 actions = TicketsScreenActions(
                     onBackClick = { navigationStateManager.navigateBack() },
-                    onCreateTicketClick = { navigationStateManager.navigateToCreateTicket()}
+                    onCreateTicketClick = { navigationStateManager.navigateToCreateTicket() }
                 )
             )
         }
@@ -272,7 +272,8 @@ private fun AppNavHost(
         composable(NavRoutes.CREATE_TICKET) {
             CreateBingoTicketScreen(
                 ticketsViewModel = ticketsViewModel,
-                onBackClick = { navigationStateManager.navigateBack() }
+                onBackClick = { navigationStateManager.navigateBack() },
+                authViewModel = authViewModel
             )
         }
 
