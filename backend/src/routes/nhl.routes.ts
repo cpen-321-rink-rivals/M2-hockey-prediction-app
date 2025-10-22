@@ -1,16 +1,15 @@
-// src/routes/nhl.routes.ts
 import { Router } from 'express';
-import { getGamesByDate, getTeams, getStandings } from '../controllers/nhl.controller';
+import { getGamesByDate, getTodayGames, smokeGame } from '../controllers/nhl.controller';
 
 const router = Router();
 
 /**
- * GET /nhl/games?date=YYYY-MM-DD
- * GET /nhl/teams
- * GET /nhl/standings
+ * GET /nhl/games?date=YYYY-MM-DD   → defaults to today (America/Vancouver)
+ * GET /nhl/games/today
+ * POST /nhl/games/:gameId/smoke    → optional ?verifyToday=true
  */
 router.get('/games', getGamesByDate);
-router.get('/teams', getTeams);
-router.get('/standings', getStandings);
+router.get('/games/today', getTodayGames);
+router.post('/games/:gameId/smoke', smokeGame);
 
 export default router;

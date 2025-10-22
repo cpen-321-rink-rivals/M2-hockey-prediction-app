@@ -17,6 +17,7 @@ data class User(
     val email: String,
     val name: String,
     val bio: String?,
+    val friendCode: String,
     val profilePicture: String,
     val hobbies: List<String> = emptyList(),
     val languages: List<String> = emptyList(),

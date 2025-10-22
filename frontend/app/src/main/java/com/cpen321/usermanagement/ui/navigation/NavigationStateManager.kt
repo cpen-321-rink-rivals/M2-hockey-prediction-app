@@ -12,6 +12,9 @@ sealed class NavigationEvent {
     object NavigateToProfileCompletion : NavigationEvent()
     object NavigateToProfile : NavigationEvent()
     object NavigateToTickets : NavigationEvent()
+    object NavigateToFriends : NavigationEvent()
+    object NavigateToChallenges : NavigationEvent()
+    data class NavigateToEditChallenge(val challengeId: String) : NavigationEvent()
     object NavigateToManageProfile : NavigationEvent()
     object NavigateToManageHobbies : NavigationEvent()
     object NavigateToLanguagesSpoken: NavigationEvent()
@@ -151,6 +154,31 @@ class NavigationStateManager @Inject constructor() {
     }
 
     /**
+     * Navigate to Friends screen
+     */
+    fun navigateToFriends() {
+        _navigationEvent.value = NavigationEvent.NavigateToFriends
+        _navigationState.value = _navigationState.value.copy(currentRoute = NavRoutes.FRIENDS)
+    }
+
+    /**
+     * Navigate to challenges screen
+     */
+    fun navigateToChallenges() {
+        _navigationEvent.value = NavigationEvent.NavigateToChallenges
+        _navigationState.value = _navigationState.value.copy(currentRoute = NavRoutes.CHALLENGES)
+    }
+
+    /**
+     * Navigate to edit challenge screen
+     */
+    fun navigateToEditChallenge(challengeId: String) {
+        _navigationEvent.value = NavigationEvent.NavigateToEditChallenge(challengeId)
+    }
+
+
+
+    /**
      * Navigate to manage profile screen
      */
     fun navigateToManageProfile() {
@@ -183,6 +211,10 @@ class NavigationStateManager @Inject constructor() {
     fun navigateBack() {
         _navigationEvent.value = NavigationEvent.NavigateBack
     }
+
+    /**
+     * Navigate to add challenge screen
+     */
 
     /**
      * Handle account deletion

@@ -3,7 +3,6 @@ package com.cpen321.usermanagement.ui.viewmodels
 import androidx.lifecycle.ViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import javax.inject.Inject
 
@@ -33,7 +32,7 @@ class TicketsViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(TicketsUiState(
-        isLoadingTickets = false,
+        isLoadingTickets = false, // TODO: Actually load the tickets with new function
         allTickets = allTickets
     ))
     val uiState = _uiState.asStateFlow()

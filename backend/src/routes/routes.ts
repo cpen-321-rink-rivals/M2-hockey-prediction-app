@@ -7,6 +7,8 @@ import languagesSpokenRoutes from '../routes/languagesSpoken.routes';
 import mediaRoutes from './media.routes';
 import usersRoutes from '../routes/user.routes';
 import ticketsRoutes from './tickets.routes';
+import friendRoutes from './friends.routes';
+import challengesRoutes from './challenges.routes';
 
 // NHL SERVICE
 import nhlRoutes from './nhl.routes';
@@ -32,8 +34,11 @@ router.use('/user', authenticateToken, usersRoutes);
 
 router.use('/tickets', authenticateToken, ticketsRoutes);
 
+router.use('/challenges', authenticateToken, challengesRoutes);
+
 router.use('/media', authenticateToken, mediaRoutes);
 
-router.use('/nhl', authenticateToken, nhlRoutes);
+router.use('/nhl', nhlRoutes);
+router.use('/friends', authenticateToken, friendRoutes);
 
 export default router;

@@ -1,26 +1,17 @@
-// src/nhl.service.ts
 import axios from 'axios';
 
-const NHL_API = 'https://statsapi.web.nhl.com/api/v1';
+const NHL_WEB = 'https://api-web.nhle.com/v1';
+
+const http = axios.create({
+  baseURL: NHL_WEB,
+  timeout: 10_000,
+  headers: { Accept: 'application/json', 'User-Agent': 'm3-hockey-app/1.0' },
+});
 
 export class NHLService {
-  async getGamesByDate(dateISO: string) {
-    // date format: YYYY-MM-DD
-    const { data } = await axios.get(`${NHL_API}/schedule`, {
-      params: { date: dateISO },
-      // timeout keeps local dev snappy; adjust as you like
-      timeout: 10_000,
-    });
-    return data;
-  }
-
-  async getTeams() {
-    const { data } = await axios.get(`${NHL_API}/teams`, { timeout: 10_000 });
-    return data;
-  }
-
-  async getStandings() {
-    const { data } = await axios.get(`${NHL_API}/standings`, { timeout: 10_000 });
+  /** GET /v1/schedule/{YYYY-MM-DD} */
+  async getSchedule(dateISO: string) {
+    const { data } = await http.get(`/schedule/${dateISO}`);
     return data;
   }
 }

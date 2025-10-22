@@ -55,11 +55,26 @@ const userSchema = new Schema<IUser>(
           'Hobbies must be non-empty strings and must be in the available hobbies list',
       },
     },
+    friendCode: {
+      type: String,
+      required: true,
+      unique: true,
+      index: true,
+    },
   },
   {
     timestamps: true,
   }
 );
+
+function generateFriendCode(length = 6): string {
+  const chars = 'ABCDEFGHIJKLMNPQRSTUVWXYZ0123456789';
+  let result = '';
+  for (let i = 0; i < length; i++) {
+    result += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return result;
+}
 
 export class UserModel {
   private user: mongoose.Model<IUser>;
@@ -72,7 +87,15 @@ export class UserModel {
     try {
       const validatedData = createUserSchema.parse(userInfo);
 
-      return await this.user.create(validatedData);
+      let friendCode: string;
+      let isUnique = false;
+      do {
+        friendCode = generateFriendCode();
+       const existing = await this.user.findOne({ friendCode });
+        if (!existing) isUnique = true;
+      } while (!isUnique);
+
+    return await this.user.create({ ...validatedData, friendCode });
     } catch (error) {
       if (error instanceof z.ZodError) {
         console.error('Validation error:', error.issues);
@@ -139,6 +162,16 @@ export class UserModel {
       return user;
     } catch (error) {
       console.error('Error finding user by Google ID:', error);
+      throw new Error('Failed to find user');
+    }
+  }
+
+  async findByFriendCode(code: string): Promise<IUser | null> {
+    try {
+      const user = await this.user.findOne({ friendCode: code });
+      return user || null;
+    } catch (error) {
+      console.error('Error finding user by friend code:', error);
       throw new Error('Failed to find user');
     }
   }
