@@ -25,7 +25,9 @@ import androidx.compose.ui.unit.dp
 import com.cpen321.usermanagement.R
 import com.cpen321.usermanagement.data.remote.dto.Challenge
 import com.cpen321.usermanagement.data.remote.dto.ChallengeStatus
+import com.cpen321.usermanagement.data.remote.dto.User
 import com.cpen321.usermanagement.ui.viewmodels.ChallengesViewModel
+import com.cpen321.usermanagement.ui.viewmodels.Friend
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -47,6 +49,9 @@ fun EditChallengeScreen(
         // challengesViewModel.loadUserTickets()
         challengesViewModel.loadProfile()
     }
+    LaunchedEffect(uiState.user) {
+        challengesViewModel.loadFriends(uiState.user!!._id)
+    }
 
     // State variables // BingoTicket data class should be changed.
     var selectedTicketForJoining by remember { mutableStateOf<BingoTicket?>(null) }
@@ -62,6 +67,7 @@ fun EditChallengeScreen(
     // These states now live here, to be controlled by the screen
     val challenge = uiState.selectedChallenge
     val userId = uiState.user?._id
+    val allFriends = uiState.allFriends
 
 
 
@@ -73,6 +79,7 @@ fun EditChallengeScreen(
 
         EditChallengeContent(
             challenge = challenge,
+            user = uiState.user,
             isOwner,
             isInvitee,
             canLeave,
@@ -85,6 +92,7 @@ fun EditChallengeScreen(
                 challengesViewModel.deleteChallenge(challenge.id)
                 onBackClick() // Navigate back after deleting
             },
+            allFriends = allFriends,
             availableTickets = availableTicketsForJoining.filter { it.gameId == challenge.gameId }, // Filter tickets for the correct game
             selectedTicket = selectedTicketForJoining,
             onTicketSelected = { ticket -> selectedTicketForJoining = ticket },
@@ -111,12 +119,14 @@ fun EditChallengeScreen(
 @Composable
 private fun EditChallengeContent(
     challenge: Challenge,
+    user: User?,
     isOwner: Boolean,
     isInvitee: Boolean,
     canLeave: Boolean,
     onBackClick: () -> Unit,
     onSaveChallenge: (Challenge) -> Unit,
     onDeleteChallenge: () -> Unit, // Added this callback
+    allFriends: List<Friend>?,
     availableTickets: List<BingoTicket>,
     selectedTicket: BingoTicket?,
     onTicketSelected: (BingoTicket) -> Unit,
@@ -201,7 +211,7 @@ private fun EditChallengeContent(
                 }
 
                 GameInfoCard(challenge = challenge)
-                MembersCard(challenge = challenge)
+                MembersCard(challenge = challenge, allFriends = allFriends, user = user)
             }
 
             // Delete button at the bottom
@@ -408,7 +418,7 @@ private fun GameInfoCard(challenge: Challenge) {
 }
 
 @Composable
-private fun MembersCard(challenge: Challenge) {
+private fun MembersCard(challenge: Challenge, allFriends: List<Friend>?, user: User?) {
     Card(
         modifier = Modifier.fillMaxWidth()
     ) {
@@ -433,8 +443,19 @@ private fun MembersCard(challenge: Challenge) {
                 )
             }
 
-            if (challenge.memberIds.isNotEmpty()) {
+            if (challenge.memberIds.isNotEmpty() && allFriends != null) {
                 challenge.memberIds.forEach { memberId ->
+
+                    // match memberId to user or friends list
+                    val memberName = when (memberId) {
+                        user?._id -> user.name
+                        else -> allFriends.find { it.id == memberId }?.name ?: memberId
+                    }
+
+
+
+
+
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -447,7 +468,7 @@ private fun MembersCard(challenge: Challenge) {
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = memberId,
+                            text = memberName,
                             style = MaterialTheme.typography.bodyMedium
                         )
                     }
