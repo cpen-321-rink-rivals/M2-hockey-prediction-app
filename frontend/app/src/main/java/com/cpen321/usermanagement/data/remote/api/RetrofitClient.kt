@@ -12,6 +12,9 @@ object RetrofitClient {
     private const val BASE_URL = BuildConfig.API_BASE_URL
     private const val IMAGE_BASE_URL = BuildConfig.IMAGE_BASE_URL
 
+    private const val NHL_BASE_URL = BuildConfig.NHL_BASE_URL
+
+
     private var authToken: String? = null
 
     private val loggingInterceptor = HttpLoggingInterceptor().apply {
@@ -34,13 +37,19 @@ object RetrofitClient {
         .addConverterFactory(GsonConverterFactory.create())
         .build()
 
+    private val nhlRetrofit = Retrofit.Builder()
+        .baseUrl(NHL_BASE_URL)
+        .client(httpClient)
+        .addConverterFactory(GsonConverterFactory.create())
+        .build()
+
+    val nhlInterface: NHLInterface = nhlRetrofit.create(NHLInterface::class.java)
     val authInterface: AuthInterface = retrofit.create(AuthInterface::class.java)
     val imageInterface: ImageInterface = retrofit.create(ImageInterface::class.java)
     val userInterface: UserInterface = retrofit.create(UserInterface::class.java)
     val hobbyInterface: HobbyInterface = retrofit.create(HobbyInterface::class.java)
     val languageInterface: LanguageInterface = retrofit.create(LanguageInterface::class.java)
     val friendsInterface: FriendsInterface = retrofit.create(FriendsInterface::class.java)
-
     val challengesInterface: ChallengesInterface = retrofit.create(ChallengesInterface::class.java)
 
     fun setAuthToken(token: String?) {
