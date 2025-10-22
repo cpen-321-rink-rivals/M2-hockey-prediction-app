@@ -446,11 +446,15 @@ private fun MembersCard(challenge: Challenge, allFriends: List<Friend>?, user: U
             if (challenge.memberIds.isNotEmpty() && allFriends != null) {
                 challenge.memberIds.forEach { memberId ->
 
+
                     // match memberId to user or friends list
                     val memberName = when (memberId) {
-                        user?._id -> user.name
+                        challenge.ownerId -> "${allFriends.find { it.id == memberId }?.name ?: user?.name ?: memberId} (Owner)"
+                        user?._id -> "${user.name} (You)"
                         else -> allFriends.find { it.id == memberId }?.name ?: memberId
                     }
+
+
 
 
 
