@@ -18,6 +18,8 @@ data class ProfileUiState(
     val isLoadingProfile: Boolean = false,
     val isSavingProfile: Boolean = false,
     val isLoadingPhoto: Boolean = false,
+    val isDeletingProfile: Boolean = false,
+
 
     // Data states
     val user: User? = null,
@@ -25,6 +27,8 @@ data class ProfileUiState(
     val allLanguages: List<String> = emptyList(),
     val selectedHobbies: Set<String> = emptySet(),
     val selectedLanguages: Set<String> = emptySet(),
+    val isProfileDeleted: Boolean = false,
+
 
     // Message states
     val errorMessage: String? = null,
@@ -45,7 +49,11 @@ class ProfileViewModel @Inject constructor(
 
     fun loadProfile() {
         viewModelScope.launch {
-            _uiState.value = _uiState.value.copy(isLoadingProfile = true, errorMessage = null)
+            _uiState.value = _uiState.value.copy(
+                isLoadingProfile = true, 
+                errorMessage = null,
+                isProfileDeleted = false // Reset deletion flag when loading profile
+            )
 
             val profileResult = profileRepository.getProfile()
             val hobbiesResult = profileRepository.getAvailableHobbies()
@@ -204,6 +212,10 @@ class ProfileViewModel @Inject constructor(
         _uiState.value = _uiState.value.copy(successMessage = null)
     }
 
+    fun resetDeletionState() {
+        _uiState.value = _uiState.value.copy(isProfileDeleted = false)
+    }
+
     fun setLoadingPhoto(isLoading: Boolean) {
         _uiState.value = _uiState.value.copy(isLoadingPhoto = isLoading)
     }
@@ -225,9 +237,9 @@ class ProfileViewModel @Inject constructor(
                     successMessage = null
                 )
 
-            val result = profileRepository.updateProfile(name, bio)
-            if (result.isSuccess) {
-                val updatedUser = result.getOrNull()!!
+            val updateResult = profileRepository.updateProfile(name, bio)
+            if (updateResult.isSuccess) {
+                val updatedUser = updateResult.getOrNull()!!
                 _uiState.value = _uiState.value.copy(
                     isSavingProfile = false,
                     user = updatedUser,
@@ -235,7 +247,7 @@ class ProfileViewModel @Inject constructor(
                 )
                 onSuccess()
             } else {
-                val error = result.exceptionOrNull()
+                val error = updateResult.exceptionOrNull()
                 Log.e(TAG, "Failed to update profile", error)
                 val errorMessage = error?.message ?: "Failed to update profile"
                 _uiState.value = _uiState.value.copy(
@@ -243,6 +255,31 @@ class ProfileViewModel @Inject constructor(
                     errorMessage = errorMessage
                 )
             }
+        }
+    }
+
+    fun deleteProfile() {
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(isDeletingProfile = true, errorMessage = null)
+
+            val deleteResult = profileRepository.deleteProfile()
+
+            if (deleteResult.isSuccess) {
+                _uiState.value = _uiState.value.copy(
+                    isDeletingProfile = false,
+                    successMessage = "Profile deleted successfully!",
+                    isProfileDeleted = true // Add this flag to trigger navigation
+                )
+            } else {
+                val error = deleteResult.exceptionOrNull()
+                Log.e(TAG, "Failed to delete profile", error)
+                val errorMessage = error?.message ?: "Failed to delete profile"
+                _uiState.value = _uiState.value.copy(
+                    isDeletingProfile = false,
+                    errorMessage = errorMessage
+                )
+            }
+
         }
     }
 }

@@ -12,6 +12,15 @@ data class ProfileData(
     val user: User
 )
 
+data class PublicProfileData(
+    val _id: String,
+    val name: String,
+    val bio: String?,
+    val friendCode: String,
+    val profilePicture: String,
+    val hobbies: List<String> = emptyList(),
+)
+
 data class User(
     val _id: String,
     val email: String,

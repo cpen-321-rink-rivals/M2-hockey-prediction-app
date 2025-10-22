@@ -89,4 +89,24 @@ export class AuthController {
       next(error);
     }
   }
+
+  async signOut(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      // In a stateless JWT system, we just send a success response
+      // The client should clear the token locally
+      // In the future, you could implement token blacklisting here
+      
+      return res.status(200).json({
+        message: 'User signed out successfully',
+        data: {},
+      });
+    } catch (error) {
+      logger.error('Sign out error:', error);
+      next(error);
+    }
+  }
 }

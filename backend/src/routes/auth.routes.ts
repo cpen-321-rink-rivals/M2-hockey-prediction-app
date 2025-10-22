@@ -22,4 +22,6 @@ router.post(
   authController.signIn
 );
 
+router.post('/signout', authController.signOut);
+
 export default router;
