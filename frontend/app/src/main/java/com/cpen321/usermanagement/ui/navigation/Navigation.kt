@@ -19,6 +19,7 @@ import com.cpen321.usermanagement.ui.screens.FriendsScreen
 import com.cpen321.usermanagement.ui.screens.ChallengesScreen
 import com.cpen321.usermanagement.ui.screens.ChallengesScreenActions
 import com.cpen321.usermanagement.ui.screens.CreateBingoTicketScreen
+import com.cpen321.usermanagement.ui.screens.CreateChallengeScreen
 import com.cpen321.usermanagement.ui.screens.EditChallengeScreen
 import com.cpen321.usermanagement.ui.screens.LoadingScreen
 import com.cpen321.usermanagement.ui.screens.MainScreen
@@ -51,6 +52,8 @@ object NavRoutes {
     const val EDIT_CHALLENGE_ROUTE = "edit_challenge"
     const val EDIT_CHALLENGE_ARG = "challengeId"
     const val EDIT_CHALLENGE = "$EDIT_CHALLENGE_ROUTE/{$EDIT_CHALLENGE_ARG}"
+    const val ADD_CHALLENGE = "$CHALLENGES/new"
+
     const val MANAGE_PROFILE = "manage_profile"
     const val MANAGE_HOBBIES = "manage_hobbies"
     const val MANAGE_LANGUAGES_SPOKEN = "languages_spoken"
@@ -162,6 +165,11 @@ private fun handleNavigationEvent(
 
         is NavigationEvent.NavigateToEditChallenge -> {
             navController.navigate("${NavRoutes.EDIT_CHALLENGE_ROUTE}/${navigationEvent.challengeId}")
+            navigationStateManager.clearNavigationEvent()
+        }
+
+        is NavigationEvent.NavigateToAddChallenge -> {
+            navController.navigate("${NavRoutes.CHALLENGES}/${"new"}")
             navigationStateManager.clearNavigationEvent()
         }
 
@@ -289,7 +297,7 @@ private fun AppNavHost(
                 challengesViewModel = challengesViewModel,
                 actions = ChallengesScreenActions(
                     onBackClick = { navigationStateManager.navigateBack() },
-                    onAddChallengeClick = { challengesViewModel.createChallenge() },
+                    onAddChallengeClick = { navigationStateManager.navigateToAddChallenge() },
                     onChallengeClick = { challengeId ->
                         navigationStateManager.navigateToEditChallenge(challengeId)
                     }
@@ -314,6 +322,15 @@ private fun AppNavHost(
                 Log.e("AppNavigation", "Challenge ID is null, navigating back.")
                 navigationStateManager.navigateBack()
             }
+        }
+
+        composable(NavRoutes.ADD_CHALLENGE) {
+            CreateChallengeScreen(
+                challengesViewModel = challengesViewModel,
+                onBackClick = { navigationStateManager.navigateBack() },
+                onChallengeCreated = { navigationStateManager.navigateToChallenges() }
+            )
+
         }
 
         composable(NavRoutes.MANAGE_PROFILE) {

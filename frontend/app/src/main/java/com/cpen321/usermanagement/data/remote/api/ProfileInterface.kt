@@ -2,6 +2,7 @@ package com.cpen321.usermanagement.data.remote.api
 
 import com.cpen321.usermanagement.data.remote.dto.ApiResponse
 import com.cpen321.usermanagement.data.remote.dto.ProfileData
+import com.cpen321.usermanagement.data.remote.dto.PublicProfileData
 import com.cpen321.usermanagement.data.remote.dto.UpdateProfileRequest
 import com.cpen321.usermanagement.data.remote.dto.UploadImageData
 import okhttp3.MultipartBody
@@ -12,17 +13,40 @@ import retrofit2.http.GET
 import retrofit2.http.Header
 import retrofit2.http.Multipart
 import retrofit2.http.POST
+import retrofit2.http.PUT
 import retrofit2.http.Part
+import retrofit2.http.Path
 
 interface UserInterface {
-    @GET("user/profile")
-    suspend fun getProfile(@Header("Authorization") authHeader: String): Response<ApiResponse<ProfileData>>
 
-    @POST("user/profile")
+    // Get current user profile
+    @GET("user/profile")
+    suspend fun getProfile(
+        @Header("Authorization") authHeader: String
+    ): Response<ApiResponse<ProfileData>>
+
+    // Get public User Info By Id
+    @GET("user/{userId}")
+    suspend fun getUserInfoById(
+        @Header("Authorization") authHeader: String,
+        @Path("userId") userId: String
+    ): Response<ApiResponse<PublicProfileData>>
+
+
+    // update current user profile
+    @PUT("user/profile")
     suspend fun updateProfile(
         @Header("Authorization") authHeader: String,
         @Body request: UpdateProfileRequest
     ): Response<ApiResponse<ProfileData>>
+
+    // Delete current user profile.
+    @DELETE("user/profile")
+    suspend fun deleteProfile(
+        @Header("Authorization") authHeader: String
+    ): Response<ApiResponse<Unit>>
+
+
 }
 
 interface ImageInterface {
