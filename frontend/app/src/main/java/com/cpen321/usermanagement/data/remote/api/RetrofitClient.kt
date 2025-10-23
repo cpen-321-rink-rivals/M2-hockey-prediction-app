@@ -1,5 +1,6 @@
 package com.cpen321.usermanagement.data.remote.api
 
+import android.util.Log
 import com.cpen321.usermanagement.BuildConfig
 import com.cpen321.usermanagement.data.remote.interceptors.AuthInterceptor
 import okhttp3.OkHttpClient
@@ -21,11 +22,26 @@ object RetrofitClient {
         level = HttpLoggingInterceptor.Level.BODY
     }
 
+    // Enhanced logging for NHL API debugging
+    private val nhlLoggingInterceptor = HttpLoggingInterceptor { message ->
+        Log.d("NHL_API", message)
+    }.apply {
+        level = HttpLoggingInterceptor.Level.BODY
+    }
+
     private val authInterceptor = AuthInterceptor { authToken }
 
     private val httpClient = OkHttpClient.Builder()
         .addInterceptor(authInterceptor)
         .addInterceptor(loggingInterceptor)
+        .connectTimeout(30, TimeUnit.SECONDS)
+        .readTimeout(30, TimeUnit.SECONDS)
+        .writeTimeout(30, TimeUnit.SECONDS)
+        .build()
+
+    // Separate HTTP client for NHL API (no auth needed)
+    private val nhlHttpClient = OkHttpClient.Builder()
+        .addInterceptor(nhlLoggingInterceptor)
         .connectTimeout(30, TimeUnit.SECONDS)
         .readTimeout(30, TimeUnit.SECONDS)
         .writeTimeout(30, TimeUnit.SECONDS)
@@ -39,7 +55,7 @@ object RetrofitClient {
 
     private val nhlRetrofit = Retrofit.Builder()
         .baseUrl(NHL_BASE_URL)
-        .client(httpClient)
+        .client(nhlHttpClient) // Use separate client without auth
         .addConverterFactory(GsonConverterFactory.create())
         .build()
 

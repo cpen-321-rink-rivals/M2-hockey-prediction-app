@@ -4,6 +4,8 @@ import com.cpen321.usermanagement.data.repository.AuthRepository
 import com.cpen321.usermanagement.data.repository.AuthRepositoryImpl
 import com.cpen321.usermanagement.data.repository.ChallengesRepository
 import com.cpen321.usermanagement.data.repository.ChallengesRepositoryImpl
+import com.cpen321.usermanagement.data.repository.NHLRepository
+import com.cpen321.usermanagement.data.repository.NHLRepositoryImpl
 import com.cpen321.usermanagement.data.repository.ProfileRepository
 import com.cpen321.usermanagement.data.repository.ProfileRepositoryImpl
 import dagger.Module
@@ -16,6 +18,14 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 object RepositoryModule {
 
+
+    @Provides
+    @Singleton
+    fun provideNHLRepository(
+        nhlRepositoryImpl: NHLRepositoryImpl
+    ): NHLRepository {
+        return nhlRepositoryImpl
+    }
     @Provides
     @Singleton
     fun provideAuthRepository(

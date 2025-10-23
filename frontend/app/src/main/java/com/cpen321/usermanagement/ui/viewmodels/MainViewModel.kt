@@ -3,7 +3,9 @@ package com.cpen321.usermanagement.ui.viewmodels
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.cpen321.usermanagement.data.remote.dto.GameWeek
 import com.cpen321.usermanagement.data.remote.dto.User
+import com.cpen321.usermanagement.data.repository.NHLRepository
 import com.cpen321.usermanagement.data.repository.ProfileRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -16,9 +18,12 @@ data class MainUiState(
 
     // Loading messages
     val isLoadingProfile: Boolean = false,
+    val isLoadingGameSchedule: Boolean = false,
+
 
     // Data states
     val user: User? = null,
+    val gameSchedule: List<GameWeek>? = null,
     val allHobbies: List<String> = emptyList(),
     val allLanguages: List<String> = emptyList(),
     val selectedHobbies: Set<String> = emptySet(),
@@ -31,7 +36,8 @@ data class MainUiState(
 
 @HiltViewModel
 class MainViewModel @Inject constructor(
-    private val profileRepository: ProfileRepository
+    private val profileRepository: ProfileRepository,
+    private val nhlRepository: NHLRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(MainUiState())
@@ -47,6 +53,31 @@ class MainViewModel @Inject constructor(
 
     fun clearSuccessMessage() {
         _uiState.value = _uiState.value.copy(successMessage = null)
+    }
+
+    fun loadGameSchedule(){
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(isLoadingGameSchedule = true, errorMessage = null)
+
+            val scheduleResult = nhlRepository.getCurrentSchedule()
+
+            val schedule = scheduleResult.getOrNull()
+
+            if (scheduleResult.isFailure) {
+                val error = scheduleResult.exceptionOrNull()
+                val errorMessage = error?.message ?: "Failed to load game schedule"
+                _uiState.value = _uiState.value.copy(
+                    isLoadingGameSchedule = false,
+                    errorMessage = errorMessage
+                )
+            } else {
+                _uiState.value = _uiState.value.copy(
+                    isLoadingGameSchedule = false,
+                    gameSchedule = schedule,
+                    errorMessage = null
+                )
+            }
+        }
     }
 
     fun loadProfile() {
