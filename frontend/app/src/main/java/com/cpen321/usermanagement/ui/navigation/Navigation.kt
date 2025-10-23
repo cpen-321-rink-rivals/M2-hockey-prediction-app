@@ -18,6 +18,7 @@ import com.cpen321.usermanagement.ui.screens.AuthScreen
 import com.cpen321.usermanagement.ui.screens.FriendsScreen
 import com.cpen321.usermanagement.ui.screens.ChallengesScreen
 import com.cpen321.usermanagement.ui.screens.ChallengesScreenActions
+import com.cpen321.usermanagement.ui.screens.CreateBingoTicketScreen
 import com.cpen321.usermanagement.ui.screens.CreateChallengeScreen
 import com.cpen321.usermanagement.ui.screens.EditChallengeScreen
 import com.cpen321.usermanagement.ui.screens.LoadingScreen
@@ -43,6 +44,7 @@ object NavRoutes {
     const val MAIN = "main"
     const val PROFILE = "profile"
     const val TICKETS = "tickets"
+    const val CREATE_TICKET = "create_ticket"
     const val FRIENDS = "friends"
     const val CHALLENGES = "challenges"
 
@@ -150,6 +152,12 @@ private fun handleNavigationEvent(
             navController.navigate(NavRoutes.TICKETS)
             navigationStateManager.clearNavigationEvent()
         }
+
+        is NavigationEvent.NavigateToCreateTicket -> {
+            navController.navigate(NavRoutes.CREATE_TICKET)
+            navigationStateManager.clearNavigationEvent()
+        }
+
         is NavigationEvent.NavigateToChallenges -> {
             navController.navigate(NavRoutes.CHALLENGES)
             navigationStateManager.clearNavigationEvent()
@@ -263,8 +271,17 @@ private fun AppNavHost(
                 authViewModel = authViewModel,
                 ticketsViewModel = ticketsViewModel,
                 actions = TicketsScreenActions(
-                    onBackClick = { navigationStateManager.navigateBack() }
+                    onBackClick = { navigationStateManager.navigateBack() },
+                    onCreateTicketClick = { navigationStateManager.navigateToCreateTicket() }
                 )
+            )
+        }
+
+        composable(NavRoutes.CREATE_TICKET) {
+            CreateBingoTicketScreen(
+                ticketsViewModel = ticketsViewModel,
+                onBackClick = { navigationStateManager.navigateBack() },
+                authViewModel = authViewModel
             )
         }
 
