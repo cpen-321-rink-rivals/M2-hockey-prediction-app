@@ -4,8 +4,11 @@ import android.util.Log
 import androidx.compose.animation.core.copy
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.cpen321.usermanagement.data.local.preferences.NhlDataManager
 import com.cpen321.usermanagement.data.remote.dto.Challenge
 import com.cpen321.usermanagement.data.remote.dto.CreateChallengeRequest
+import com.cpen321.usermanagement.data.remote.dto.Game
+import com.cpen321.usermanagement.data.remote.dto.PublicProfileData
 import com.cpen321.usermanagement.data.remote.dto.User
 import com.cpen321.usermanagement.data.repository.ChallengesRepository
 import com.cpen321.usermanagement.data.repository.FriendsRepository
@@ -23,6 +26,7 @@ data class ChallengesUiState(
     val isLoadingChallenge: Boolean = false,
     val isLoadingProfile: Boolean = false,
     val isLoadingFriends: Boolean = false,
+    val isLoadingGames: Boolean = false,
     val isDeletingChallenge: Boolean = false,
     val isUpdatingChallenge: Boolean = false,
     val isJoiningChallenge: Boolean = false,
@@ -32,6 +36,7 @@ data class ChallengesUiState(
     //data states
     val user: User? = null,
     val allFriends: List<Friend>? = null,
+    val availableGames: List<Game> = emptyList(),
     val allChallenges: Map<String, List<Challenge>>? = null,
     val allPendingChallenges: List<Challenge>? = null,
     val allActiveChallenges: List<Challenge>? = null,
@@ -52,7 +57,7 @@ class ChallengesViewModel @Inject constructor(
     private val challengesRepository: ChallengesRepository,
     private val profileRepository: ProfileRepository,
     private val friendsRepository: FriendsRepository,
-    // Inject repositories here if needed in the future
+    private val nhlDataManager: NhlDataManager
 ) : ViewModel() {
     companion object {
         private const val TAG = "ChallengesViewModel"
@@ -60,6 +65,9 @@ class ChallengesViewModel @Inject constructor(
 
     private val _uiState = MutableStateFlow(ChallengesUiState())
     val uiState = _uiState.asStateFlow()
+
+    // Expose NHL data for challenges
+    val nhlDataState = nhlDataManager.uiState
 
     fun clearError() {
         _uiState.value = _uiState.value.copy(errorMessage = null)
@@ -312,5 +320,46 @@ class ChallengesViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Get upcoming NHL games for challenge creation
+     */
+    fun getUpcomingGamesForChallenges(): List<Game> {
+        return nhlDataManager.getGamesForChallenges()
+    }
+
+    /**
+     * Load upcoming NHL games for challenge creation
+     */
+    fun loadUpcomingGames() {
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(isLoadingGames = true, errorMessage = null)
+            try {
+                // Load NHL schedule if not already loaded
+                nhlDataManager.loadSchedule()
+                
+                // Get upcoming games and update UI state
+                val games = nhlDataManager.getGamesForChallenges()
+                _uiState.value = _uiState.value.copy(
+                    availableGames = games,
+                    isLoadingGames = false
+                )
+                
+                Log.d(TAG, "Loaded ${games.size} upcoming games for challenges")
+            } catch (e: Exception) {
+                Log.e(TAG, "Error loading upcoming games", e)
+                _uiState.value = _uiState.value.copy(
+                    isLoadingGames = false,
+                    errorMessage = "Failed to load upcoming games: ${e.message}"
+                )
+            }
+        }
+    }
+
+    /**
+     * Get a specific game by ID
+     */
+    fun getGameById(gameId: Long): Game? {
+        return nhlDataManager.getGameById(gameId)
+    }
 
 }

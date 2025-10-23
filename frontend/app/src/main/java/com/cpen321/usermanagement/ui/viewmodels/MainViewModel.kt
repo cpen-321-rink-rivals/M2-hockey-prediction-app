@@ -3,6 +3,8 @@ package com.cpen321.usermanagement.ui.viewmodels
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.cpen321.usermanagement.data.local.preferences.NhlDataManager
+import com.cpen321.usermanagement.data.remote.dto.GameWeek
 import com.cpen321.usermanagement.data.remote.dto.User
 import com.cpen321.usermanagement.data.repository.ProfileRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -13,7 +15,6 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 data class MainUiState(
-
     // Loading messages
     val isLoadingProfile: Boolean = false,
 
@@ -31,11 +32,15 @@ data class MainUiState(
 
 @HiltViewModel
 class MainViewModel @Inject constructor(
-    private val profileRepository: ProfileRepository
+    private val profileRepository: ProfileRepository,
+    private val nhlDataManager: NhlDataManager
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(MainUiState())
     val uiState: StateFlow<MainUiState> = _uiState.asStateFlow()
+
+    // Expose NHL data from manager
+    val nhlDataState = nhlDataManager.uiState
 
     companion object {
         private const val TAG = "MainViewModel"
@@ -47,6 +52,16 @@ class MainViewModel @Inject constructor(
 
     fun clearSuccessMessage() {
         _uiState.value = _uiState.value.copy(successMessage = null)
+    }
+
+    fun loadGameSchedule(){
+        viewModelScope.launch {
+            nhlDataManager.loadSchedule()
+        }
+    }
+
+    fun clearScheduleError() {
+        nhlDataManager.clearError()
     }
 
     fun loadProfile() {

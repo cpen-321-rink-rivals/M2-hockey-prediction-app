@@ -9,6 +9,7 @@ import com.cpen321.usermanagement.data.remote.api.RetrofitClient
 import com.cpen321.usermanagement.data.remote.api.UserInterface
 import com.cpen321.usermanagement.data.remote.api.FriendsInterface
 import com.cpen321.usermanagement.data.remote.api.TicketsInterface
+import com.cpen321.usermanagement.data.remote.api.NHLInterface
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -18,6 +19,12 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 object NetworkModule {
+
+    @Provides
+    @Singleton
+    fun provideNHLService(): NHLInterface {
+        return RetrofitClient.nhlInterface
+    }
 
     @Provides
     @Singleton

@@ -52,6 +52,7 @@ fun MainScreen(
         mainViewModel.clearSuccessMessage()
         if (uiState.user == null) {
             mainViewModel.loadProfile()
+            mainViewModel.loadGameSchedule()
         }
     }
 
@@ -246,8 +247,7 @@ private fun MainBody(
     paddingValues: PaddingValues,
     modifier: Modifier = Modifier,
     uiState: MainUiState,
-
-    ) {
+) {
     Box(
         modifier = modifier
             .fillMaxSize()

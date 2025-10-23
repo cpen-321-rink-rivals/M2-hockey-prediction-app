@@ -23,6 +23,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.cpen321.usermanagement.R
+import com.cpen321.usermanagement.data.remote.dto.BingoTicket
 import com.cpen321.usermanagement.data.remote.dto.Challenge
 import com.cpen321.usermanagement.data.remote.dto.ChallengeStatus
 import com.cpen321.usermanagement.data.remote.dto.User
@@ -57,10 +58,10 @@ fun EditChallengeScreen(
     var selectedTicketForJoining by remember { mutableStateOf<BingoTicket?>(null) }
     val availableTicketsForJoining = remember {
         listOf(
-            BingoTicket("ticket1", "game1", "Rangers vs Devils Predictions"),
-            BingoTicket("ticket2", "game1", "My Rangers Ticket"),
-            BingoTicket("ticket3", "game2", "Bruins Game Ticket"),
-            BingoTicket("ticket4", "game3", "Penguins vs Flyers")
+            BingoTicket("ticket1", "game1", "Rangers vs Devils Predictions1", "game", listOf("d", "d")),
+            BingoTicket("ticket2", "game1", "Rangers vs Devils Predictions2", "game", listOf("d", "d")),
+            BingoTicket("ticket3", "game1", "Rangers vs Devils Predictions3", "game", listOf("d", "d")),
+            BingoTicket("ticket4", "game1", "Rangers vs Devils Predictions4", "game", listOf("d", "d")),
         )
     }
 
@@ -93,13 +94,13 @@ fun EditChallengeScreen(
                 onBackClick() // Navigate back after deleting
             },
             allFriends = allFriends,
-            availableTickets = availableTicketsForJoining.filter { it.gameId == challenge.gameId }, // Filter tickets for the correct game
+            availableTickets = availableTicketsForJoining.filter { it.game == challenge.gameId }, // Filter tickets for the correct game
             selectedTicket = selectedTicketForJoining,
             onTicketSelected = { ticket -> selectedTicketForJoining = ticket },
             onJoinChallenge = {
                 Log.d("EditChallengeScreen", "Joining challenge with ticket: $selectedTicketForJoining")
                 selectedTicketForJoining?.let { ticket ->
-                    challengesViewModel.joinChallenge(challenge.id, ticketId = ticket.id)
+                    challengesViewModel.joinChallenge(challenge.id, ticketId = ticket._id)
                     onBackClick() // Navigate back after joining
                 }
             },
@@ -634,7 +635,7 @@ private fun JoinChallengeCard(
                 onExpandedChange = { isDropdownExpanded = !isDropdownExpanded }
             ) {
                 OutlinedTextField(
-                    value = selectedTicket?.title ?: "Select a ticket to use",
+                    value = selectedTicket?.name ?: "Select a ticket to use",
                     onValueChange = {},
                     readOnly = true,
                     label = { Text("Your Bingo Ticket") },
@@ -658,7 +659,7 @@ private fun JoinChallengeCard(
                     } else {
                         availableTickets.forEach { ticket ->
                             DropdownMenuItem(
-                                text = { Text(ticket.title) },
+                                text = { Text(ticket.name) },
                                 onClick = {
                                     onTicketSelected(ticket)
                                     isDropdownExpanded = false
