@@ -2,8 +2,10 @@ package com.cpen321.usermanagement.ui.screens
 
 import Icon
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -11,6 +13,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -160,33 +163,51 @@ fun TicketsList(
     } else {
         LazyColumn(
             modifier = modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-            contentPadding = PaddingValues(bottom = 100.dp) // leave space for button
+            contentPadding = PaddingValues(bottom = 100.dp)
         ) {
             items(
                 count = allTickets.size,
                 key = { index -> allTickets[index]._id }
             ) { index ->
                 val ticket = allTickets[index]
-                Row(
+
+                Card(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(vertical = 4.dp)
-                        .background(MaterialTheme.colorScheme.surfaceVariant)
-                        .padding(8.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                        .padding(vertical = 8.dp),
+                    shape = RoundedCornerShape(16.dp),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
                 ) {
-                    Column {
-                        Text(ticket.name, style = MaterialTheme.typography.bodyLarge)
-                    }
-                    TextButton(onClick = { ticketsViewModel.deleteTicket(ticket._id) }) {
-                        Text("Remove")
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = ticket.name,
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold
+                        )
+
+                        Spacer(modifier = Modifier.height(12.dp))
+
+                        // Show 3x3 grid of events
+                        BingoGridPreview(events = ticket.events)
+
+                        Spacer(modifier = Modifier.height(12.dp))
+
+                        TextButton(onClick = { ticketsViewModel.deleteTicket(ticket._id) }) {
+                            Text("Remove")
+                        }
                     }
                 }
             }
         }
     }
 }
+
 
 @Composable
 private fun AddTicketButton(
@@ -195,5 +216,32 @@ private fun AddTicketButton(
 ) {
     Button(onClick = onClick, modifier = modifier) {
         Text("New Bingo Ticket")
+    }
+}
+
+@Composable
+fun BingoGridPreview(events: List<String>) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        for (row in 0 until 3) {
+            Row(horizontalArrangement = Arrangement.Center) {
+                for (col in 0 until 3) {
+                    val index = row * 3 + col
+                    Box(
+                        modifier = Modifier
+                            .padding(4.dp)
+                            .size(80.dp)
+                            .border(1.dp, Color.Gray, RoundedCornerShape(8.dp))
+                            .background(MaterialTheme.colorScheme.surfaceVariant),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = events.getOrNull(index) ?: "",
+                            style = MaterialTheme.typography.bodySmall,
+                            modifier = Modifier.padding(6.dp)
+                        )
+                    }
+                }
+            }
+        }
     }
 }

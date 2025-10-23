@@ -33,9 +33,6 @@ class TicketsViewModel @Inject constructor(
     }
 
     fun createTicket(userId: String, name: String, game: String, events: List<String>) {
-        if (_uiState.value.isCreating) return // prevent duplicates
-        if (name.isBlank()) return
-
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isCreating = true)
 
