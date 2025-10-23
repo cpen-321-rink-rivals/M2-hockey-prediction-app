@@ -247,8 +247,7 @@ private fun MainBody(
     paddingValues: PaddingValues,
     modifier: Modifier = Modifier,
     uiState: MainUiState,
-
-    ) {
+) {
     Box(
         modifier = modifier
             .fillMaxSize()
@@ -256,7 +255,6 @@ private fun MainBody(
         contentAlignment = Alignment.Center
     ) {
         WelcomeMessage(uiState = uiState)
-        Text(text = uiState.gameSchedule.toString())
     }
 }
 

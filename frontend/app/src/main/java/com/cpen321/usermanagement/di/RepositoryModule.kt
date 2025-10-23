@@ -1,5 +1,6 @@
 package com.cpen321.usermanagement.di
 
+import com.cpen321.usermanagement.data.local.preferences.NhlDataManager
 import com.cpen321.usermanagement.data.repository.AuthRepository
 import com.cpen321.usermanagement.data.repository.AuthRepositoryImpl
 import com.cpen321.usermanagement.data.repository.ChallengesRepository
@@ -48,5 +49,13 @@ object RepositoryModule {
         challengesRepositoryImpl: ChallengesRepositoryImpl
     ) : ChallengesRepository {
         return challengesRepositoryImpl
+    }
+
+    @Provides
+    @Singleton
+    fun provideNhlDataManager(
+        nhlRepository: NHLRepository
+    ): NhlDataManager {
+        return NhlDataManager(nhlRepository)
     }
 }

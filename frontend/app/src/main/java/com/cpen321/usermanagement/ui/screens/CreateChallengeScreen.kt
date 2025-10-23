@@ -25,27 +25,15 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import com.cpen321.usermanagement.R
+import com.cpen321.usermanagement.data.remote.dto.BingoTicket
 import com.cpen321.usermanagement.data.remote.dto.CreateChallengeRequest
+import com.cpen321.usermanagement.data.remote.dto.Game
 import com.cpen321.usermanagement.ui.viewmodels.ChallengesViewModel
 import com.cpen321.usermanagement.ui.viewmodels.Friend
+import com.cpen321.usermanagement.ui.viewmodels.MainViewModel
 import java.text.SimpleDateFormat
 import java.util.*
 
-// Dummy data models - replace with your actual data models
-data class Game(
-    val id: String,
-    val homeTeam: String,
-    val awayTeam: String,
-    val startTime: String,
-    val title: String = "$homeTeam vs $awayTeam"
-)
-
-data class BingoTicket(
-    val id: String,
-    val gameId: String,
-    val title: String,
-    val events: List<String> = emptyList()
-)
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -58,9 +46,10 @@ fun CreateChallengeScreen(
     // Collect UI state from ViewModel
     val uiState by challengesViewModel.uiState.collectAsState()
     
-    // Load user profile and friends when screen opens
+    // Load NHL games when screen opens
     LaunchedEffect(Unit) {
         challengesViewModel.loadProfile()
+        challengesViewModel.loadUpcomingGames()
     }
     
     // Load friends once we have the user ID
@@ -83,21 +72,13 @@ fun CreateChallengeScreen(
     var showTicketPicker by remember { mutableStateOf(false) }
     var showFriendsPicker by remember { mutableStateOf(false) }
     
-    // Dummy data - replace with actual data from ViewModel
-    val availableGames = remember {
-        listOf(
-            Game("game1", "Rangers", "Devils", "2024-01-20T19:00:00Z"),
-            Game("game2", "Bruins", "Leafs", "2024-01-21T20:00:00Z"),
-            Game("game3", "Penguins", "Flyers", "2024-01-22T19:30:00Z")
-        )
-    }
+    // Get games from ViewModel
+    val availableGames = uiState.availableGames
     
     val availableTickets = remember {
         listOf(
-            BingoTicket("ticket1", "game1", "Rangers vs Devils Predictions"),
-            BingoTicket("ticket2", "game1", "My Rangers Ticket"),
-            BingoTicket("ticket3", "game2", "Bruins Game Ticket"),
-            BingoTicket("ticket4", "game3", "Penguins vs Flyers")
+            BingoTicket("ticket1", "game1", "Rangers vs Devils Predictions", "game", listOf("d", "d")),
+            BingoTicket("ticket1", "game1", "Rangers vs Devils Predictions 2", "game", listOf("d", "d"))
         )
     }
     
@@ -105,12 +86,12 @@ fun CreateChallengeScreen(
     val availableFriends = uiState.allFriends ?: emptyList()
     
     // Filter tickets based on selected game
-    val gameTickets = availableTickets.filter { it.gameId == selectedGame?.id }
+    val gameTickets = availableTickets.filter { it.game == selectedGame?.id.toString() }
     
     // Update challenge title when game changes
     LaunchedEffect(selectedGame) {
         if (selectedGame != null && challengeTitle.isEmpty()) {
-            challengeTitle = selectedGame!!.title
+            challengeTitle = "${selectedGame!!.awayTeam.abbrev} vs ${selectedGame!!.homeTeam.abbrev}"
         }
     }
     
@@ -150,10 +131,10 @@ fun CreateChallengeScreen(
                             val challengeRequest = CreateChallengeRequest(
                                 title = challengeTitle,
                                 description = challengeDescription.ifBlank { "Join my hockey prediction challenge!" },
-                                gameId = selectedGame!!.id,
+                                gameId = selectedGame!!.id.toString(),
                                 invitedUserIds = selectedFriends.map { it.id },
                                 maxMembers = maxMembers.toIntOrNull(),
-                                //gameStartTime = selectedGame!!.startTime.
+                                gameStartTime = null // Will be handled by backend from gameId
                             )
                             
                             // Call ViewModel to create challenge
@@ -183,7 +164,7 @@ fun CreateChallengeScreen(
             SelectionCard(
                 title = "Select Game",
                 icon = Icons.Default.Build,
-                selectedText = selectedGame?.title ?: "Choose a game",
+                selectedText = selectedGame?.let { "${it.awayTeam.abbrev} vs ${it.homeTeam.abbrev}" } ?: "Choose a game",
                 onClick = { showGamePicker = true },
                 isSelected = selectedGame != null
             )
@@ -192,7 +173,7 @@ fun CreateChallengeScreen(
             SelectionCard(
                 title = "Select Bingo Ticket",
                 icon = Icons.Default.Check,
-                selectedText = selectedTicket?.title ?: if (selectedGame != null) "Choose your ticket" else "Select a game first",
+                selectedText = selectedTicket?.name ?: if (selectedGame != null) "Choose your ticket" else "Select a game first",
                 onClick = { if (selectedGame != null) showTicketPicker = true },
                 isSelected = selectedTicket != null,
                 enabled = selectedGame != null
@@ -519,12 +500,12 @@ private fun GameItem(
                 .padding(12.dp)
         ) {
             Text(
-                text = game.title,
+                text = "${game.awayTeam.abbrev} vs ${game.homeTeam.abbrev}",
                 style = MaterialTheme.typography.bodyLarge,
                 fontWeight = FontWeight.Medium
             )
             Text(
-                text = formatDateTime(game.startTime),
+                text = formatDateTime(game.startTimeUTC),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -569,7 +550,7 @@ private fun TicketPickerDialog(
                         items(tickets) { ticket ->
                             TicketItem(
                                 ticket = ticket,
-                                isSelected = ticket.id == selectedTicket?.id,
+                                isSelected = ticket._id == selectedTicket?._id,
                                 onClick = { onTicketSelected(ticket) }
                             )
                         }
@@ -598,7 +579,7 @@ private fun TicketItem(
         )
     ) {
         Text(
-            text = ticket.title,
+            text = ticket.name,
             style = MaterialTheme.typography.bodyLarge,
             fontWeight = FontWeight.Medium,
             modifier = Modifier.padding(12.dp)
