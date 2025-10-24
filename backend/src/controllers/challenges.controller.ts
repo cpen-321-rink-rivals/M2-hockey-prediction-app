@@ -169,6 +169,18 @@ export class ChallengesController {
       // Emit socket event for real-time updates
       SocketEvents.userJoinedChallenge(challengeId, req.user, challenge);
 
+      // If status changed to ACTIVE, emit status change event
+      if (
+        challenge.status === ChallengeStatus.ACTIVE &&
+        challenge.invitedUserIds.length === 0
+      ) {
+        SocketEvents.challengeStatusChanged(
+          challengeId,
+          ChallengeStatus.ACTIVE,
+          challenge
+        );
+      }
+
       res.status(200).json({
         success: true,
         data: challenge,
@@ -249,6 +261,18 @@ export class ChallengesController {
 
       // Emit socket event to notify owner
       SocketEvents.invitationDeclined(id, req.user, challenge);
+
+      // If status changed to ACTIVE, emit status change event
+      if (
+        challenge.status === ChallengeStatus.ACTIVE &&
+        challenge.invitedUserIds.length === 0
+      ) {
+        SocketEvents.challengeStatusChanged(
+          id,
+          ChallengeStatus.ACTIVE,
+          challenge
+        );
+      }
 
       res.status(200).json({
         success: true,

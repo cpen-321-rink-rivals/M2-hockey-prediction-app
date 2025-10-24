@@ -321,6 +321,18 @@ export class ChallengesModel {
         );
       }
 
+      // Check if there are no more invited users and update status to ACTIVE
+      if (
+        challenge.invitedUserIds.length === 0 &&
+        challenge.status === ChallengeStatus.PENDING
+      ) {
+        challenge.status = ChallengeStatus.ACTIVE;
+        await challenge.save();
+        logger.info(
+          `Challenge ${challengeId} status changed to ACTIVE (no more invited users)`
+        );
+      }
+
       return challenge;
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -401,6 +413,18 @@ export class ChallengesModel {
       if (!challenge) {
         throw new Error(
           'Challenge not found or user not invited to this challenge'
+        );
+      }
+
+      // Check if there are no more invited users and update status to ACTIVE
+      if (
+        challenge.invitedUserIds.length === 0 &&
+        challenge.status === ChallengeStatus.PENDING
+      ) {
+        challenge.status = ChallengeStatus.ACTIVE;
+        await challenge.save();
+        logger.info(
+          `Challenge ${challengeId} status changed to ACTIVE (no more invited users)`
         );
       }
 
