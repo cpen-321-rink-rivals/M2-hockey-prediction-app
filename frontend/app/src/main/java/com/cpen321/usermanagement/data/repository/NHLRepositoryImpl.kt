@@ -3,8 +3,7 @@ package com.cpen321.usermanagement.data.repository
 import android.content.Context
 import android.util.Log
 import com.cpen321.usermanagement.data.remote.api.NHLInterface
-import com.cpen321.usermanagement.data.remote.dto.Game
-import com.cpen321.usermanagement.data.remote.dto.GameWeek
+import com.cpen321.usermanagement.data.remote.dto.GameDay
 import com.cpen321.usermanagement.utils.JsonUtils.parseErrorMessage
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
@@ -21,7 +20,7 @@ class NHLRepositoryImpl @Inject constructor(
         private const val TAG = "NHLRepositoryImpl"
     }
 
-    override suspend fun getCurrentSchedule(): Result<List<GameWeek>> {
+    override suspend fun getCurrentSchedule(): Result<List<GameDay>> {
         return try {
             val response = nhlInterface.getCurrentSchedule()
 

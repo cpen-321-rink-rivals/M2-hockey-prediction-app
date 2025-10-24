@@ -52,18 +52,13 @@ fun EditChallengeScreen(
     }
     LaunchedEffect(uiState.user) {
         challengesViewModel.loadFriends(uiState.user!!._id)
+        challengesViewModel.loadAvailableTickets(uiState.user!!._id)
+        challengesViewModel.loadUpcomingGames()
     }
 
     // State variables // BingoTicket data class should be changed.
     var selectedTicketForJoining by remember { mutableStateOf<BingoTicket?>(null) }
-    val availableTicketsForJoining = remember {
-        listOf(
-            BingoTicket("ticket1", "game1", "Rangers vs Devils Predictions1", "game", listOf("d", "d")),
-            BingoTicket("ticket2", "game1", "Rangers vs Devils Predictions2", "game", listOf("d", "d")),
-            BingoTicket("ticket3", "game1", "Rangers vs Devils Predictions3", "game", listOf("d", "d")),
-            BingoTicket("ticket4", "game1", "Rangers vs Devils Predictions4", "game", listOf("d", "d")),
-        )
-    }
+    val availableTicketsForJoining = uiState.availableTickets
 
     // These states now live here, to be controlled by the screen
     val challenge = uiState.selectedChallenge
@@ -94,7 +89,7 @@ fun EditChallengeScreen(
                 onBackClick() // Navigate back after deleting
             },
             allFriends = allFriends,
-            availableTickets = availableTicketsForJoining.filter { it.game == challenge.gameId }, // Filter tickets for the correct game
+            availableTickets = availableTicketsForJoining.orEmpty().filter { it.game.id.toString() == challenge.gameId }, // Filter tickets for the correct game
             selectedTicket = selectedTicketForJoining,
             onTicketSelected = { ticket -> selectedTicketForJoining = ticket },
             onJoinChallenge = {
@@ -738,13 +733,3 @@ private fun LeaveChallengeButton(
     }
 }
 
-private fun formatDateTime(dateTimeString: String): String {
-    return try {
-        val inputFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault())
-        val outputFormat = SimpleDateFormat("MMM dd, yyyy 'at' hh:mm a", Locale.getDefault())
-        val date = inputFormat.parse(dateTimeString)
-        outputFormat.format(date ?: Date())
-    } catch (e: Exception) {
-        dateTimeString // Return original string if parsing fails
-    }
-}

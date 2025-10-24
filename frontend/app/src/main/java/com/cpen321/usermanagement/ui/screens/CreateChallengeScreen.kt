@@ -1,5 +1,6 @@
 package com.cpen321.usermanagement.ui.screens
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -50,12 +51,14 @@ fun CreateChallengeScreen(
     LaunchedEffect(Unit) {
         challengesViewModel.loadProfile()
         challengesViewModel.loadUpcomingGames()
+
     }
     
     // Load friends once we have the user ID
     LaunchedEffect(uiState.user?._id) {
         uiState.user?._id?.let { userId ->
             challengesViewModel.loadFriends(userId)
+            challengesViewModel.loadAvailableTickets(userId)
         }
     }
     
@@ -74,19 +77,19 @@ fun CreateChallengeScreen(
     
     // Get games from ViewModel
     val availableGames = uiState.availableGames
-    
-    val availableTickets = remember {
-        listOf(
-            BingoTicket("ticket1", "game1", "Rangers vs Devils Predictions", "game", listOf("d", "d")),
-            BingoTicket("ticket1", "game1", "Rangers vs Devils Predictions 2", "game", listOf("d", "d"))
-        )
-    }
+    val availableTickets = uiState.availableTickets
+    Log.d("CreateChallengeScreen", "Available games: $availableGames")
+    Log.d("CreateChallengeScreen", "Available tickets: $availableTickets")
+
+
+    // Filter tickets based on selected game
+    val gameTickets = availableTickets?.filter { it.game.id.toString() == selectedGame?.id.toString() }
+
     
     // Use friends from ViewModel state instead of dummy data
     val availableFriends = uiState.allFriends ?: emptyList()
     
-    // Filter tickets based on selected game
-    val gameTickets = availableTickets.filter { it.game == selectedGame?.id.toString() }
+
     
     // Update challenge title when game changes
     LaunchedEffect(selectedGame) {
@@ -440,7 +443,7 @@ private fun FriendsSelectionCard(
 
 @Composable
 private fun GamePickerDialog(
-    games: List<Game>,
+    games: List<Game>?,
     selectedGame: Game?,
     onGameSelected: (Game) -> Unit,
     onDismiss: () -> Unit
@@ -460,11 +463,19 @@ private fun GamePickerDialog(
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.padding(bottom = 16.dp)
                 )
+                if (games.isNullOrEmpty()) {
+                    Text(
+                        text = "No games available",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(16.dp)
+                    )
+                }
                 
                 LazyColumn(
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    items(games) { game ->
+                    items(games.orEmpty()) { game ->
                         GameItem(
                             game = game,
                             isSelected = game.id == selectedGame?.id,
@@ -515,7 +526,7 @@ private fun GameItem(
 
 @Composable
 private fun TicketPickerDialog(
-    tickets: List<BingoTicket>,
+    tickets: List<BingoTicket>?,
     selectedTicket: BingoTicket?,
     onTicketSelected: (BingoTicket) -> Unit,
     onDismiss: () -> Unit
@@ -536,7 +547,7 @@ private fun TicketPickerDialog(
                     modifier = Modifier.padding(bottom = 16.dp)
                 )
                 
-                if (tickets.isEmpty()) {
+                if (tickets.orEmpty().isEmpty()) {
                     Text(
                         text = "No tickets available for this game",
                         style = MaterialTheme.typography.bodyMedium,
@@ -547,7 +558,7 @@ private fun TicketPickerDialog(
                     LazyColumn(
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        items(tickets) { ticket ->
+                        items(tickets.orEmpty()) { ticket ->
                             TicketItem(
                                 ticket = ticket,
                                 isSelected = ticket._id == selectedTicket?._id,
@@ -695,7 +706,7 @@ private fun FriendItem(
     }
 }
 
-private fun formatDateTime(dateTimeString: String): String {
+public fun formatDateTime(dateTimeString: String): String {
     return try {
         val inputFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.getDefault())
         val outputFormat = SimpleDateFormat("MMM dd, yyyy 'at' hh:mm a", Locale.getDefault())

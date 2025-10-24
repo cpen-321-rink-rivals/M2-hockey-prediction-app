@@ -9,6 +9,7 @@ import usersRoutes from '../routes/user.routes';
 import ticketsRoutes from './tickets.routes';
 import friendRoutes from './friends.routes';
 import challengesRoutes from './challenges.routes';
+import socketRoutes from './socket.routes';
 
 const router = Router();
 
@@ -27,5 +28,7 @@ router.use('/challenges', authenticateToken, challengesRoutes);
 router.use('/media', authenticateToken, mediaRoutes);
 
 router.use('/friends', authenticateToken, friendRoutes);
+
+router.use('/socket', authenticateToken, socketRoutes);
 
 export default router;

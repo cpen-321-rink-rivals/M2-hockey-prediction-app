@@ -5,6 +5,7 @@ import androidx.compose.animation.core.copy
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.cpen321.usermanagement.data.local.preferences.NhlDataManager
+import com.cpen321.usermanagement.data.remote.dto.BingoTicket
 import com.cpen321.usermanagement.data.remote.dto.Challenge
 import com.cpen321.usermanagement.data.remote.dto.CreateChallengeRequest
 import com.cpen321.usermanagement.data.remote.dto.Game
@@ -13,6 +14,7 @@ import com.cpen321.usermanagement.data.remote.dto.User
 import com.cpen321.usermanagement.data.repository.ChallengesRepository
 import com.cpen321.usermanagement.data.repository.FriendsRepository
 import com.cpen321.usermanagement.data.repository.ProfileRepository
+import com.cpen321.usermanagement.data.repository.TicketsRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -26,6 +28,7 @@ data class ChallengesUiState(
     val isLoadingChallenge: Boolean = false,
     val isLoadingProfile: Boolean = false,
     val isLoadingFriends: Boolean = false,
+    val isLoadingBingoTickets: Boolean = false,
     val isLoadingGames: Boolean = false,
     val isDeletingChallenge: Boolean = false,
     val isUpdatingChallenge: Boolean = false,
@@ -36,8 +39,9 @@ data class ChallengesUiState(
     //data states
     val user: User? = null,
     val allFriends: List<Friend>? = null,
-    val availableGames: List<Game> = emptyList(),
-    val allChallenges: Map<String, List<Challenge>>? = null,
+    val availableGames: List<Game>? = emptyList(),
+    val availableTickets: List<BingoTicket>? = emptyList(),
+    val allChallenges: Map<String, List<Challenge>>? = null, // Map of challenge status to list of challenges
     val allPendingChallenges: List<Challenge>? = null,
     val allActiveChallenges: List<Challenge>? = null,
     val allLiveChallenges: List<Challenge>? = null,
@@ -57,6 +61,7 @@ class ChallengesViewModel @Inject constructor(
     private val challengesRepository: ChallengesRepository,
     private val profileRepository: ProfileRepository,
     private val friendsRepository: FriendsRepository,
+    private val ticketsRepository: TicketsRepository,
     private val nhlDataManager: NhlDataManager
 ) : ViewModel() {
     companion object {
@@ -360,6 +365,40 @@ class ChallengesViewModel @Inject constructor(
      */
     fun getGameById(gameId: Long): Game? {
         return nhlDataManager.getGameById(gameId)
+    }
+
+
+    /**
+     * Load available bingo tickets for a user
+     */
+    fun loadAvailableTickets(userId: String) {
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(isLoadingBingoTickets = true, errorMessage = null)
+
+            val ticketsResult = ticketsRepository.getTickets(userId)
+            val tickets = ticketsResult.getOrNull()
+
+            _uiState.value = _uiState.value.copy(
+                isLoadingBingoTickets = false,
+                availableTickets = tickets
+            )
+
+            if (ticketsResult.isFailure) {
+                val error = ticketsResult.exceptionOrNull()
+                val errorMessage = error?.message ?: "Failed to load friends"
+                Log.e(TAG, "Failed to load friends", error)
+
+                _uiState.value = _uiState.value.copy(
+                    isLoadingBingoTickets = false,
+                    errorMessage = errorMessage
+                )
+            } else {
+                _uiState.value = _uiState.value.copy(
+                    isLoadingBingoTickets = false,
+                    errorMessage = null
+                )
+            }
+        }
     }
 
 }

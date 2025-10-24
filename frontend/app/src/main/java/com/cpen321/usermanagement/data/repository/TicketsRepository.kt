@@ -2,6 +2,7 @@ package com.cpen321.usermanagement.data.repository
 
 import com.cpen321.usermanagement.data.remote.api.TicketsInterface
 import com.cpen321.usermanagement.data.remote.dto.BingoTicket
+import com.cpen321.usermanagement.data.remote.dto.Game
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import javax.inject.Inject
@@ -26,7 +27,7 @@ class TicketsRepository @Inject constructor(
     suspend fun createTicket(
         userId: String,
         name: String,
-        game: String,
+        game: Game,
         events: List<String>
     ): Result<BingoTicket> = try {
         val response = api.createTicket(

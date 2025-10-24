@@ -5,7 +5,7 @@ data class BingoTicket(
     val _id: String,
     val userId: String,
     val name: String,
-    val game: String,
+    val game: Game,
     val events: List<String>
 )
 
