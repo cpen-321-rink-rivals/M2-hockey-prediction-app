@@ -29,9 +29,11 @@ export interface IChallenge {
   description: string;
   ownerId: string;
   gameId: string; // The hockey game this challenge is for
-  status: ChallengeStatusType; // Current challenge status
-  memberIds: string[]; // Users who joined the challenge
-  invitedUserIds: string[]; // Users invited but not yet responded
+  status: ChallengeStatusType;
+  memberIds: string[];
+  memberNames: string[];
+  invitedUserIds: string[];
+  invitedUserNames: string[];
   maxMembers?: number; // Optional member limit
   ticketIds: { [userId: string]: string }; // Map user to their ticket e.g. { userId: ticketId }
   createdAt: Date;

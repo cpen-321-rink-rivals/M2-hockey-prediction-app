@@ -316,6 +316,8 @@ private fun AppNavHost(
                 EditChallengeScreen(
                     challengeId = challengeId,
                     challengesViewModel = challengesViewModel,
+                    socketManager = mainViewModel.socketManager,
+                    socketEventListener = mainViewModel.socketEventListener,
                     onBackClick = { navigationStateManager.navigateBack() }
                 )
             } else {

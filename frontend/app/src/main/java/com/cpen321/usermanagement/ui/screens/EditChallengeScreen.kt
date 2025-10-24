@@ -23,6 +23,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.cpen321.usermanagement.R
+import com.cpen321.usermanagement.data.local.preferences.SocketEventListener
+import com.cpen321.usermanagement.data.local.preferences.SocketManager
 import com.cpen321.usermanagement.data.remote.dto.BingoTicket
 import com.cpen321.usermanagement.data.remote.dto.Challenge
 import com.cpen321.usermanagement.data.remote.dto.ChallengeStatus
@@ -40,15 +42,30 @@ import java.util.*
 fun EditChallengeScreen(
     challengeId: String,
     challengesViewModel: ChallengesViewModel,
+    socketManager: SocketManager,
+    socketEventListener: SocketEventListener,
     onBackClick: () -> Unit
 ) {
     val uiState by challengesViewModel.uiState.collectAsState()
 
     // Side effects
+
     LaunchedEffect(challengeId) {
         challengesViewModel.loadChallenge(challengeId)
-        // challengesViewModel.loadUserTickets()
+        socketManager.joinChallengeRoom(challengeId)
         challengesViewModel.loadProfile()
+    }
+    
+    // Listen for challenge updates via WebSocket
+    LaunchedEffect(challengeId) {
+        socketEventListener.challengeUpdated.collect { event ->
+            Log.d("EditChallengeScreen", "Challenge updated: ${event.message}")
+            // Check if this update is for our challenge
+            if (event.challengeId == challengeId) {
+                // Reload the challenge to get fresh data
+                challengesViewModel.loadChallenge(challengeId)
+            }
+        }
     }
     LaunchedEffect(uiState.user) {
         challengesViewModel.loadFriends(uiState.user!!._id)
@@ -442,17 +459,12 @@ private fun MembersCard(challenge: Challenge, allFriends: List<Friend>?, user: U
             if (challenge.memberIds.isNotEmpty() && allFriends != null) {
                 challenge.memberIds.forEach { memberId ->
 
-
                     // match memberId to user or friends list
                     val memberName = when (memberId) {
                         challenge.ownerId -> "${allFriends.find { it.id == memberId }?.name ?: user?.name ?: memberId} (Owner)"
                         user?._id -> "${user.name} (You)"
                         else -> allFriends.find { it.id == memberId }?.name ?: memberId
                     }
-
-
-
-
 
 
 
