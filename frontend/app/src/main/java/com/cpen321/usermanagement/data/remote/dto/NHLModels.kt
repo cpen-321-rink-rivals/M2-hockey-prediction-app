@@ -5,10 +5,10 @@ package com.cpen321.usermanagement.data.remote.dto
 data class ScheduleResponse(
     val nextStartDate: String,
     val previousStartDate: String,
-    val gameWeek: List<GameWeek>
+    val gameWeek: List<GameDay>
 )
 
-data class GameWeek(
+data class GameDay(
     val date: String,
     val dayAbbrev: String,
     val numberOfGames: Int,

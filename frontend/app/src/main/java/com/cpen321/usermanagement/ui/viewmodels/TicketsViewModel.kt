@@ -3,6 +3,7 @@ package com.cpen321.usermanagement.ui.viewmodels
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.cpen321.usermanagement.data.remote.dto.BingoTicket
+import com.cpen321.usermanagement.data.remote.dto.Game
 import com.cpen321.usermanagement.data.remote.dto.TicketsUiState
 import com.cpen321.usermanagement.data.repository.TicketsRepository
 import com.cpen321.usermanagement.ui.navigation.NavigationStateManager
@@ -32,7 +33,7 @@ class TicketsViewModel @Inject constructor(
         }
     }
 
-    fun createTicket(userId: String, name: String, game: String, events: List<String>) {
+    fun createTicket(userId: String, name: String, game: Game, events: List<String>) {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isCreating = true)
 

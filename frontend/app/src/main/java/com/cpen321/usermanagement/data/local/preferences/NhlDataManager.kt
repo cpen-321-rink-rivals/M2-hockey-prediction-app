@@ -2,7 +2,7 @@ package com.cpen321.usermanagement.data.local.preferences
 
 import android.util.Log
 import com.cpen321.usermanagement.data.remote.dto.Game
-import com.cpen321.usermanagement.data.remote.dto.GameWeek
+import com.cpen321.usermanagement.data.remote.dto.GameDay
 import com.cpen321.usermanagement.data.repository.NHLRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -15,7 +15,7 @@ import javax.inject.Singleton
  */
 data class NhlDataState(
     val isLoading: Boolean = false,
-    val gameSchedule: List<GameWeek>? = null,
+    val gameSchedule: List<GameDay>? = null,
     val errorMessage: String? = null
 )
 
@@ -37,7 +37,7 @@ class NhlDataManager @Inject constructor(
     /**
      * Load current NHL schedule
      */
-    suspend fun loadSchedule(): Result<List<GameWeek>> {
+    suspend fun loadSchedule(): Result<List<GameDay>> {
         return try {
             _uiState.value = _uiState.value.copy(isLoading = true, errorMessage = null)
 
@@ -113,7 +113,7 @@ class NhlDataManager @Inject constructor(
     /**
      * Refresh the schedule data
      */
-    suspend fun refreshSchedule(): Result<List<GameWeek>> {
+    suspend fun refreshSchedule(): Result<List<GameDay>> {
         return loadSchedule()
     }
 }

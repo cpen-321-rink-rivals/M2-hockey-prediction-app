@@ -16,6 +16,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.cpen321.usermanagement.R
 import com.cpen321.usermanagement.data.remote.dto.BingoTicket
+import com.cpen321.usermanagement.data.remote.dto.Game
+import com.cpen321.usermanagement.data.remote.dto.Name
+import com.cpen321.usermanagement.data.remote.dto.PeriodDescriptor
+import com.cpen321.usermanagement.data.remote.dto.Team
+import com.cpen321.usermanagement.data.remote.dto.TvBroadcast
+import com.cpen321.usermanagement.data.remote.dto.Venue
 import com.cpen321.usermanagement.ui.viewmodels.AuthViewModel
 import com.cpen321.usermanagement.ui.viewmodels.TicketsViewModel
 
@@ -26,7 +32,57 @@ fun CreateBingoTicketScreen(
     authViewModel: AuthViewModel,
     onBackClick: () -> Unit
 ) {
-    val dummyGames = listOf("Canucks vs Oilers", "Canadiens vs Flames", "Jets vs Senators")
+
+    val dummyGames = listOf(
+        Game(
+            id = 2025020123,
+            season = 20252026,
+            gameType = 2,
+            venue = Venue(default = "Benchmark International Arena"),
+            neutralSite = false,
+            startTimeUTC = "2025-10-23T22:45:00Z",
+            easternUTCOffset = "-04:00",
+            venueUTCOffset = "-04:00",
+            venueTimezone = "US/Eastern",
+            gameState = "LIVE",
+            gameScheduleState = "OK",
+            tvBroadcasts = listOf(
+                TvBroadcast(329, "N", "US", "ESPN+", 16),
+                TvBroadcast(391, "N", "US", "HULU", 17)
+            ),
+            awayTeam = Team(
+                id = 16,
+                commonName = Name("Blackhawks"),
+                placeName = Name("Chicago"),
+                placeNameWithPreposition = Name("Chicago", "de Chicago"),
+                abbrev = "TOR",
+                logo = "https://assets.nhle.com/logos/nhl/svg/CHI_light.svg?season=20252026",
+                darkLogo = "https://assets.nhle.com/logos/nhl/svg/CHI_dark.svg?season=20252026",
+                awaySplitSquad = false,
+                radioLink = "https://d2igy0yla8zi0u.cloudfront.net/CHI/20252026/CHI-radio.m3u8",
+            ),
+            homeTeam = Team(
+                id = 14,
+                commonName = Name("Lightning"),
+                placeName = Name("Tampa Bay"),
+                placeNameWithPreposition = Name("Tampa Bay", "de Tampa Bay"),
+                abbrev = "BUF",
+                logo = "https://assets.nhle.com/logos/nhl/svg/TBL_light.svg",
+                darkLogo = "https://assets.nhle.com/logos/nhl/svg/TBL_dark.svg",
+                homeSplitSquad = false,
+                radioLink = "https://d2igy0yla8zi0u.cloudfront.net/TBL/20252026/TBL-radio.m3u8",
+            ),
+            periodDescriptor = PeriodDescriptor(
+                number = 3,
+                periodType = "REG",
+                maxRegulationPeriods = 3
+            ),
+            ticketsLink = "/tickets/chi-vs-tbl/2025/10/23/2025020113",
+            ticketsLinkFr = "/tickets/chi-vs-tbl/2025/10/23/2025020113",
+            gameCenterLink = "/gamecenter/chi-vs-tbl/2025/10/23/2025020113"
+            )
+    )
+
     val dummyEvents = listOf(
         "Goal scored", "Penalty called", "Power play starts", "Fight breaks out",
         "Coach challenge", "Goalie save", "Offside", "Icing", "Faceoff in zone",
@@ -37,7 +93,7 @@ fun CreateBingoTicketScreen(
     val userId = authState.user?._id ?: ""
 
     var ticketName by remember { mutableStateOf("") }  // 🆕 Ticket name state
-    var selectedGame by remember { mutableStateOf<String?>(null) }
+    var selectedGame by remember { mutableStateOf<Game?>(null) }
     var selectedEvents by remember { mutableStateOf(List(9) { "" }) }
     var showEventPickerForIndex by remember { mutableStateOf<Int?>(null) }
 
@@ -125,15 +181,15 @@ fun CreateBingoTicketScreen(
 
 @Composable
 private fun GameDropdown(
-    games: List<String>,
-    selectedGame: String?,
-    onGameSelected: (String) -> Unit
+    games: List<Game>,
+    selectedGame: Game?,
+    onGameSelected: (Game) -> Unit
 ) {
     var expanded by remember { mutableStateOf(false) }
 
     Box {
         OutlinedTextField(
-            value = selectedGame ?: "",
+            value = selectedGame?.let { "${it.awayTeam.abbrev} vs ${it.homeTeam.abbrev}" } ?: "",
             onValueChange = {},
             label = { Text("Select game") },
             modifier = Modifier
@@ -148,12 +204,30 @@ private fun GameDropdown(
         ) {
             games.forEach { game ->
                 DropdownMenuItem(
-                    text = { Text(game) },
+                    text = {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(12.dp)
+                        ) {
+                            Text(
+                                text = "${game.awayTeam.abbrev} vs ${game.homeTeam.abbrev}",
+                                style = MaterialTheme.typography.bodyLarge,
+                                fontWeight = FontWeight.Medium
+                            )
+                            Text(
+                                text = formatDateTime(game.startTimeUTC),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    },
                     onClick = {
                         onGameSelected(game)
                         expanded = false
                     }
                 )
+
             }
         }
     }
