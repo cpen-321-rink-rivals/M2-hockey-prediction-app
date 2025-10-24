@@ -295,6 +295,7 @@ private fun AppNavHost(
         composable(NavRoutes.CHALLENGES) {
             ChallengesScreen(
                 challengesViewModel = challengesViewModel,
+                socketEventListener = mainViewModel.socketEventListener,
                 actions = ChallengesScreenActions(
                     onBackClick = { navigationStateManager.navigateBack() },
                     onAddChallengeClick = { navigationStateManager.navigateToAddChallenge() },

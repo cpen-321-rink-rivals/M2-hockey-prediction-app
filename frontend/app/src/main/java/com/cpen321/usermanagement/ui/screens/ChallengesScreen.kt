@@ -49,6 +49,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.toLowerCase
 import com.cpen321.usermanagement.R
+import com.cpen321.usermanagement.data.local.preferences.SocketEventListener
 import com.cpen321.usermanagement.data.remote.dto.Challenge
 import com.cpen321.usermanagement.ui.viewmodels.ChallengesUiState
 
@@ -71,6 +72,7 @@ private const val TAG = "ChallengesScreen"
 @Composable
 fun ChallengesScreen(
     challengesViewModel: ChallengesViewModel,
+    socketEventListener: SocketEventListener,
     actions: ChallengesScreenActions
 
 ) {
@@ -83,8 +85,63 @@ fun ChallengesScreen(
         challengesViewModel.clearError()
         challengesViewModel.loadProfile()
         challengesViewModel.loadChallenges()
-
     }
+    
+    // Listen for challenge invitations
+    LaunchedEffect(Unit) {
+        socketEventListener.challengeInvitations.collect { event ->
+            Log.d(TAG, "Challenge invitation received: ${event.message}")
+            // Reload challenges to show the new invitation
+            challengesViewModel.loadChallenges()
+        }
+    }
+    
+    // Listen for challenge updates
+    LaunchedEffect(Unit) {
+        socketEventListener.challengeUpdated.collect { event ->
+            Log.d(TAG, "Challenge updated: ${event.message}")
+            // Reload challenges to show the updated data
+            challengesViewModel.loadChallenges()
+        }
+    }
+    
+    // Listen for new challenges created
+    LaunchedEffect(Unit) {
+        socketEventListener.challengeCreated.collect { event ->
+            Log.d(TAG, "New challenge created: ${event.message}")
+            // Reload challenges to show the new challenge
+            challengesViewModel.loadChallenges()
+        }
+    }
+
+    // Listen for challenges deleted
+    LaunchedEffect(Unit) {
+        socketEventListener.challengeDeleted.collect { event ->
+            Log.d(TAG, "Challenge deleted: ${event.message}")
+            // Reload challenges to show the deleted challenge
+            challengesViewModel.loadChallenges()
+        }
+    }
+    
+    // Listen for users joining challenges
+    LaunchedEffect(Unit) {
+        socketEventListener.userJoinedChallenge.collect { event ->
+            Log.d(TAG, "User joined challenge: ${event.message}")
+            // Reload challenges to update member counts
+            challengesViewModel.loadChallenges()
+        }
+    }
+    
+    // Listen for users leaving challenges
+    LaunchedEffect(Unit) {
+        socketEventListener.userLeftChallenge.collect { event ->
+            Log.d(TAG, "User left challenge: ${event.message}")
+            // Reload challenges to update member counts
+            challengesViewModel.loadChallenges()
+        }
+    }
+
+
 
     ChallengesContent(
         uiState = uiState,

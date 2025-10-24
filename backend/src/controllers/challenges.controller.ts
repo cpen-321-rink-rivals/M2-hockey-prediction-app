@@ -286,9 +286,23 @@ export class ChallengesController {
       }
 
       const { id } = req.params;
+
+      // Get challenge data before deleting to emit socket event
+      const challenge = await challengeModel.findById(id);
+
+      if (!challenge) {
+        return res.status(404).json({
+          error: 'Not Found',
+          message: 'Challenge not found',
+        });
+      }
+
       await challengeModel.delete(id, req.user.id);
 
       logger.info(`Challenge ${id} deleted by user ${req.user.id}`);
+
+      // Emit socket event for real-time updates
+      SocketEvents.challengeDeleted(id, challenge);
 
       res.status(200).json({
         success: true,

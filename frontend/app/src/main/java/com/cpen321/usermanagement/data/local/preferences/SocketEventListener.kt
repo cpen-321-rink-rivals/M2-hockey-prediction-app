@@ -47,6 +47,9 @@ class SocketEventListener @Inject constructor(
     private val _challengeUpdated = MutableSharedFlow<ChallengeEvent>()
     val challengeUpdated: SharedFlow<ChallengeEvent> = _challengeUpdated.asSharedFlow()
 
+    private val _challengeDeleted = MutableSharedFlow<ChallengeEvent>()
+    val challengeDeleted: SharedFlow<ChallengeEvent> = _challengeDeleted.asSharedFlow()
+
     private val _userJoinedChallenge = MutableSharedFlow<ChallengeEvent>()
     val userJoinedChallenge: SharedFlow<ChallengeEvent> = _userJoinedChallenge.asSharedFlow()
 
@@ -84,6 +87,9 @@ class SocketEventListener @Inject constructor(
         
         // Challenge updated
         socketManager.on("challenge_updated", onChallengeUpdated)
+
+        // Challenge deleted
+        socketManager.on("challenge_deleted", onChallengeDeleted)
         
         // User joined challenge
         socketManager.on("user_joined_challenge", onUserJoinedChallenge)
@@ -116,6 +122,7 @@ class SocketEventListener @Inject constructor(
         socketManager.off("challenge_invitation")
         socketManager.off("challenge_created")
         socketManager.off("challenge_updated")
+        socketManager.off("challenge_deleted")
         socketManager.off("user_joined_challenge")
         socketManager.off("user_left_challenge")
         socketManager.off("challenge_status_changed")
@@ -136,6 +143,10 @@ class SocketEventListener @Inject constructor(
 
     private val onChallengeUpdated = Emitter.Listener { args ->
         parseChallengeEvent(args, _challengeUpdated, "challenge_updated")
+    }
+
+    private val onChallengeDeleted = Emitter.Listener { args ->
+        parseChallengeEvent(args, _challengeDeleted, "challenge_deleted")
     }
 
     private val onUserJoinedChallenge = Emitter.Listener { args ->

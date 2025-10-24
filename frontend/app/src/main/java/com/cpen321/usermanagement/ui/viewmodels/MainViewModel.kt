@@ -137,6 +137,11 @@ class MainViewModel @Inject constructor(
                 allLanguages = availableSpokenLanguages ?: _uiState.value.allLanguages,
                 selectedLanguages = selectedLanguages ?: _uiState.value.selectedLanguages
             )
+            
+            // Authenticate socket with user info after successful profile load
+            if (user != null) {
+                authenticateSocket(user._id, user.email)
+            }
 
             if (profileResult.isFailure) {
                 val error = profileResult.exceptionOrNull()
