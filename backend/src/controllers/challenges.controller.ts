@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import logger from '../logger.util';
 import { challengeModel } from '../models/challenges.model';
 import { ChallengeStatus } from '../types/challenges.types';
+import SocketEvents from '../socket.events';
 
 export class ChallengesController {
   // Create a new challenge
@@ -16,6 +17,9 @@ export class ChallengesController {
 
       const challenge = await challengeModel.create(req.body, req.user.id);
       logger.info(`Challenge created: ${challenge.id} by user: ${req.user.id}`);
+
+      // Emit socket event for real-time updates
+      SocketEvents.challengeCreated(challenge);
 
       res.status(201).json({
         success: true,
@@ -162,6 +166,9 @@ export class ChallengesController {
 
       logger.info(`User ${req.user.id} joined challenge ${challengeId}`);
 
+      // Emit socket event for real-time updates
+      SocketEvents.userJoinedChallenge(challengeId, req.user, challenge);
+
       res.status(200).json({
         success: true,
         data: challenge,
@@ -249,6 +256,9 @@ export class ChallengesController {
 
       logger.info(`Challenge ${id} updated by user ${req.user.id}`);
 
+      // Emit socket event for real-time updates
+      SocketEvents.challengeUpdated(id, challenge);
+
       res.status(200).json({
         success: true,
         data: challenge,
@@ -318,6 +328,9 @@ export class ChallengesController {
       }
 
       logger.info(`Challenge ${id} status updated to ${status}`);
+
+      // Emit socket event for real-time updates
+      SocketEvents.challengeUpdated(id, status);
 
       res.status(200).json({
         success: true,
