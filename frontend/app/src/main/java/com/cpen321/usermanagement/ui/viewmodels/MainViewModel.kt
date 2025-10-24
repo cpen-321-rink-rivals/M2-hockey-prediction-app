@@ -77,7 +77,7 @@ class MainViewModel @Inject constructor(
             val availableSpokenLanguages = languagesSpokenResult.getOrNull()
 
             val selectedHobbies = user?.hobbies?.toSet()
-            val selectedLanguages = user?.languages?.toSet()
+            val selectedLanguages = user?.languagesSpoken?.toSet()
 
 
 

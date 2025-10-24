@@ -3,6 +3,9 @@ import z from 'zod';
 import { HOBBIES } from '../hobbies';
 import { LANGUAGES_SPOKEN } from '../languagesSpoken';
 
+// Use relative path for uploads directory
+export const IMAGES_DIR = '../uploads/images';
+
 // User model
 // ------------------------------------------------------------
 export interface IUser extends Document {
@@ -79,5 +82,6 @@ export type PublicUserInfo = {
   profilePicture?: string;
   bio?: string;
   hobbies: string[];
+  languagesSpoken: string[];
   friendCode: string;
 };

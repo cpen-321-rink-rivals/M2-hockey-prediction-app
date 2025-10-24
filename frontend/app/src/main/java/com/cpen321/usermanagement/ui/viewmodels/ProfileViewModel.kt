@@ -66,8 +66,7 @@ class ProfileViewModel @Inject constructor(
             val availableSpokenLanguages = languagesSpokenResult.getOrNull()
 
             val selectedHobbies = user?.hobbies?.toSet()
-            val selectedLanguages = user?.languages?.toSet()
-
+            val selectedLanguages = user?.languagesSpoken?.toSet()
 
 
             _uiState.value = _uiState.value.copy(
@@ -94,6 +93,15 @@ class ProfileViewModel @Inject constructor(
                 val error = hobbiesResult.exceptionOrNull()
                 val errorMessage = error?.message ?: "Failed to load hobbies"
                 Log.e(TAG, "Failed to load hobbies", error)
+
+                _uiState.value = _uiState.value.copy(
+                    isLoadingProfile = false,
+                    errorMessage = errorMessage
+                )
+            } else if (languagesSpokenResult.isFailure) {
+                val error = languagesSpokenResult.exceptionOrNull()
+                val errorMessage = error?.message ?: "Failed to load languages"
+                Log.e(TAG, "Failed to load languages", error)
 
                 _uiState.value = _uiState.value.copy(
                     isLoadingProfile = false,
@@ -187,7 +195,7 @@ class ProfileViewModel @Inject constructor(
 
     fun saveSpokenLanguages() {
         viewModelScope.launch {
-            val originalSpokenLanguages = _uiState.value.user?.languages?.toSet() ?: emptySet()
+            val originalSpokenLanguages = _uiState.value.user?.languagesSpoken?.toSet() ?: emptySet()
 
             _uiState.value =
                 _uiState.value.copy(
@@ -241,12 +249,17 @@ class ProfileViewModel @Inject constructor(
     fun uploadProfilePicture(pictureUri: Uri) {
         viewModelScope.launch {
             val currentUser = _uiState.value.user ?: return@launch
+            // log user
+            Log.d(TAG, "currentUser: $currentUser")
             val updatedUser = currentUser.copy(profilePicture = pictureUri.toString())
+            updateProfile(updatedUser.name, updatedUser.bio, pictureUri)
             _uiState.value = _uiState.value.copy(isLoadingPhoto = false, user= updatedUser, successMessage = "Profile picture updated successfully!")
         }
     }
 
-    fun updateProfile(name: String, bio: String, onSuccess: () -> Unit = {}) {
+
+
+    fun updateProfile(name: String? = null, bio: String? = null, pictureUri: Uri? = null, onSuccess: () -> Unit = {}) {
         viewModelScope.launch {
             _uiState.value =
                 _uiState.value.copy(
@@ -255,7 +268,7 @@ class ProfileViewModel @Inject constructor(
                     successMessage = null
                 )
 
-            val updateResult = profileRepository.updateProfile(name, bio)
+            val updateResult = profileRepository.updateProfile(name?: _uiState.value.user?.name, bio?: _uiState.value.user?.bio, profilePicture = pictureUri?.toString())
             if (updateResult.isSuccess) {
                 val updatedUser = updateResult.getOrNull()!!
                 _uiState.value = _uiState.value.copy(

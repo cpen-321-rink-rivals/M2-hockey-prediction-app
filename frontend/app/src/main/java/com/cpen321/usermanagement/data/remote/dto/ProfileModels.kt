@@ -4,7 +4,7 @@ data class UpdateProfileRequest(
     val name: String? = null,
     val bio: String? = null,
     val hobbies: List<String>? = null,
-    val languages: List<String>? = null,
+    val languagesSpoken: List<String>? = null,
     val profilePicture: String? = null
 )
 
@@ -29,7 +29,7 @@ data class User(
     val friendCode: String,
     val profilePicture: String,
     val hobbies: List<String> = emptyList(),
-    val languages: List<String> = emptyList(),
+    val languagesSpoken: List<String> = emptyList(),
     val createdAt: String? = null,
     val updatedAt: String? = null
 )

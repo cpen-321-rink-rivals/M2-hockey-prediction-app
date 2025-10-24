@@ -25,6 +25,9 @@ export class MediaController {
         user._id.toString()
       );
 
+      // log to backend logger
+      logger.info(`User ${user._id} uploaded a new profile picture: ${image}`);
+
       res.status(200).json({
         message: 'Image uploaded successfully',
         data: {

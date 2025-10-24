@@ -100,7 +100,13 @@ class ProfileRepositoryImpl @Inject constructor(
         profilePicture: String?,
     ): Result<User> {
         return try {
-            val updateRequest = UpdateProfileRequest(name = name, bio = bio, hobbies = hobbies, languages = languages, profilePicture = profilePicture)
+            val updateRequest = UpdateProfileRequest(
+                name = name, 
+                bio = bio, 
+                hobbies = hobbies, 
+                languagesSpoken = languages,  // Map languages param to languagesSpoken field
+                profilePicture = profilePicture
+            )
             val response = userInterface.updateProfile("", updateRequest) // Auth header is handled by interceptor
             if (response.isSuccessful && response.body()?.data != null) {
                 Result.success(response.body()!!.data!!.user)
