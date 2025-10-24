@@ -59,6 +59,9 @@ class SocketEventListener @Inject constructor(
     private val _challengeStatusChanged = MutableSharedFlow<ChallengeEvent>()
     val challengeStatusChanged: SharedFlow<ChallengeEvent> = _challengeStatusChanged.asSharedFlow()
 
+    private val _invitationDeclined = MutableSharedFlow<ChallengeEvent>()
+    val invitationDeclined: SharedFlow<ChallengeEvent> = _invitationDeclined.asSharedFlow()
+
     // Friend events
     private val _friendRequestReceived = MutableSharedFlow<NotificationEvent>()
     val friendRequestReceived: SharedFlow<NotificationEvent> = _friendRequestReceived.asSharedFlow()
@@ -100,6 +103,9 @@ class SocketEventListener @Inject constructor(
         // Challenge status changed
         socketManager.on("challenge_status_changed", onChallengeStatusChanged)
         
+        // Invitation declined
+        socketManager.on("invitation_declined", onInvitationDeclined)
+        
         // Friend request received
         socketManager.on("friend_request_received", onFriendRequestReceived)
         
@@ -126,6 +132,7 @@ class SocketEventListener @Inject constructor(
         socketManager.off("user_joined_challenge")
         socketManager.off("user_left_challenge")
         socketManager.off("challenge_status_changed")
+        socketManager.off("invitation_declined")
         socketManager.off("friend_request_received")
         socketManager.off("friend_request_accepted")
         socketManager.off("system_announcement")
@@ -159,6 +166,10 @@ class SocketEventListener @Inject constructor(
 
     private val onChallengeStatusChanged = Emitter.Listener { args ->
         parseChallengeEvent(args, _challengeStatusChanged, "challenge_status_changed")
+    }
+
+    private val onInvitationDeclined = Emitter.Listener { args ->
+        parseChallengeEvent(args, _invitationDeclined, "invitation_declined")
     }
 
     private val onFriendRequestReceived = Emitter.Listener { args ->

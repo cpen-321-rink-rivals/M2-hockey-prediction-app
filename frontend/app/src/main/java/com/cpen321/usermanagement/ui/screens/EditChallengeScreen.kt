@@ -119,6 +119,10 @@ fun EditChallengeScreen(
             onLeaveChallenge = {
                 challengesViewModel.leaveChallenge(challenge.id)
                 onBackClick() // Navigate back after leaving
+            },
+            onDeclineInvitation = {
+                challengesViewModel.declineInvitation(challenge.id)
+                onBackClick() // Navigate back after declining
             }
         )
     } else {
@@ -144,7 +148,8 @@ private fun EditChallengeContent(
     selectedTicket: BingoTicket?,
     onTicketSelected: (BingoTicket) -> Unit,
     onJoinChallenge: () -> Unit,
-    onLeaveChallenge: () -> Unit
+    onLeaveChallenge: () -> Unit,
+    onDeclineInvitation: () -> Unit
 ) {
     var title by remember { mutableStateOf(challenge.title) }
     var description by remember { mutableStateOf(challenge.description) }
@@ -252,6 +257,7 @@ private fun EditChallengeContent(
                     selectedTicket = selectedTicket,
                     onTicketSelected = onTicketSelected,
                     onJoinClick = onJoinChallenge,
+                    onDeclineClick = onDeclineInvitation,
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
                         .padding(16.dp)
@@ -613,7 +619,9 @@ private fun DeleteChallengeButton(
 private fun JoinChallengeCard(
     availableTickets: List<BingoTicket>,
     selectedTicket: BingoTicket?,
-    onTicketSelected: (BingoTicket) -> Unit,    onJoinClick: () -> Unit,
+    onTicketSelected: (BingoTicket) -> Unit,
+    onJoinClick: () -> Unit,
+    onDeclineClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     var isDropdownExpanded by remember { mutableStateOf(false) }
@@ -677,17 +685,35 @@ private fun JoinChallengeCard(
                 }
             }
 
-            Button(
-                onClick = onJoinClick,
-                enabled = selectedTicket != null, // Button is enabled only when a ticket is selected
-                modifier = Modifier.fillMaxWidth()
+            // Action buttons in a row
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Icon(
-                    painter = painterResource(id = R.drawable.group_outlined_icon),
-                    contentDescription = null
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text("Accept Invitation & Join")
+                // Decline button
+                OutlinedButton(
+                    onClick = onDeclineClick,
+                    modifier = Modifier.weight(1f),
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        contentColor = MaterialTheme.colorScheme.error
+                    )
+                ) {
+                    Text("Decline")
+                }
+
+                // Accept button
+                Button(
+                    onClick = onJoinClick,
+                    enabled = selectedTicket != null,
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.group_outlined_icon),
+                        contentDescription = null
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text("Accept")
+                }
             }
         }
     }

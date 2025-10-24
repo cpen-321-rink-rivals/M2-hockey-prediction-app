@@ -60,6 +60,12 @@ router.post(
   challengeController.leaveChallenge.bind(challengeController)
 );
 
+// POST /challenges/:id/decline - Decline a challenge invitation
+router.post(
+  '/:id/decline',
+  challengeController.declineInvitation.bind(challengeController)
+);
+
 // PATCH /challenges/:id/status - Update challenge status (system/admin use)
 router.patch(
   '/:id/status',

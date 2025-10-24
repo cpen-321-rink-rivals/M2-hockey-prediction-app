@@ -325,6 +325,29 @@ class ChallengesViewModel @Inject constructor(
         }
     }
 
+    fun declineInvitation(challengeId: String) {
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(isLeavingChallenge = true, errorMessage = null)
+
+            val declineResult = challengesRepository.declineInvitation(challengeId = challengeId)
+
+            _uiState.value = _uiState.value.copy(
+                isLeavingChallenge = false,
+                successMessage = "Invitation declined successfully!"
+            )
+
+            if (declineResult.isFailure) {
+                val error = declineResult.exceptionOrNull()
+                val errorMessage = error?.message ?: "Failed to decline invitation"
+                Log.e(TAG, "Failed to decline invitation", error)
+                _uiState.value = _uiState.value.copy(
+                    isLeavingChallenge = false,
+                    errorMessage = errorMessage
+                )
+            }
+        }
+    }
+
     /**
      * Get upcoming NHL games for challenge creation
      */

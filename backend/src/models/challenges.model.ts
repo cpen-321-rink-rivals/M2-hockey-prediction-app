@@ -373,6 +373,44 @@ export class ChallengesModel {
     }
   }
 
+  // Decline challenge invitation
+  async declineInvitation(
+    challengeId: string,
+    userId: string
+  ): Promise<IChallenge | null> {
+    try {
+      // Get user's name
+      const User = mongoose.model('User');
+      const user = await User.findOne({ googleId: userId });
+      const userName = user?.name || 'Unknown User';
+
+      const challenge = await this.challenge.findOneAndUpdate(
+        {
+          id: challengeId,
+          invitedUserIds: userId, // User must be invited
+        },
+        {
+          $pull: {
+            invitedUserIds: userId,
+            invitedUserNames: userName,
+          },
+        },
+        { new: true }
+      );
+
+      if (!challenge) {
+        throw new Error(
+          'Challenge not found or user not invited to this challenge'
+        );
+      }
+
+      return challenge;
+    } catch (error) {
+      logger.error('Error declining invitation:', error);
+      throw new Error('Failed to decline invitation');
+    }
+  }
+
   // Update challenge status
   async updateStatus(
     challengeId: string,

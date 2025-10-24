@@ -141,6 +141,14 @@ fun ChallengesScreen(
         }
     }
 
+    // Listen for invitation declined
+    LaunchedEffect(Unit) {
+        socketEventListener.invitationDeclined.collect { event ->
+            Log.d(TAG, "Invitation declined: ${event.message}")
+            // Reload challenges to update invited users list
+            challengesViewModel.loadChallenges()
+        }
+    }
 
 
     ChallengesContent(

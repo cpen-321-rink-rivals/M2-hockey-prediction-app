@@ -224,6 +224,48 @@ export class ChallengesController {
     }
   }
 
+  // Decline challenge invitation
+  async declineInvitation(req: Request, res: Response) {
+    try {
+      if (!req.user || !req.user.id) {
+        return res.status(401).json({
+          error: 'Unauthorized',
+          message: 'User authentication required',
+        });
+      }
+
+      const { id } = req.params;
+      const challenge = await challengeModel.declineInvitation(id, req.user.id);
+
+      if (!challenge) {
+        return res.status(400).json({
+          error: 'Bad Request',
+          message:
+            'Unable to decline invitation. You may not be invited to this challenge.',
+        });
+      }
+
+      logger.info(`User ${req.user.id} declined invitation to challenge ${id}`);
+
+      // Emit socket event to notify owner
+      SocketEvents.invitationDeclined(id, req.user, challenge);
+
+      res.status(200).json({
+        success: true,
+        data: challenge,
+        message: 'Successfully declined invitation',
+      });
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : 'An error occurred';
+      logger.error(`Error declining invitation: ${message}`);
+      res.status(400).json({
+        error: 'Bad Request',
+        message,
+      });
+    }
+  }
+
   // Update challenge
   async update(req: Request, res: Response) {
     try {

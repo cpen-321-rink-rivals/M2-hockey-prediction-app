@@ -178,6 +178,42 @@ export class SocketEvents {
     }
   }
 
+  static invitationDeclined(
+    challengeId: string,
+    userData: any,
+    challengeData: any
+  ) {
+    if (global.socketService) {
+      // Notify the challenge owner
+      global.socketService.sendToUser(
+        challengeData.ownerId,
+        'invitation_declined',
+        {
+          type: 'invitation_declined',
+          challengeId: challengeId,
+          user: userData,
+          challenge: challengeData,
+          message: `${userData.name || userData.email || 'Someone'} declined your challenge invitation`,
+        }
+      );
+
+      // Also notify all current members
+      if (challengeData.memberIds?.length > 0) {
+        global.socketService.sendToUsers(
+          challengeData.memberIds,
+          'invitation_declined',
+          {
+            type: 'invitation_declined',
+            challengeId: challengeId,
+            user: userData,
+            challenge: challengeData,
+            message: `${userData.name || userData.email || 'Someone'} declined the challenge invitation`,
+          }
+        );
+      }
+    }
+  }
+
   static challengeStatusChanged(
     challengeId: string,
     newStatus: string,
