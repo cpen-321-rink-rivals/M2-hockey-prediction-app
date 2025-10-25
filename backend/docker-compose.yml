@@ -16,7 +16,7 @@ services:
       args:
         - PORT=${PORT}
     restart: always
-    container_name: m2_hockey_app
+    container_name: hockey_app_instance
     environment:
       - PORT=${PORT}
       - JWT_SECRET=${JWT_SECRET}
