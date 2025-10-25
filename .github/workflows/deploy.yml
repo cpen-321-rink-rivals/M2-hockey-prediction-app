@@ -18,8 +18,8 @@ jobs:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_KEY }}
-          source: '.'
-          target: '/home/ubuntu/m2_hockey_app'
+          source: "backend/**"
+          target: "/home/ubuntu/hockey_app/backend"
 
       - name: Rebuild and Deploy
         uses: appleboy/ssh-action@master
@@ -28,7 +28,7 @@ jobs:
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_KEY }}
           script: |
-            cd /home/ubuntu/m2_hockey_app/
+            cd /home/ubuntu/hockey_app/backend
             # Write secrets into .env file
             cat > backend/.env <<EOF
             PORT=${{ secrets.PROD_PORT }}
