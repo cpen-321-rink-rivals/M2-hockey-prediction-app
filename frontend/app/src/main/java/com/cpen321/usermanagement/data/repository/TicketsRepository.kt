@@ -24,6 +24,17 @@ class TicketsRepository @Inject constructor(
         Result.failure(e)
     }
 
+    suspend fun getTicketById(ticketId: String): Result<BingoTicket> = try {
+        val response = api.getTicketById(ticketId)
+        if (response.isSuccessful && response.body() != null) {
+            Result.success(response.body()!!)
+        } else {
+            Result.failure(Exception("Failed to load ticket"))
+        }
+    } catch (e: Exception) {
+        Result.failure(e)
+    }
+
     suspend fun createTicket(
         userId: String,
         name: String,

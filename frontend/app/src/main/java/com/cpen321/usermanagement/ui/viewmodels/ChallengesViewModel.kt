@@ -424,4 +424,25 @@ class ChallengesViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Load a single ticket by ID and add it to availableTickets
+     */
+    fun loadTicketById(ticketId: String) {
+        viewModelScope.launch {
+            val ticketResult = ticketsRepository.getTicketById(ticketId)
+            val ticket = ticketResult.getOrNull()
+
+            if (ticket != null) {
+                // Add this ticket to availableTickets if not already there
+                val currentTickets = _uiState.value.availableTickets?.toMutableList() ?: mutableListOf()
+                if (!currentTickets.any { it._id == ticket._id }) {
+                    currentTickets.add(ticket)
+                    _uiState.value = _uiState.value.copy(availableTickets = currentTickets)
+                }
+            } else {
+                Log.w(TAG, "Failed to load ticket: $ticketId")
+            }
+        }
+    }
+
 }
