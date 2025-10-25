@@ -27,12 +27,12 @@ enum class EventCategory { FORWARD, DEFENSE, GOALIE, TEAM, PENALTY }
 enum class ComparisonType { GREATER_THAN, LESS_THAN }
 
 data class EventCondition(
-    val id: String, // unique for UI
+    val id: String,
     val category: EventCategory,
-    val subject: String, // e.g. "player.goals"
+    val subject: String,
     val comparison: ComparisonType,
-    val threshold: Double,
-    val label: String
+    val threshold: Int,
+    val labelTemplates: List<String>
 )
 
 /**
@@ -51,31 +51,63 @@ class NhlDataManager @Inject constructor(
     val uiState: StateFlow<NhlDataState> = _uiState.asStateFlow()
 
     private val eventPool = listOf(
-        // Forwards
-        EventCondition("F1", EventCategory.FORWARD, "player.goals", ComparisonType.GREATER_THAN, 1.0, "Forward scores more than 1 goal"),
-        EventCondition("F2", EventCategory.FORWARD, "player.assists", ComparisonType.GREATER_THAN, 1.0, "Forward gets more than 1 assist"),
-        EventCondition("F3", EventCategory.FORWARD, "player.hits", ComparisonType.GREATER_THAN, 3.0, "Forward makes more than 3 hits"),
-        EventCondition("F4", EventCategory.FORWARD, "player.sog", ComparisonType.GREATER_THAN, 4.0, "Forward has more than 4 shots on goal"),
-        EventCondition("F5", EventCategory.FORWARD, "player.penaltyMinutes", ComparisonType.GREATER_THAN, 2.0, "Forward gets a penalty"),
+        // -------- FORWARDS --------
+        EventCondition("F1", EventCategory.FORWARD, "player.goals", ComparisonType.GREATER_THAN, 2,
+            listOf("{player} scores {threshold}+ goals", "{player} scores {threshold}+ times", "{player} records {threshold}+ goals")
+        ),
+        EventCondition("F2", EventCategory.FORWARD, "player.assists", ComparisonType.GREATER_THAN, 2,
+            listOf("{player} tallies {threshold}+ assists", "{player} earns {threshold}+ assists", "{player} assists {threshold}+ times")
+        ),
+        EventCondition("F3", EventCategory.FORWARD, "player.hits", ComparisonType.GREATER_THAN, 3,
+            listOf("{player} delivers {threshold}+ hits", "{player} throws {threshold}+ body checks")
+        ),
+        EventCondition("F4", EventCategory.FORWARD, "player.sog", ComparisonType.GREATER_THAN, 4,
+            listOf("{player} fires {threshold}+ shots on goal", "{player} puts {threshold}+ shots on net", "{player} shoots {threshold}+ times")
+        ),
+        EventCondition("F5", EventCategory.FORWARD, "player.toi", ComparisonType.GREATER_THAN, 20,
+            listOf("{player} logs over {threshold} minutes of ice time", "{player} plays more than {threshold} minutes")
+        ),
 
-        // Defense
-        EventCondition("D1", EventCategory.DEFENSE, "player.blockedShots", ComparisonType.GREATER_THAN, 2.0, "Defense blocks more than 2 shots"),
-        EventCondition("D2", EventCategory.DEFENSE, "player.toi", ComparisonType.GREATER_THAN, 20.0, "Defense plays over 20 minutes"),
-        EventCondition("D3", EventCategory.DEFENSE, "player.hits", ComparisonType.GREATER_THAN, 2.0, "Defense makes more than 2 hits"),
+        // -------- DEFENSE --------
+        EventCondition("D1", EventCategory.DEFENSE, "player.blockedShots", ComparisonType.GREATER_THAN, 2,
+            listOf("{player} blocks {threshold}+ shots", "{player} gets {threshold}+ shots blocked")
+        ),
+        EventCondition("D2", EventCategory.DEFENSE, "player.hits", ComparisonType.GREATER_THAN, 3,
+            listOf("{player} dishes out {threshold}+ hits", "{player} delivers {threshold}+ checks")
+        ),
+        EventCondition("D3", EventCategory.DEFENSE, "player.assists", ComparisonType.GREATER_THAN, 1,
+            listOf("{player} contributes {threshold}+ assists", "{player} assists {threshold}+ goals", "{player} assists {threshold}+ times")
+        ),
+        EventCondition("D4", EventCategory.DEFENSE, "player.toi", ComparisonType.GREATER_THAN, 22,
+            listOf("{player} plays more than {threshold} minutes", "{player} gets {threshold}+ minutes of ice time", "{player} logs over {threshold} minutes of ice time")
+        ),
 
-        // Goalies
-        EventCondition("G1", EventCategory.GOALIE, "player.saves", ComparisonType.GREATER_THAN, 25.0, "Goalie makes more than 25 saves"),
-        EventCondition("G2", EventCategory.GOALIE, "player.savePct", ComparisonType.GREATER_THAN, 0.92, "Goalie save % > 0.92"),
-        EventCondition("G3", EventCategory.GOALIE, "player.goalsAgainst", ComparisonType.LESS_THAN, 2.0, "Goalie allows fewer than 2 goals"),
+        // -------- GOALIES --------
+        EventCondition("G1", EventCategory.GOALIE, "player.saves", ComparisonType.GREATER_THAN, 30,
+            listOf("{player} makes {threshold}+ saves", "{player} stops {threshold}+ shots")
+        ),
+        EventCondition("G2", EventCategory.GOALIE, "player.savePct", ComparisonType.GREATER_THAN, 92,
+            listOf("{player} posts a save percentage above {threshold}%", "{player} stops over {threshold}% of shots")
+        ),
+        EventCondition("G3", EventCategory.GOALIE, "player.goalsAgainst", ComparisonType.LESS_THAN, 2,
+            listOf("{player} allows fewer than {threshold} goals", "{player} gives up under {threshold} goals")
+        ),
 
-        // Team
-        EventCondition("T1", EventCategory.TEAM, "team.goals", ComparisonType.GREATER_THAN, 3.0, "Team scores more than 3 goals"),
-        EventCondition("T2", EventCategory.TEAM, "team.sog", ComparisonType.GREATER_THAN, 25.0, "Team has more than 25 shots on goal"),
-        EventCondition("T3", EventCategory.TEAM, "team.faceoffWinningPctg", ComparisonType.GREATER_THAN, 55.0, "Team wins over 55% of faceoffs"),
+        // -------- TEAM --------
+        EventCondition("T1", EventCategory.TEAM, "team.goals", ComparisonType.GREATER_THAN, 3,
+            listOf("{team} scores {threshold}+ goals", "{team} nets {threshold}+ goals in total")
+        ),
+        EventCondition("T2", EventCategory.TEAM, "team.sog", ComparisonType.GREATER_THAN, 30,
+            listOf("{team} fires {threshold}+ shots on goal", "{team} registers {threshold}+ shots", "{team} puts {threshold}+ shots on net")
+        ),
+        EventCondition("T3", EventCategory.TEAM, "team.faceoffWinningPctg", ComparisonType.GREATER_THAN, 55,
+            listOf("{team} wins over {threshold}% of faceoffs", "{team} controls {threshold}+% of faceoffs", "{team} wins more than {threshold}% of faceoffs")
+        ),
 
-        // Penalties
-        EventCondition("P1", EventCategory.PENALTY, "team.penaltyMinutes", ComparisonType.GREATER_THAN, 10.0, "Team takes over 10 penalty minutes"),
-        EventCondition("P2", EventCategory.PENALTY, "player.penalties", ComparisonType.GREATER_THAN, 1.0, "Player commits more than 1 penalty")
+        // -------- PENALTY --------
+        EventCondition("P1", EventCategory.PENALTY, "team.penaltyMinutes", ComparisonType.GREATER_THAN, 10,
+            listOf("{team} takes over {threshold} penalty minutes", "{team} spends more than {threshold} minutes in the box")
+        )
     )
 
     /**
@@ -151,54 +183,66 @@ class NhlDataManager @Inject constructor(
         val homeRoster = homeRosterDeferred.await()
         val awayRoster = awayRosterDeferred.await()
 
-        // Collect player groups
-        val forwards = mutableListOf<PlayerInfo>()
-        val defensemen = mutableListOf<PlayerInfo>()
-        val goalies = mutableListOf<PlayerInfo>()
-        val teams = listOf(game.homeTeam.commonName, game.awayTeam.commonName)
+        val homeForwards = homeRoster?.forwards ?: emptyList()
+        val homeDefense = homeRoster?.defensemen ?: emptyList()
+        val homeGoalies = homeRoster?.goalies ?: emptyList()
 
-        homeRoster?.let {
-            forwards += it.forwards
-            defensemen += it.defensemen
-            goalies += it.goalies
+        val awayForwards = awayRoster?.forwards ?: emptyList()
+        val awayDefense = awayRoster?.defensemen ?: emptyList()
+        val awayGoalies = awayRoster?.goalies ?: emptyList()
+
+        val homeTeamName = game.homeTeam.commonName.default
+        val awayTeamName = game.awayTeam.commonName.default
+
+        val eventsPerTeam = count / 2
+
+        fun randomThresholdFor(subject: String): Int = when (subject) {
+            "player.goals" -> (1..3).random(random)
+            "player.assists" -> (1..3).random(random)
+            "player.hits" -> (2..6).random(random)
+            "player.sog" -> (3..7).random(random)
+            "player.blockedShots" -> (1..4).random(random)
+            "player.toi" -> (16..24).random(random)
+            "player.saves" -> (20..40).random(random)
+            "player.savePct" -> (89..95).random(random)
+            "player.goalsAgainst" -> (1..3).random(random)
+            "team.goals" -> (2..5).random(random)
+            "team.sog" -> (20..35).random(random)
+            "team.faceoffWinningPctg" -> (45..60).random(random)
+            "team.penaltyMinutes" -> (4..10).random(random)
+            else -> 1
         }
-        awayRoster?.let {
-            forwards += it.forwards
-            defensemen += it.defensemen
-            goalies += it.goalies
-        }
 
-        // Group event templates by category
-        val categories = eventPool.groupBy { it.category }
+        fun generateTeamEvents(
+            teamName: String,
+            forwards: List<PlayerInfo>,
+            defense: List<PlayerInfo>,
+            goalies: List<PlayerInfo>
+        ): List<EventCondition> {
+            val templates = eventPool.shuffled(random).take(eventsPerTeam)
+            return templates.map { template ->
+                val threshold = randomThresholdFor(template.subject)
+                val variant = template.labelTemplates.random(random)
+                val playerName = when (template.category) {
+                    EventCategory.FORWARD -> forwards.randomOrNull(random)?.fullName ?: "Forward"
+                    EventCategory.DEFENSE -> defense.randomOrNull(random)?.fullName ?: "Defense"
+                    EventCategory.GOALIE -> goalies.randomOrNull(random)?.fullName ?: "Goalie"
+                    else -> teamName
+                }
 
-        val balancedTemplates = categories.flatMap { (_, list) ->
-            list.shuffled(random).take((count / categories.size).coerceAtLeast(1))
-        }
+                val label = variant
+                    .replace("{player}", playerName)
+                    .replace("{team}", teamName)
+                    .replace("{threshold}", threshold.toString())
 
-        // Replace placeholders with real player or team names
-        val personalized = balancedTemplates.map { template ->
-            val label = when (template.category) {
-                EventCategory.FORWARD -> template.label.replace(
-                    "Forward",
-                    forwards.randomOrNull(random)?.fullName ?: "Forward"
-                )
-                EventCategory.DEFENSE -> template.label.replace(
-                    "Defense",
-                    defensemen.randomOrNull(random)?.fullName ?: "Defense"
-                )
-                EventCategory.GOALIE -> template.label.replace(
-                    "Goalie",
-                    goalies.randomOrNull(random)?.fullName ?: "Goalie"
-                )
-                EventCategory.TEAM, EventCategory.PENALTY -> template.label.replace(
-                    "Team",
-                    template.label.replace("Team", teams.randomOrNull(random)?.default ?: "Team")
-                )
+                template.copy(labelTemplates = listOf(label), threshold = threshold)
             }
-            template.copy(label = label)
         }
 
-        personalized.shuffled(random).take(count)
+        val homeEvents = generateTeamEvents(homeTeamName, homeForwards, homeDefense, homeGoalies)
+        val awayEvents = generateTeamEvents(awayTeamName, awayForwards, awayDefense, awayGoalies)
+
+        (homeEvents + awayEvents).shuffled(random)
     }
 
     /**

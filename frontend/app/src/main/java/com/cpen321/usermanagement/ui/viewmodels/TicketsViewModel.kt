@@ -98,7 +98,7 @@ class TicketsViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 val events = nhlDataManager.getEventsForGame(gameId)
-                onEventsLoaded(events.map { it.label })
+                onEventsLoaded(events.map { it.labelTemplates.firstOrNull() ?: "" })
             } catch (e: Exception) {
                 onEventsLoaded(emptyList())
             }
