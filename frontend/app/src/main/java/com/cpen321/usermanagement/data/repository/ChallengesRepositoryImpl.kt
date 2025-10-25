@@ -230,8 +230,33 @@ class ChallengesRepositoryImpl @Inject constructor(
         }
     }
 
+    override suspend fun declineInvitation(challengeId: String): Result<Unit> {
+        return try {
+            val response = challengeInterface.declineInvitation("", challengeId)
 
+            if (response.isSuccessful && response.body()?.data != null) {
+                Result.success(response.body()!!.data!!)
+            } else {
+                val errorBodyString = response.errorBody()?.string()
+                val errorMessage =
+                    parseErrorMessage(errorBodyString, "Failed to decline invitation.")
+                Log.e(TAG, "Failed to decline invitation: $errorMessage")
+                Result.failure(Exception(errorMessage))
+            }
 
-
+        } catch (e: java.net.SocketTimeoutException) {
+            Log.e(TAG, "Network timeout while declining invitation", e)
+            Result.failure(e)
+        } catch (e: java.net.UnknownHostException) {
+            Log.e(TAG, "Network connection failed while declining invitation", e)
+            Result.failure(e)
+        } catch (e: java.io.IOException) {
+            Log.e(TAG, "IO error while declining invitation", e)
+            Result.failure(e)
+        } catch (e: retrofit2.HttpException) {
+            Log.e(TAG, "HTTP error while declining invitation: ${e.code()}", e)
+            Result.failure(e)
+        }
+    }
 
 }

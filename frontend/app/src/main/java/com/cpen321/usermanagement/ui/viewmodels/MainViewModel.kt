@@ -4,6 +4,8 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.cpen321.usermanagement.data.local.preferences.NhlDataManager
+import com.cpen321.usermanagement.data.local.preferences.SocketManager
+import com.cpen321.usermanagement.data.local.preferences.SocketEventListener
 import com.cpen321.usermanagement.data.remote.dto.User
 import com.cpen321.usermanagement.data.repository.ProfileRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -32,7 +34,9 @@ data class MainUiState(
 @HiltViewModel
 class MainViewModel @Inject constructor(
     private val profileRepository: ProfileRepository,
-    private val nhlDataManager: NhlDataManager
+    private val nhlDataManager: NhlDataManager,
+    val socketManager: SocketManager,
+    val socketEventListener: SocketEventListener
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(MainUiState())
@@ -40,9 +44,51 @@ class MainViewModel @Inject constructor(
 
     // Expose NHL data from manager
     val nhlDataState = nhlDataManager.uiState
+    
+    // Expose socket connection state
+    val socketConnected = socketManager.isConnected
+    val socketAuthenticated = socketManager.isAuthenticated
 
     companion object {
         private const val TAG = "MainViewModel"
+    }
+    
+    init {
+        // Connect socket when ViewModel is created
+        connectSocket()
+        // Start listening for events
+        socketEventListener.startListening()
+    }
+    
+    /**
+     * Connect to WebSocket server
+     */
+    fun connectSocket() {
+        Log.d(TAG, "Connecting to WebSocket server")
+        socketManager.connect()
+    }
+    
+    /**
+     * Authenticate socket connection with user info
+     */
+    fun authenticateSocket(userId: String, userEmail: String?) {
+        Log.d(TAG, "Authenticating socket for user: $userId")
+        socketManager.authenticate(userId, userEmail)
+    }
+    
+    /**
+     * Disconnect from WebSocket server
+     */
+    fun disconnectSocket() {
+        Log.d(TAG, "Disconnecting from WebSocket server")
+        socketManager.disconnect()
+    }
+    
+    override fun onCleared() {
+        super.onCleared()
+        // Clean up socket connection when ViewModel is destroyed
+        socketEventListener.stopListening()
+        socketManager.disconnect()
     }
 
     fun setSuccessMessage(message: String) {
@@ -77,7 +123,7 @@ class MainViewModel @Inject constructor(
             val availableSpokenLanguages = languagesSpokenResult.getOrNull()
 
             val selectedHobbies = user?.hobbies?.toSet()
-            val selectedLanguages = user?.languages?.toSet()
+            val selectedLanguages = user?.languagesSpoken?.toSet()
 
 
 
@@ -91,6 +137,11 @@ class MainViewModel @Inject constructor(
                 allLanguages = availableSpokenLanguages ?: _uiState.value.allLanguages,
                 selectedLanguages = selectedLanguages ?: _uiState.value.selectedLanguages
             )
+            
+            // Authenticate socket with user info after successful profile load
+            if (user != null) {
+                authenticateSocket(user._id, user.email)
+            }
 
             if (profileResult.isFailure) {
                 val error = profileResult.exceptionOrNull()

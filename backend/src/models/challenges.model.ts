@@ -50,7 +50,15 @@ const challengeSchema = new Schema<IChallenge>(
       type: [String],
       default: [],
     },
+    memberNames: {
+      type: [String],
+      default: [],
+    },
     invitedUserIds: {
+      type: [String],
+      default: [],
+    },
+    invitedUserNames: {
       type: [String],
       default: [],
     },
@@ -87,6 +95,21 @@ export class ChallengesModel {
   ): Promise<IChallenge> {
     try {
       const validated = createChallengeSchema.parse(data);
+
+      // Get owner's name
+      const User = mongoose.model('User');
+      const owner = await User.findOne({ _id: ownerId });
+      const ownerName = owner?.name || 'Unknown User';
+
+      // Get invited users' names if there are invited users
+      let invitedUserNames: string[] = [];
+      if (validated.invitedUserIds && validated.invitedUserIds.length > 0) {
+        const invitedUsers = await User.find({
+          _id: { $in: validated.invitedUserIds },
+        });
+        invitedUserNames = invitedUsers.map(u => u.name || 'Unknown User');
+      }
+
       const challengeData = {
         ...validated,
         id: new mongoose.Types.ObjectId().toString(),
@@ -94,6 +117,8 @@ export class ChallengesModel {
         status: ChallengeStatus.PENDING,
         maxMembers: validated.maxMembers || 10, // Use validated data or default to 10
         memberIds: [ownerId], // Owner is automatically a member
+        memberNames: [ownerName], // Owner's name
+        invitedUserNames: invitedUserNames, // Invited users' names
       };
 
       const challenge = new this.challenge(challengeData);
@@ -162,15 +187,15 @@ export class ChallengesModel {
 
       // Manual population - you would call other services/models here
       // Example structure (you'd need to implement these services):
-      
+
       // 1. Get member details from memberIds
       // const memberDetails = await Promise.all(
       //   challenge.memberIds.map(userId => userService.findById(userId))
       // );
-      
-      // 2. Get game details from gameId  
+
+      // 2. Get game details from gameId
       // const gameDetails = await gameService.findById(challenge.gameId);
-      
+
       // 3. Get owner details
       // const ownerDetails = await userService.findById(challenge.ownerId);
 
@@ -179,24 +204,24 @@ export class ChallengesModel {
         // members: memberDetails.filter(Boolean), // Remove any null results
         // game: gameDetails,
         // owner: ownerDetails,
-        
+
         // For now, return structure with placeholders:
         members: challenge.memberIds.map(id => ({
           id,
           username: `user_${id.slice(-4)}`, // Placeholder
-          displayName: `User ${id.slice(-4)}`
+          displayName: `User ${id.slice(-4)}`,
         })),
         game: {
           id: challenge.gameId,
-          homeTeam: "Team A", // Placeholder
-          awayTeam: "Team B",
-          startTime: challenge.gameStartTime
+          homeTeam: 'Team A', // Placeholder
+          awayTeam: 'Team B',
+          startTime: challenge.gameStartTime,
         },
         owner: {
           id: challenge.ownerId,
           username: `owner_${challenge.ownerId.slice(-4)}`,
-          displayName: `Owner ${challenge.ownerId.slice(-4)}`
-        }
+          displayName: `Owner ${challenge.ownerId.slice(-4)}`,
+        },
       };
     } catch (error) {
       logger.error('Error finding challenge with details:', error);
@@ -262,6 +287,11 @@ export class ChallengesModel {
     try {
       const validated = joinChallengeSchema.parse({ ticketId });
 
+      // Get user's name
+      const User = mongoose.model('User');
+      const user = await User.findOne({ _id: userId });
+      const userName = user?.name || 'Unknown User';
+
       const challenge = await this.challenge.findOneAndUpdate(
         {
           id: challengeId,
@@ -272,8 +302,14 @@ export class ChallengesModel {
           ],
         },
         {
-          $addToSet: { memberIds: userId },
-          $pull: { invitedUserIds: userId },
+          $addToSet: {
+            memberIds: userId,
+            memberNames: userName,
+          },
+          $pull: {
+            invitedUserIds: userId,
+            invitedUserNames: userName,
+          },
           $set: { [`ticketIds.${userId}`]: ticketId },
         },
         { new: true }
@@ -282,6 +318,18 @@ export class ChallengesModel {
       if (!challenge) {
         throw new Error(
           'Challenge not found, user already member, or challenge full'
+        );
+      }
+
+      // Check if there are no more invited users and update status to ACTIVE
+      if (
+        challenge.invitedUserIds.length === 0 &&
+        challenge.status === ChallengeStatus.PENDING
+      ) {
+        challenge.status = ChallengeStatus.ACTIVE;
+        await challenge.save();
+        logger.info(
+          `Challenge ${challengeId} status changed to ACTIVE (no more invited users)`
         );
       }
 
@@ -302,6 +350,11 @@ export class ChallengesModel {
     userId: string
   ): Promise<IChallenge | null> {
     try {
+      // Get user's name
+      const User = mongoose.model('User');
+      const user = await User.findOne({ _id: userId });
+      const userName = user?.name || 'Unknown User';
+
       const challenge = await this.challenge.findOneAndUpdate(
         {
           id: challengeId,
@@ -310,7 +363,10 @@ export class ChallengesModel {
           status: { $in: [ChallengeStatus.PENDING, ChallengeStatus.ACTIVE] }, // Can't leave live/finished
         },
         {
-          $pull: { memberIds: userId },
+          $pull: {
+            memberIds: userId,
+            memberNames: userName,
+          },
           $unset: { [`ticketIds.${userId}`]: '' },
         },
         { new: true }
@@ -326,6 +382,56 @@ export class ChallengesModel {
     } catch (error) {
       logger.error('Error leaving challenge:', error);
       throw new Error('Failed to leave challenge');
+    }
+  }
+
+  // Decline challenge invitation
+  async declineInvitation(
+    challengeId: string,
+    userId: string
+  ): Promise<IChallenge | null> {
+    try {
+      // Get user's name
+      const User = mongoose.model('User');
+      const user = await User.findOne({ googleId: userId });
+      const userName = user?.name || 'Unknown User';
+
+      const challenge = await this.challenge.findOneAndUpdate(
+        {
+          id: challengeId,
+          invitedUserIds: userId, // User must be invited
+        },
+        {
+          $pull: {
+            invitedUserIds: userId,
+            invitedUserNames: userName,
+          },
+        },
+        { new: true }
+      );
+
+      if (!challenge) {
+        throw new Error(
+          'Challenge not found or user not invited to this challenge'
+        );
+      }
+
+      // Check if there are no more invited users and update status to ACTIVE
+      if (
+        challenge.invitedUserIds.length === 0 &&
+        challenge.status === ChallengeStatus.PENDING
+      ) {
+        challenge.status = ChallengeStatus.ACTIVE;
+        await challenge.save();
+        logger.info(
+          `Challenge ${challengeId} status changed to ACTIVE (no more invited users)`
+        );
+      }
+
+      return challenge;
+    } catch (error) {
+      logger.error('Error declining invitation:', error);
+      throw new Error('Failed to decline invitation');
     }
   }
 

@@ -68,5 +68,11 @@ interface ChallengesInterface {
         @Header("Authorization") token: String,
         @Path("challengeId") challengeId: String,
     ): Response<ApiResponse<Unit>> // leaves a challenge
+
+    @POST("challenges/{challengeId}/decline")
+    suspend fun declineInvitation(
+        @Header("Authorization") token: String,
+        @Path("challengeId") challengeId: String,
+    ): Response<ApiResponse<Unit>> // declines a challenge invitation
 }
 

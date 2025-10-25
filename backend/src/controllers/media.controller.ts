@@ -1,7 +1,8 @@
 import { NextFunction, Request, Response } from 'express';
 
 import logger from '../logger.util';
-import { MediaService } from '../media.service';
+import { MediaService } from '../services/media.service';
+
 import { UploadImageRequest, UploadImageResponse } from '../types/media.types';
 import { sanitizeInput } from '../sanitizeInput.util';
 
@@ -24,6 +25,9 @@ export class MediaController {
         sanitizedFilePath,
         user._id.toString()
       );
+
+      // log to backend logger
+      logger.info(`User ${user._id} uploaded a new profile picture: ${image}`);
 
       res.status(200).json({
         message: 'Image uploaded successfully',

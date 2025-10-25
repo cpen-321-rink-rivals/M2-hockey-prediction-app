@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
 
-import { HOBBIES } from '../hobbies';
+import { HOBBIES } from '../types/hobbies';
 import logger from '../logger.util';
 import { GetAllHobbiesResponse } from '../types/hobby.types';
 

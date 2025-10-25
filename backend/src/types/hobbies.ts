@@ -18,5 +18,3 @@ export const HOBBIES = [
   'Skiing',
   'Singing',
 ];
-
-export const IMAGES_DIR = 'uploads/images';

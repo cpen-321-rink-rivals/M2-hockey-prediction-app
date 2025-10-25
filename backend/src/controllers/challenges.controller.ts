@@ -169,6 +169,18 @@ export class ChallengesController {
       // Emit socket event for real-time updates
       SocketEvents.userJoinedChallenge(challengeId, req.user, challenge);
 
+      // If status changed to ACTIVE, emit status change event
+      if (
+        challenge.status === ChallengeStatus.ACTIVE &&
+        challenge.invitedUserIds.length === 0
+      ) {
+        SocketEvents.challengeStatusChanged(
+          challengeId,
+          ChallengeStatus.ACTIVE,
+          challenge
+        );
+      }
+
       res.status(200).json({
         success: true,
         data: challenge,
@@ -217,6 +229,60 @@ export class ChallengesController {
       const message =
         error instanceof Error ? error.message : 'An error occurred';
       logger.error(`Error leaving challenge: ${message}`);
+      res.status(400).json({
+        error: 'Bad Request',
+        message,
+      });
+    }
+  }
+
+  // Decline challenge invitation
+  async declineInvitation(req: Request, res: Response) {
+    try {
+      if (!req.user || !req.user.id) {
+        return res.status(401).json({
+          error: 'Unauthorized',
+          message: 'User authentication required',
+        });
+      }
+
+      const { id } = req.params;
+      const challenge = await challengeModel.declineInvitation(id, req.user.id);
+
+      if (!challenge) {
+        return res.status(400).json({
+          error: 'Bad Request',
+          message:
+            'Unable to decline invitation. You may not be invited to this challenge.',
+        });
+      }
+
+      logger.info(`User ${req.user.id} declined invitation to challenge ${id}`);
+
+      // Emit socket event to notify owner
+      SocketEvents.invitationDeclined(id, req.user, challenge);
+
+      // If status changed to ACTIVE, emit status change event
+      if (
+        challenge.status === ChallengeStatus.ACTIVE &&
+        challenge.invitedUserIds.length === 0
+      ) {
+        SocketEvents.challengeStatusChanged(
+          id,
+          ChallengeStatus.ACTIVE,
+          challenge
+        );
+      }
+
+      res.status(200).json({
+        success: true,
+        data: challenge,
+        message: 'Successfully declined invitation',
+      });
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : 'An error occurred';
+      logger.error(`Error declining invitation: ${message}`);
       res.status(400).json({
         error: 'Bad Request',
         message,
@@ -286,9 +352,23 @@ export class ChallengesController {
       }
 
       const { id } = req.params;
+
+      // Get challenge data before deleting to emit socket event
+      const challenge = await challengeModel.findById(id);
+
+      if (!challenge) {
+        return res.status(404).json({
+          error: 'Not Found',
+          message: 'Challenge not found',
+        });
+      }
+
       await challengeModel.delete(id, req.user.id);
 
       logger.info(`Challenge ${id} deleted by user ${req.user.id}`);
+
+      // Emit socket event for real-time updates
+      SocketEvents.challengeDeleted(id, challenge);
 
       res.status(200).json({
         success: true,

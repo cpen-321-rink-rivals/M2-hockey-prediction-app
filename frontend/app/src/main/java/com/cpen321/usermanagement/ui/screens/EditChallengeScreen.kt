@@ -23,6 +23,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.cpen321.usermanagement.R
+import com.cpen321.usermanagement.data.local.preferences.SocketEventListener
+import com.cpen321.usermanagement.data.local.preferences.SocketManager
 import com.cpen321.usermanagement.data.remote.dto.BingoTicket
 import com.cpen321.usermanagement.data.remote.dto.Challenge
 import com.cpen321.usermanagement.data.remote.dto.ChallengeStatus
@@ -40,15 +42,30 @@ import java.util.*
 fun EditChallengeScreen(
     challengeId: String,
     challengesViewModel: ChallengesViewModel,
+    socketManager: SocketManager,
+    socketEventListener: SocketEventListener,
     onBackClick: () -> Unit
 ) {
     val uiState by challengesViewModel.uiState.collectAsState()
 
     // Side effects
+
     LaunchedEffect(challengeId) {
         challengesViewModel.loadChallenge(challengeId)
-        // challengesViewModel.loadUserTickets()
+        socketManager.joinChallengeRoom(challengeId)
         challengesViewModel.loadProfile()
+    }
+    
+    // Listen for challenge updates via WebSocket
+    LaunchedEffect(challengeId) {
+        socketEventListener.challengeUpdated.collect { event ->
+            Log.d("EditChallengeScreen", "Challenge updated: ${event.message}")
+            // Check if this update is for our challenge
+            if (event.challengeId == challengeId) {
+                // Reload the challenge to get fresh data
+                challengesViewModel.loadChallenge(challengeId)
+            }
+        }
     }
     LaunchedEffect(uiState.user) {
         challengesViewModel.loadFriends(uiState.user!!._id)
@@ -102,6 +119,10 @@ fun EditChallengeScreen(
             onLeaveChallenge = {
                 challengesViewModel.leaveChallenge(challenge.id)
                 onBackClick() // Navigate back after leaving
+            },
+            onDeclineInvitation = {
+                challengesViewModel.declineInvitation(challenge.id)
+                onBackClick() // Navigate back after declining
             }
         )
     } else {
@@ -127,7 +148,8 @@ private fun EditChallengeContent(
     selectedTicket: BingoTicket?,
     onTicketSelected: (BingoTicket) -> Unit,
     onJoinChallenge: () -> Unit,
-    onLeaveChallenge: () -> Unit
+    onLeaveChallenge: () -> Unit,
+    onDeclineInvitation: () -> Unit
 ) {
     var title by remember { mutableStateOf(challenge.title) }
     var description by remember { mutableStateOf(challenge.description) }
@@ -235,6 +257,7 @@ private fun EditChallengeContent(
                     selectedTicket = selectedTicket,
                     onTicketSelected = onTicketSelected,
                     onJoinClick = onJoinChallenge,
+                    onDeclineClick = onDeclineInvitation,
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
                         .padding(16.dp)
@@ -442,17 +465,12 @@ private fun MembersCard(challenge: Challenge, allFriends: List<Friend>?, user: U
             if (challenge.memberIds.isNotEmpty() && allFriends != null) {
                 challenge.memberIds.forEach { memberId ->
 
-
                     // match memberId to user or friends list
                     val memberName = when (memberId) {
                         challenge.ownerId -> "${allFriends.find { it.id == memberId }?.name ?: user?.name ?: memberId} (Owner)"
                         user?._id -> "${user.name} (You)"
                         else -> allFriends.find { it.id == memberId }?.name ?: memberId
                     }
-
-
-
-
 
 
 
@@ -601,7 +619,9 @@ private fun DeleteChallengeButton(
 private fun JoinChallengeCard(
     availableTickets: List<BingoTicket>,
     selectedTicket: BingoTicket?,
-    onTicketSelected: (BingoTicket) -> Unit,    onJoinClick: () -> Unit,
+    onTicketSelected: (BingoTicket) -> Unit,
+    onJoinClick: () -> Unit,
+    onDeclineClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     var isDropdownExpanded by remember { mutableStateOf(false) }
@@ -665,17 +685,35 @@ private fun JoinChallengeCard(
                 }
             }
 
-            Button(
-                onClick = onJoinClick,
-                enabled = selectedTicket != null, // Button is enabled only when a ticket is selected
-                modifier = Modifier.fillMaxWidth()
+            // Action buttons in a row
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Icon(
-                    painter = painterResource(id = R.drawable.group_outlined_icon),
-                    contentDescription = null
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text("Accept Invitation & Join")
+                // Decline button
+                OutlinedButton(
+                    onClick = onDeclineClick,
+                    modifier = Modifier.weight(1f),
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        contentColor = MaterialTheme.colorScheme.error
+                    )
+                ) {
+                    Text("Decline")
+                }
+
+                // Accept button
+                Button(
+                    onClick = onJoinClick,
+                    enabled = selectedTicket != null,
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.group_outlined_icon),
+                        contentDescription = null
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text("Accept")
+                }
             }
         }
     }

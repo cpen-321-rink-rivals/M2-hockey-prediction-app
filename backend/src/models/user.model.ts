@@ -1,7 +1,8 @@
 import mongoose, { Schema } from 'mongoose';
 import { z } from 'zod';
 
-import { HOBBIES } from '../hobbies';
+import { HOBBIES } from '../types/hobbies';
+import { LANGUAGES_SPOKEN } from '../types/languagesSpoken';
 import {
   createUserSchema,
   GoogleUserInfo,
@@ -54,6 +55,19 @@ const userSchema = new Schema<IUser>(
         },
         message:
           'Hobbies must be non-empty strings and must be in the available hobbies list',
+      },
+    },
+    languagesSpoken: {
+      type: [String],
+      default: [],
+      validate: {
+        validator: function (languages: string[]) {
+          return (
+            languages.length === 0 ||
+            languages.every(lang => LANGUAGES_SPOKEN.includes(lang))
+          );
+        },
+        message: 'Languages spoken must be in the available languages list',
       },
     },
     friendCode: {
@@ -167,6 +181,7 @@ export class UserModel {
         profilePicture: user.profilePicture,
         bio: user.bio,
         hobbies: user.hobbies,
+        languagesSpoken: user.languagesSpoken || [],
         friendCode: user.friendCode,
       };
 

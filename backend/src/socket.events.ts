@@ -31,15 +31,78 @@ export class SocketEvents {
 
   static challengeUpdated(challengeId: string, challengeData: any) {
     if (global.socketService) {
+      // Broadcast to challenge room (for users currently viewing the challenge)
       global.socketService.broadcastToChallenge(
         challengeId,
         'challenge_updated',
         {
           type: 'challenge_updated',
+          challengeId: challengeId,
           challenge: challengeData,
           message: 'Challenge has been updated',
         }
       );
+
+      // Also notify all members individually (for challenges list view)
+      if (challengeData.memberIds?.length > 0) {
+        global.socketService.sendToUsers(
+          challengeData.memberIds,
+          'challenge_updated',
+          {
+            type: 'challenge_updated',
+            challengeId: challengeId,
+            challenge: challengeData,
+            message: 'Challenge has been updated',
+          }
+        );
+      }
+
+      // Notify invited users too
+      if (challengeData.invitedUserIds?.length > 0) {
+        global.socketService.sendToUsers(
+          challengeData.invitedUserIds,
+          'challenge_updated',
+          {
+            type: 'challenge_updated',
+            challengeId: challengeId,
+            challenge: challengeData,
+            message: 'Challenge has been updated',
+          }
+        );
+      }
+    }
+  }
+
+  // challenge deleted
+  static challengeDeleted(challengeId: string, challengeData: any) {
+    if (global.socketService) {
+      // Notify all members
+      if (challengeData.memberIds?.length > 0) {
+        global.socketService.sendToUsers(
+          challengeData.memberIds,
+          'challenge_deleted',
+          {
+            type: 'challenge_deleted',
+            challengeId: challengeId,
+            challenge: challengeData,
+            message: `The challenge "${challengeData.title}" has been deleted.`,
+          }
+        );
+      }
+
+      // Notify invited users
+      if (challengeData.invitedUserIds?.length > 0) {
+        global.socketService.sendToUsers(
+          challengeData.invitedUserIds,
+          'challenge_deleted',
+          {
+            type: 'challenge_deleted',
+            challengeId: challengeId,
+            challenge: challengeData,
+            message: `The challenge "${challengeData.title}" has been deleted.`,
+          }
+        );
+      }
     }
   }
 
@@ -49,16 +112,33 @@ export class SocketEvents {
     challengeData: any
   ) {
     if (global.socketService) {
+      // Broadcast to challenge room
       global.socketService.broadcastToChallenge(
         challengeId,
         'user_joined_challenge',
         {
           type: 'user_joined',
+          challengeId: challengeId,
           user: userData,
           challenge: challengeData,
           message: `${userData.name || userData.email || 'Someone'} joined the challenge!`,
         }
       );
+
+      // Notify all members individually
+      if (challengeData.memberIds?.length > 0) {
+        global.socketService.sendToUsers(
+          challengeData.memberIds,
+          'user_joined_challenge',
+          {
+            type: 'user_joined',
+            challengeId: challengeId,
+            user: userData,
+            challenge: challengeData,
+            message: `${userData.name || userData.email || 'Someone'} joined the challenge!`,
+          }
+        );
+      }
     }
   }
 
@@ -68,16 +148,69 @@ export class SocketEvents {
     challengeData: any
   ) {
     if (global.socketService) {
+      // Broadcast to challenge room
       global.socketService.broadcastToChallenge(
         challengeId,
         'user_left_challenge',
         {
           type: 'user_left',
+          challengeId: challengeId,
           user: userData,
           challenge: challengeData,
           message: `${userData.name || userData.email || 'Someone'} left the challenge`,
         }
       );
+
+      // Notify all members individually
+      if (challengeData.memberIds?.length > 0) {
+        global.socketService.sendToUsers(
+          challengeData.memberIds,
+          'user_left_challenge',
+          {
+            type: 'user_left',
+            challengeId: challengeId,
+            user: userData,
+            challenge: challengeData,
+            message: `${userData.name || userData.email || 'Someone'} left the challenge`,
+          }
+        );
+      }
+    }
+  }
+
+  static invitationDeclined(
+    challengeId: string,
+    userData: any,
+    challengeData: any
+  ) {
+    if (global.socketService) {
+      // Notify the challenge owner
+      global.socketService.sendToUser(
+        challengeData.ownerId,
+        'invitation_declined',
+        {
+          type: 'invitation_declined',
+          challengeId: challengeId,
+          user: userData,
+          challenge: challengeData,
+          message: `${userData.name || userData.email || 'Someone'} declined your challenge invitation`,
+        }
+      );
+
+      // Also notify all current members
+      if (challengeData.memberIds?.length > 0) {
+        global.socketService.sendToUsers(
+          challengeData.memberIds,
+          'invitation_declined',
+          {
+            type: 'invitation_declined',
+            challengeId: challengeId,
+            user: userData,
+            challenge: challengeData,
+            message: `${userData.name || userData.email || 'Someone'} declined the challenge invitation`,
+          }
+        );
+      }
     }
   }
 
@@ -87,6 +220,7 @@ export class SocketEvents {
     challengeData: any
   ) {
     if (global.socketService) {
+      // Broadcast to challenge room (for users currently viewing the challenge)
       global.socketService.broadcastToChallenge(
         challengeId,
         'challenge_status_changed',
@@ -98,6 +232,21 @@ export class SocketEvents {
           message: `Challenge status changed to ${newStatus}`,
         }
       );
+
+      // Also notify all members individually (for challenges list view)
+      if (challengeData.memberIds?.length > 0) {
+        global.socketService.sendToUsers(
+          challengeData.memberIds,
+          'challenge_status_changed',
+          {
+            type: 'status_changed',
+            challengeId,
+            newStatus,
+            challenge: challengeData,
+            message: `Challenge status changed to ${newStatus}`,
+          }
+        );
+      }
     }
   }
 

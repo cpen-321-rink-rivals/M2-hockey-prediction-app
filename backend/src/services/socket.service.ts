@@ -15,10 +15,20 @@ class SocketService {
       cors: {
         origin: '*', // Configure this properly for production
         methods: ['GET', 'POST'],
+        credentials: false,
       },
+      // Allow both polling and websocket
+      transports: ['websocket', 'polling'],
+      // Path must match client
+      path: '/socket.io/',
+      // Connection settings
+      pingTimeout: 60000,
+      pingInterval: 25000,
     });
 
     this.setupSocketHandlers();
+    console.log('🔌 Socket.IO initialized with CORS: *');
+    console.log('📡 Available transports: websocket, polling');
   }
 
   private setupSocketHandlers() {
