@@ -220,6 +220,7 @@ export class SocketEvents {
     challengeData: any
   ) {
     if (global.socketService) {
+      // Broadcast to challenge room (for users currently viewing the challenge)
       global.socketService.broadcastToChallenge(
         challengeId,
         'challenge_status_changed',
@@ -231,6 +232,21 @@ export class SocketEvents {
           message: `Challenge status changed to ${newStatus}`,
         }
       );
+
+      // Also notify all members individually (for challenges list view)
+      if (challengeData.memberIds?.length > 0) {
+        global.socketService.sendToUsers(
+          challengeData.memberIds,
+          'challenge_status_changed',
+          {
+            type: 'status_changed',
+            challengeId,
+            newStatus,
+            challenge: challengeData,
+            message: `Challenge status changed to ${newStatus}`,
+          }
+        );
+      }
     }
   }
 

@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
 
-import { authService } from '../auth.service';
+import { authService } from '../services/auth.service';
 import {
   AuthenticateUserRequest,
   AuthenticateUserResponse,

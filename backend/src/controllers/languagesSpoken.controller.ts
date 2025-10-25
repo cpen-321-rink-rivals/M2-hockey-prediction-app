@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
 
-import { LANGUAGES_SPOKEN } from '../languagesSpoken';
+import { LANGUAGES_SPOKEN } from '../types/languagesSpoken';
 import logger from '../logger.util';
 import { getAllLanguagesSpokenResponse } from '../types/languagesSpoken.types';
 

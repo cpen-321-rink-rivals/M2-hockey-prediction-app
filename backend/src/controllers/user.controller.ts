@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
 
 import logger from '../logger.util';
-import { MediaService } from '../media.service';
+import { MediaService } from '../services/media.service';
 import {
   GetProfileResponse,
   PublicUserInfo,

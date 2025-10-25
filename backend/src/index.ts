@@ -5,7 +5,8 @@ import { createServer } from 'http';
 import { connectDB } from './database';
 import { errorHandler, notFoundHandler } from './errorHandler.middleware';
 import router from './routes/routes';
-import SocketService from './socket.service';
+import SocketService from './services/socket.service';
+import { gameStatusSyncJob } from './jobs/gameStatusSync.job';
 import path from 'path';
 
 dotenv.config();
@@ -34,4 +35,9 @@ connectDB();
 server.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
   console.log(`🔗 WebSocket server ready`);
+
+  // Start game status synchronization job
+  // Poll every 60 seconds (1 minute)
+  gameStatusSyncJob.start(60000);
+  console.log(`🏒 Game status sync job started`);
 });

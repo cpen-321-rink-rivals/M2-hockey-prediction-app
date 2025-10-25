@@ -1,8 +1,8 @@
 import mongoose, { Schema } from 'mongoose';
 import { z } from 'zod';
 
-import { HOBBIES } from '../hobbies';
-import { LANGUAGES_SPOKEN } from '../languagesSpoken';
+import { HOBBIES } from '../types/hobbies';
+import { LANGUAGES_SPOKEN } from '../types/languagesSpoken';
 import {
   createUserSchema,
   GoogleUserInfo,
