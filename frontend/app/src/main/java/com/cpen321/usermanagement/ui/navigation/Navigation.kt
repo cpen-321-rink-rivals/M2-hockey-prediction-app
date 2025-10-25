@@ -14,6 +14,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.cpen321.usermanagement.R
+import com.cpen321.usermanagement.data.local.preferences.NhlDataManager
 import com.cpen321.usermanagement.ui.screens.AuthScreen
 import com.cpen321.usermanagement.ui.screens.FriendsScreen
 import com.cpen321.usermanagement.ui.screens.ChallengesScreen
@@ -281,7 +282,7 @@ private fun AppNavHost(
             CreateBingoTicketScreen(
                 ticketsViewModel = ticketsViewModel,
                 onBackClick = { navigationStateManager.navigateBack() },
-                authViewModel = authViewModel
+                authViewModel = authViewModel,
             )
         }
 

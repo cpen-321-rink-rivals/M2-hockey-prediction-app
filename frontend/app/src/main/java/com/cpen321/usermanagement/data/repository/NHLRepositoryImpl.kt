@@ -4,6 +4,7 @@ import android.content.Context
 import android.util.Log
 import com.cpen321.usermanagement.data.remote.api.NHLInterface
 import com.cpen321.usermanagement.data.remote.dto.GameDay
+import com.cpen321.usermanagement.data.remote.dto.TeamRosterResponse
 import com.cpen321.usermanagement.utils.JsonUtils.parseErrorMessage
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
@@ -51,6 +52,15 @@ class NHLRepositoryImpl @Inject constructor(
             Result.failure(e)
         } catch (e: retrofit2.HttpException) {
             Log.e(TAG, "HTTP error while getting NHL Schedule: ${e.code()}", e)
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun getTeamRoster(teamCode: String): Result<TeamRosterResponse> {
+        return try {
+            val response = nhlInterface.getTeamRoster(teamCode)
+            Result.success(response)
+        } catch (e: Exception) {
             Result.failure(e)
         }
     }

@@ -15,5 +15,8 @@ data class TicketsUiState(
     val isLoadingTickets: Boolean = false,
     val isCreating: Boolean = false,
     val error: String? = null,
-    val successMessage: String? = null
+    val successMessage: String? = null,
+
+    val isLoadingGames: Boolean = false,
+    val availableGames: List<Game> = emptyList()
 )
