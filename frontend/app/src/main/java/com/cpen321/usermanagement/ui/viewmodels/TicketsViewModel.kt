@@ -104,4 +104,35 @@ class TicketsViewModel @Inject constructor(
             }
         }
     }
+
+    fun toggleSquare(ticketId: String, index: Int) {
+        viewModelScope.launch {
+            val currentTickets = _uiState.value.allTickets.toMutableList()
+            val ticketIndex = currentTickets.indexOfFirst { it._id == ticketId }
+            if (ticketIndex == -1) return@launch
+
+            val ticket = currentTickets[ticketIndex]
+            // Handle null or too-short crossedOff lists safely
+            val safeCrossed = ticket.crossedOff
+                ?.toMutableList()
+                ?: MutableList(9) { false }  // default to 9 falses if null or missing
+
+            // Prevent index errors
+            if (index !in safeCrossed.indices) return@launch
+
+            // Toggle the square
+            safeCrossed[index] = !safeCrossed[index]
+
+            // Update locally
+            currentTickets[ticketIndex] = ticket.copy(crossedOff = safeCrossed)
+            _uiState.value = _uiState.value.copy(allTickets = currentTickets)
+
+            // Sync to backend (optional but recommended)
+            repository.updateCrossedOff(ticketId, safeCrossed)
+        }
+    }
+
+    fun selectTicket(ticketId: String) {
+        navigationStateManager.navigateToTicketDetail(ticketId)
+    }
 }

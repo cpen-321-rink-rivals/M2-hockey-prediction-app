@@ -9,6 +9,12 @@ const TicketSchema = new Schema({
     required: true,
     validate: (v: string | any[]) => v.length === 9,
   },
+  crossedOff: {
+    type: [Boolean],
+    required: true,
+    default: Array(9).fill(false),
+    validate: (v: boolean[]) => v.length === 9,
+  },
   createdAt: { type: Date, default: Date.now },
 });
 

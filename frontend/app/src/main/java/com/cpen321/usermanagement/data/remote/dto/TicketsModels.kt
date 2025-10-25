@@ -6,7 +6,8 @@ data class BingoTicket(
     val userId: String,
     val name: String,
     val game: Game,
-    val events: List<String>
+    val events: List<String>,
+    val crossedOff: List<Boolean> = List(9) { false }
 )
 
 // UI state for the TicketsScreen and CreateBingoTicketScreen

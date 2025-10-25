@@ -25,4 +25,10 @@ interface TicketsInterface {
     suspend fun deleteTicket(
         @Path("id") id: String
     ): Response<Unit>
+
+    @PUT("tickets/{id}/crossedOff")
+    suspend fun updateCrossedOff(
+        @Path("id") id: String,
+        @Body crossedOff: List<Boolean>
+    ): Response<BingoTicket>
 }

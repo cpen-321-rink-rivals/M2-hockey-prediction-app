@@ -837,7 +837,7 @@ private fun MemberRowWithTicket(
             // Show bingo ticket grid if available
             if (ticket != null) {
                 Divider()
-                BingoGridPreview(events = ticket.events)
+                BingoGridPreview(events = ticket.events, crossedOff = ticket.crossedOff)
             }
         }
     }

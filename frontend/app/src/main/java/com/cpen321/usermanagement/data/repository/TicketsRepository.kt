@@ -63,4 +63,15 @@ class TicketsRepository @Inject constructor(
     } catch (e: Exception) {
         Result.failure(e)
     }
+
+    suspend fun updateCrossedOff(ticketId: String, crossedOff: List<Boolean>): Result<BingoTicket> = try {
+        val response = api.updateCrossedOff(ticketId, crossedOff)
+        if (response.isSuccessful && response.body() != null) {
+            Result.success(response.body()!!)
+        } else {
+            Result.failure(Exception("Failed to update crossed-off squares"))
+        }
+    } catch (e: Exception) {
+        Result.failure(e)
+    }
 }

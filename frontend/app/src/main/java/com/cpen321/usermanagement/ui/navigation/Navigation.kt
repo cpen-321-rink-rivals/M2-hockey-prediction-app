@@ -29,6 +29,7 @@ import com.cpen321.usermanagement.ui.screens.ManageProfileScreen
 import com.cpen321.usermanagement.ui.screens.ProfileScreenActions
 import com.cpen321.usermanagement.ui.screens.ProfileCompletionScreen
 import com.cpen321.usermanagement.ui.screens.ProfileScreen
+import com.cpen321.usermanagement.ui.screens.TicketDetailScreen
 import com.cpen321.usermanagement.ui.screens.TicketsScreen
 import com.cpen321.usermanagement.ui.screens.TicketsScreenActions
 import com.cpen321.usermanagement.ui.viewmodels.AuthViewModel
@@ -44,6 +45,9 @@ object NavRoutes {
     const val MAIN = "main"
     const val PROFILE = "profile"
     const val TICKETS = "tickets"
+    const val TICKET_DETAIL = "ticket_detail"
+    const val TICKET_DETAIL_ARG = "ticketId"
+    const val TICKET_DETAIL_ROUTE = "$TICKET_DETAIL/{$TICKET_DETAIL_ARG}"
     const val CREATE_TICKET = "create_ticket"
     const val FRIENDS = "friends"
     const val CHALLENGES = "challenges"
@@ -155,6 +159,11 @@ private fun handleNavigationEvent(
 
         is NavigationEvent.NavigateToCreateTicket -> {
             navController.navigate(NavRoutes.CREATE_TICKET)
+            navigationStateManager.clearNavigationEvent()
+        }
+
+        is NavigationEvent.NavigateToTicketDetail -> {
+            navController.navigate("${NavRoutes.TICKET_DETAIL}/${navigationEvent.ticketId}")
             navigationStateManager.clearNavigationEvent()
         }
 
@@ -283,6 +292,18 @@ private fun AppNavHost(
                 onBackClick = { navigationStateManager.navigateBack() },
                 authViewModel = authViewModel,
             )
+        }
+
+        composable(
+            route = NavRoutes.TICKET_DETAIL_ROUTE,
+            arguments = listOf(navArgument(NavRoutes.TICKET_DETAIL_ARG) { type = NavType.StringType })
+        ) { backStackEntry ->
+            val ticketId = backStackEntry.arguments?.getString(NavRoutes.TICKET_DETAIL_ARG)
+            val ticket = ticketsViewModel.uiState.collectAsState().value.allTickets
+                .find { it._id == ticketId }
+            if (ticket != null) {
+                TicketDetailScreen(ticket, onBackClick = { navigationStateManager.navigateBack() }, viewModel = ticketsViewModel)
+            }
         }
 
         composable(NavRoutes.FRIENDS) {

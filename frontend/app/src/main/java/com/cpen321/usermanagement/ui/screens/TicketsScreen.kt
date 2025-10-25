@@ -3,6 +3,7 @@ package com.cpen321.usermanagement.ui.screens
 import Icon
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -174,7 +175,8 @@ fun TicketsList(
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(vertical = 8.dp),
+                        .padding(vertical = 8.dp)
+                        .clickable { ticketsViewModel.selectTicket(ticket._id) },
                     shape = RoundedCornerShape(16.dp),
                     elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
@@ -194,7 +196,7 @@ fun TicketsList(
                         Spacer(modifier = Modifier.height(12.dp))
 
                         // Show 3x3 grid of events
-                        BingoGridPreview(events = ticket.events)
+                        BingoGridPreview(events = ticket.events, crossedOff = ticket.crossedOff)
 
                         Spacer(modifier = Modifier.height(12.dp))
 
@@ -220,24 +222,39 @@ private fun AddTicketButton(
 }
 
 @Composable
-fun BingoGridPreview(events: List<String>) {
+fun BingoGridPreview(
+    events: List<String>,
+    crossedOff: List<Boolean>? = null
+) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         for (row in 0 until 3) {
             Row(horizontalArrangement = Arrangement.Center) {
                 for (col in 0 until 3) {
                     val index = row * 3 + col
+                    val isCrossed = crossedOff?.getOrNull(index) ?: false
+
                     Box(
                         modifier = Modifier
                             .padding(4.dp)
                             .size(80.dp)
                             .border(1.dp, Color.Gray, RoundedCornerShape(8.dp))
-                            .background(MaterialTheme.colorScheme.surfaceVariant),
+                            .background(
+                                if (isCrossed)
+                                    Color.Green.copy(alpha = 0.4f)
+                                else
+                                    MaterialTheme.colorScheme.surfaceVariant,
+                                RoundedCornerShape(8.dp)
+                            ),
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
                             text = events.getOrNull(index) ?: "",
                             style = MaterialTheme.typography.bodySmall,
-                            modifier = Modifier.padding(6.dp)
+                            modifier = Modifier.padding(6.dp),
+                            color = if (isCrossed)
+                                MaterialTheme.colorScheme.primary
+                            else
+                                MaterialTheme.colorScheme.onSurface
                         )
                     }
                 }

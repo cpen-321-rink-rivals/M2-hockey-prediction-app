@@ -13,6 +13,7 @@ sealed class NavigationEvent {
     object NavigateToProfile : NavigationEvent()
     object NavigateToTickets : NavigationEvent()
     object NavigateToCreateTicket : NavigationEvent()
+    data class NavigateToTicketDetail(val ticketId: String): NavigationEvent()
     object NavigateToFriends : NavigationEvent()
     object NavigateToChallenges : NavigationEvent()
     data class NavigateToEditChallenge(val challengeId: String) : NavigationEvent()
@@ -161,6 +162,13 @@ class NavigationStateManager @Inject constructor() {
     fun navigateToCreateTicket() {
         _navigationEvent.value = NavigationEvent.NavigateToCreateTicket
         _navigationState.value = _navigationState.value.copy(currentRoute = NavRoutes.CREATE_TICKET)
+    }
+
+    /**
+     * Navigate to Ticket Detail screen
+     */
+    fun navigateToTicketDetail(ticketId: String) {
+        _navigationEvent.value = NavigationEvent.NavigateToTicketDetail(ticketId)
     }
 
 

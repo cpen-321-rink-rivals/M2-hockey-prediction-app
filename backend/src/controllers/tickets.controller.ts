@@ -54,3 +54,22 @@ export const deleteTicket = async (req: Request, res: Response) => {
     res.status(500).json({ message: 'Server error' });
   }
 };
+
+export const updateCrossedOff = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    // Handle either { crossedOff: [...] } or [...] directly
+    const crossedOff = Array.isArray(req.body) ? req.body : req.body.crossedOff;
+
+    if (!Array.isArray(crossedOff)) {
+      return res.status(400).json({ message: "Invalid crossedOff format" });
+    }
+
+    const updated = await Ticket.findByIdAndUpdate(id, { crossedOff }, { new: true });
+    if (!updated) return res.status(404).json({ message: "Ticket not found" });
+
+    res.json(updated);
+  } catch (err) {
+    res.status(500).json({ error: (err as Error).message });
+  }
+};
