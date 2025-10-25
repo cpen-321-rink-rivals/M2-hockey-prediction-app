@@ -79,3 +79,31 @@ data class PeriodDescriptor(
     val periodType: String,
     val maxRegulationPeriods: Int
 )
+
+data class TeamRosterResponse(
+    val forwards: List<PlayerInfo> = emptyList(),
+    val defensemen: List<PlayerInfo> = emptyList(),
+    val goalies: List<PlayerInfo> = emptyList()
+)
+
+data class PlayerInfo(
+    val id: Long,
+    val headshot: String?,
+    val firstName: NameField,
+    val lastName: NameField,
+    val sweaterNumber: Int?,
+    val positionCode: String,
+    val shootsCatches: String?,
+    val heightInInches: Int?,
+    val weightInPounds: Int?,
+    val birthDate: String?,
+    val birthCity: NameField?,
+    val birthCountry: String?,
+    val birthStateProvince: NameField?
+) {
+    val fullName: String get() = "${firstName.default} ${lastName.default}"
+}
+
+data class NameField(
+    val default: String
+)

@@ -2,6 +2,7 @@ package com.cpen321.usermanagement.ui.viewmodels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.cpen321.usermanagement.data.local.preferences.NhlDataManager
 import com.cpen321.usermanagement.data.remote.dto.BingoTicket
 import com.cpen321.usermanagement.data.remote.dto.Game
 import com.cpen321.usermanagement.data.remote.dto.TicketsUiState
@@ -16,7 +17,8 @@ import javax.inject.Inject
 @HiltViewModel
 class TicketsViewModel @Inject constructor(
     private val repository: TicketsRepository,
-    private val navigationStateManager: NavigationStateManager
+    private val navigationStateManager: NavigationStateManager,
+    private val nhlDataManager: NhlDataManager
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(TicketsUiState())
@@ -71,5 +73,35 @@ class TicketsViewModel @Inject constructor(
 
     fun clearSuccessMessage() {
         _uiState.value = _uiState.value.copy(successMessage = null)
+    }
+
+    fun loadUpcomingGames() {
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(isLoadingGames = true, error = null)
+            try {
+                nhlDataManager.loadSchedule() // ensures NHL schedule is fetched
+                val games = nhlDataManager.getGamesForTickets()
+                _uiState.value = _uiState.value.copy(
+                    availableGames = games,
+                    isLoadingGames = false
+                )
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(
+                    isLoadingGames = false,
+                    error = "Failed to load upcoming games: ${e.message}"
+                )
+            }
+        }
+    }
+
+    fun getEventsForGame(gameId: Long, onEventsLoaded: (List<String>) -> Unit) {
+        viewModelScope.launch {
+            try {
+                val events = nhlDataManager.getEventsForGame(gameId)
+                onEventsLoaded(events.map { it.labelTemplates.firstOrNull() ?: "" })
+            } catch (e: Exception) {
+                onEventsLoaded(emptyList())
+            }
+        }
     }
 }

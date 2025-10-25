@@ -15,6 +15,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.cpen321.usermanagement.R
+import com.cpen321.usermanagement.data.local.preferences.NhlDataManager
 import com.cpen321.usermanagement.data.remote.dto.BingoTicket
 import com.cpen321.usermanagement.data.remote.dto.Game
 import com.cpen321.usermanagement.data.remote.dto.Name
@@ -33,69 +34,20 @@ fun CreateBingoTicketScreen(
     onBackClick: () -> Unit
 ) {
 
-    val dummyGames = listOf(
-        Game(
-            id = 2025020123,
-            season = 20252026,
-            gameType = 2,
-            venue = Venue(default = "Benchmark International Arena"),
-            neutralSite = false,
-            startTimeUTC = "2025-10-23T22:45:00Z",
-            easternUTCOffset = "-04:00",
-            venueUTCOffset = "-04:00",
-            venueTimezone = "US/Eastern",
-            gameState = "LIVE",
-            gameScheduleState = "OK",
-            tvBroadcasts = listOf(
-                TvBroadcast(329, "N", "US", "ESPN+", 16),
-                TvBroadcast(391, "N", "US", "HULU", 17)
-            ),
-            awayTeam = Team(
-                id = 16,
-                commonName = Name("Blackhawks"),
-                placeName = Name("Chicago"),
-                placeNameWithPreposition = Name("Chicago", "de Chicago"),
-                abbrev = "TOR",
-                logo = "https://assets.nhle.com/logos/nhl/svg/CHI_light.svg?season=20252026",
-                darkLogo = "https://assets.nhle.com/logos/nhl/svg/CHI_dark.svg?season=20252026",
-                awaySplitSquad = false,
-                radioLink = "https://d2igy0yla8zi0u.cloudfront.net/CHI/20252026/CHI-radio.m3u8",
-            ),
-            homeTeam = Team(
-                id = 14,
-                commonName = Name("Lightning"),
-                placeName = Name("Tampa Bay"),
-                placeNameWithPreposition = Name("Tampa Bay", "de Tampa Bay"),
-                abbrev = "BUF",
-                logo = "https://assets.nhle.com/logos/nhl/svg/TBL_light.svg",
-                darkLogo = "https://assets.nhle.com/logos/nhl/svg/TBL_dark.svg",
-                homeSplitSquad = false,
-                radioLink = "https://d2igy0yla8zi0u.cloudfront.net/TBL/20252026/TBL-radio.m3u8",
-            ),
-            periodDescriptor = PeriodDescriptor(
-                number = 3,
-                periodType = "REG",
-                maxRegulationPeriods = 3
-            ),
-            ticketsLink = "/tickets/chi-vs-tbl/2025/10/23/2025020113",
-            ticketsLinkFr = "/tickets/chi-vs-tbl/2025/10/23/2025020113",
-            gameCenterLink = "/gamecenter/chi-vs-tbl/2025/10/23/2025020113"
-            )
-    )
 
-    val dummyEvents = listOf(
-        "Goal scored", "Penalty called", "Power play starts", "Fight breaks out",
-        "Coach challenge", "Goalie save", "Offside", "Icing", "Faceoff in zone",
-        "Player injury", "Shootout attempt"
-    )
     val uiState by ticketsViewModel.uiState.collectAsState()
     val authState by authViewModel.uiState.collectAsState()
     val userId = authState.user?._id ?: ""
 
-    var ticketName by remember { mutableStateOf("") }  // 🆕 Ticket name state
+    var ticketName by remember { mutableStateOf("") }  // Ticket name state
     var selectedGame by remember { mutableStateOf<Game?>(null) }
+    var availableEvents by remember { mutableStateOf<List<String>>(emptyList()) }
     var selectedEvents by remember { mutableStateOf(List(9) { "" }) }
     var showEventPickerForIndex by remember { mutableStateOf<Int?>(null) }
+
+    LaunchedEffect(Unit) {
+        ticketsViewModel.loadUpcomingGames()
+    }
 
     Scaffold(
         topBar = {
@@ -129,7 +81,24 @@ fun CreateBingoTicketScreen(
             // Step 1: Select Game
             Text("Select an upcoming game:", style = MaterialTheme.typography.titleMedium)
             Spacer(modifier = Modifier.height(8.dp))
-            GameDropdown(dummyGames, selectedGame) { selectedGame = it }
+            if (uiState.isLoadingGames) {
+                CircularProgressIndicator()
+            } else if (uiState.availableGames.isEmpty()) {
+                Text("No upcoming games found.")
+            } else {
+                GameDropdown(
+                    games = uiState.availableGames,
+                    selectedGame = selectedGame,
+                    onGameSelected = { game ->
+                        selectedGame = game
+                        ticketsViewModel.getEventsForGame(game.id) { events ->
+                            availableEvents = events
+                        }
+                        selectedEvents = List(9) { "" }
+                    }
+                )
+            }
+
 
             Spacer(modifier = Modifier.height(24.dp))
 
@@ -167,7 +136,7 @@ fun CreateBingoTicketScreen(
         // Event Picker Dialog
         showEventPickerForIndex?.let { index ->
             EventPickerDialog(
-                allEvents = dummyEvents,
+                allEvents = availableEvents,
                 selectedEvents = selectedEvents,
                 onDismiss = { showEventPickerForIndex = null },
                 onEventSelected = { chosen ->
