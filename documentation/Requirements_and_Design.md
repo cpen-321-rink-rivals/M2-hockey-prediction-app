@@ -5,7 +5,8 @@
 | **Change Date**   | **Modified Sections**       | **Rationale**                 |     
 | ----------------- | ---------------------       | -------------                 |
 | 25. Oct.          | 4.1                         | Added missing Interfaces and split Friends component into its own for                                                                better seperation    |
-| 25. Oct           | --------------------        | -------------                 |
+| 25. Oct           | 4.4                         | Added new frameworks/libraries   |
+| 25. Oct           | 4.5                         | Updated Backend dependicy diagram with new dependencies   |
 
 ---
 
@@ -354,10 +355,18 @@ Users can view a specific challenge and see the score of the real life game as w
 2. **[Retrofit]**
    - **Purpose**: Make HTTP requests in Android.
    - **Reason**: We need to show API data to the frontend. 
+2. **[OkHttp]**
+   - **Purpose**: HTTP client.
+   - **Reason**: Used together with Retrofit to make http requests.
 3. **[Mongoose]**
    - **Purpose**: Interacting with MongoDB 
    - **Reason**: Making it easier to work with the database. 
-
+4. **[Socket.io]**
+   - **Purpose**: Live updates support
+   - **Reason**: Enables us to implement the live updates when for example user creates and invites another user.
+4. **[Axios]**
+   - **Purpose**: HTTP client for backend
+   - **Reason**: Enabling us to fetch NHL data every 60 seconds from the Typescript backend.
 ### **4.5. Dependencies Diagram**
 
 ![High level backend diagram](/documentation/images/high-level-backend-diagram.png)
