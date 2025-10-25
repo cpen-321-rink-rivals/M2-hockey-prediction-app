@@ -2,9 +2,10 @@
 
 ## 1. Change History
 
-| **Change Date**   | **Modified Sections** | **Rationale** |
-| ----------------- | --------------------- | ------------- |
-| _Nothing to show_ |
+| **Change Date**   | **Modified Sections**       | **Rationale**                 |     
+| ----------------- | ---------------------       | -------------                 |
+| 25. Oct.          | 4.1                         | Added missing Interfaces and split Friends component into its own for                                                                better seperation    |
+| 25. Oct           | --------------------        | -------------                 |
 
 ---
 
@@ -264,17 +265,74 @@ Users can view a specific challenge and see the score of the real life game as w
 ### **4.1. Main Components**
 
 1. **[Users]**
-   - **Purpose**: Handles user profiles, and the friends graph (send/accept/decline/remove).
-   - **Interfaces**: 
-        1. ...
-            - **Purpose**: ...
-        2. ...
-2. **[Bingo Tickets]**
-   - **Purpose**: Handles creation, deletion, viewing and logic of bingo tickets.
-3. **[Challenges]**
-   - **Purpose**: Handles managing, viewing and logic of challenges.
-4. **[Live Event Ingest & Scoring Engine]**
-   - **Purpose**: Fetches, handles and updates NHL data so it can be accessed by the other components.
+   - **Purpose**: Handles user profiles.
+   - **Interfaces**:
+        1. getProfile(authHeader: String): `ApiResponse<ProfileData>`
+            - **Purpose**: Retrieves the authenticated user’s profile data.
+        2. getUserInfoById(authHeader: String, userId: String): `ApiResponse<PublicProfileData>`
+            - **Purpose**: Fetches public information for any user by ID.
+        3. updateProfile(authHeader: String, request: UpdateProfileRequest): `ApiResponse<ProfileData>`
+            - **Purpose**: Updates profile fields such as username, bio and profilePictureURL.
+        4. deleteProfile(authHeader: String): `ApiResponse<Unit>`
+            - **Purpose**: Deletes the authenticated user’s account.
+
+2. **[Friends]**
+   - **Purpose**: Manages the friends relations — sending, accepting, rejecting, and removing friends.
+   - **Interfaces**:
+        1. sendFriendRequest(authHeader: String, body: Map<String, String>): `ApiResponse<Unit>`
+            - **Purpose**: Sends a friend request using another user’s friend code.
+        2. acceptFriendRequest(authHeader: String, body: Map<String, String>): `ApiResponse<Unit>`
+            - **Purpose**: Accepts a pending friend request.
+        3. rejectFriendRequest(authHeader: String, body: Map<String, String>): `ApiResponse<Unit>`
+            - **Purpose**: Declines a pending friend request.
+        4. removeFriend(authHeader: String, friendId: String): `ApiResponse<Unit>`
+            - **Purpose**: Removes a user from the friend list.
+        5. getFriends(authHeader: String): `ApiResponse<List<FriendData>>`
+            - **Purpose**: Retrieves all accepted friends.
+        6. getPendingRequests(authHeader: String): `ApiResponse<List<PendingRequestData>>`
+            - **Purpose**: Lists all incoming and outgoing pending requests.
+
+3. **[Bingo Tickets]**
+   - **Purpose**: Handles creation, deletion and getting of bingo tickets.
+   - **Interfaces**:
+        1. getTickets(userId: String): `List<BingoTicket>`
+            - **Purpose**: Retrieves all bingo tickets owned by a user.
+        2. getTicketById(id: String): `BingoTicket`
+            - **Purpose**: Fetches a specific bingo ticket.
+        3. createTicket(ticket: BingoTicket): `BingoTicket`
+            - **Purpose**: Creates a new bingo ticket.
+        4. deleteTicket(id: String): `Unit`
+            - **Purpose**: Deletes an existing bingo ticket.
+
+4. **[Challenges]**
+   - **Purpose**: Handles management, participation, and status of challenges.
+   - **Interfaces**:
+        1. getChallenges(token: String): `ApiResponse<Map<String, List<Challenge>>>`
+            - **Purpose**: Retrieves all challenges grouped by challenge status.
+        2. getChallenge(token: String, challengeId: String): `ApiResponse<Challenge>`
+            - **Purpose**: Fetches details for a single challenge.
+        3. createChallenge(token: String, request: CreateChallengeRequest): `ApiResponse<Challenge>`
+            - **Purpose**: Creates a new challenge.
+        4. updateChallenge(token: String, challengeId: String, updatedChallenge: Challenge): `ApiResponse<Challenge>`
+            - **Purpose**: Updates an existing challenge.
+        5. deleteChallenge(token: String, challengeId: String): `ApiResponse<Unit>`
+            - **Purpose**: Deletes a challenge.
+        6. joinChallenge(token: String, challengeId: String, body: Map<String, String>): `ApiResponse<Unit>`
+            - **Purpose**: Joins the authenticated user to a challenge.
+        7. leaveChallenge(token: String, challengeId: String): `ApiResponse<Unit>`
+            - **Purpose**: Removes the user from a joined challenge.
+        8. declineInvitation(token: String, challengeId: String): `ApiResponse<Unit>`
+            - **Purpose**: Declines a challenge invitation.
+
+5. **[NHL data]**
+   - **Purpose**: Fetches, processes, and updates NHL data for use by other components.
+   - **Interfaces**:
+        1. getCurrentSchedule(): `ScheduleResponse`
+            - **Purpose**: Retrieves the current NHL game schedule.
+        2. getTeamRoster(teamCode: String): `TeamRosterResponse`
+            - **Purpose**: Returns the full roster for a given NHL team.
+        
+
 
 ### **4.2. Databases**
 
