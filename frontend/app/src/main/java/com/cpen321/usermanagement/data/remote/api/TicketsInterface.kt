@@ -6,10 +6,15 @@ import retrofit2.http.*
 
 interface TicketsInterface {
 
-    @GET("tickets/{userId}")
+    @GET("tickets/user/{userId}")
     suspend fun getTickets(
         @Path("userId") userId: String
     ): Response<List<BingoTicket>>
+
+    @GET("tickets/{id}")
+    suspend fun getTicketById(
+        @Path("id") id: String
+    ): Response<BingoTicket>
 
     @POST("tickets")
     suspend fun createTicket(

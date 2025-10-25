@@ -43,7 +43,8 @@ data class CreateChallengeRequest(
     val gameId: String,
     val invitedUserIds: List<String>? = null,
     val maxMembers: Int? = null,
-    val gameStartTime: Date? = null
+    val gameStartTime: Date? = null,
+    val ticketId: String? = null
 )
 
 

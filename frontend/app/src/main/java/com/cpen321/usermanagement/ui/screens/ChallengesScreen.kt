@@ -338,11 +338,36 @@ fun ChallengeItem(challenge: Challenge, onClick: () -> Unit = {}) {
                     overflow = TextOverflow.Ellipsis
                 )
                 Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = "By ${challenge.ownerId}",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.primary
-                )
+
+                // Member name list
+                Column(modifier = Modifier.padding(start = 8.dp)) { // Indent the whole list
+                    Text(
+                        text = "Members:",
+                        style = MaterialTheme.typography.bodySmall,
+                        fontWeight = FontWeight.Medium, // Make the title slightly bolder
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+
+                    // Check if there are any members to avoid showing an empty list
+                    if (challenge.memberNames.isNotEmpty()) {
+                        // Loop through each member and create a Text for each one
+                        challenge.memberNames.forEach { memberName ->
+                            Text(
+                                text = "• $memberName", // Add a bullet point for style
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.padding(start = 4.dp) // Indent the names
+                            )
+                        }
+                    } else {
+                        Text(
+                            text = "No members yet.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(start = 4.dp)
+                        )
+                    }
+                }
             }
             Icon(
                 imageVector = Icons.Default.ArrowForward,

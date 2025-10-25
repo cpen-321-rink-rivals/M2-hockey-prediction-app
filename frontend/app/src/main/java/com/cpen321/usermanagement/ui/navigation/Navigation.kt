@@ -14,14 +14,13 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.cpen321.usermanagement.R
-import com.cpen321.usermanagement.data.local.preferences.NhlDataManager
 import com.cpen321.usermanagement.ui.screens.AuthScreen
 import com.cpen321.usermanagement.ui.screens.FriendsScreen
 import com.cpen321.usermanagement.ui.screens.ChallengesScreen
 import com.cpen321.usermanagement.ui.screens.ChallengesScreenActions
 import com.cpen321.usermanagement.ui.screens.CreateBingoTicketScreen
 import com.cpen321.usermanagement.ui.screens.CreateChallengeScreen
-import com.cpen321.usermanagement.ui.screens.EditChallengeScreen
+import com.cpen321.usermanagement.ui.screens.ChallengeDetailsScreen
 import com.cpen321.usermanagement.ui.screens.LoadingScreen
 import com.cpen321.usermanagement.ui.screens.MainScreen
 import com.cpen321.usermanagement.ui.screens.ManageHobbiesScreen
@@ -315,7 +314,7 @@ private fun AppNavHost(
             val challengeId = backStackEntry.arguments?.getString(NavRoutes.EDIT_CHALLENGE_ARG)
 
             if (challengeId != null) {
-                EditChallengeScreen(
+                ChallengeDetailsScreen(
                     challengeId = challengeId,
                     challengesViewModel = challengesViewModel,
                     socketManager = mainViewModel.socketManager,

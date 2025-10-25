@@ -40,7 +40,8 @@ data class ChallengesUiState(
     val user: User? = null,
     val allFriends: List<Friend>? = null,
     val availableGames: List<Game>? = emptyList(),
-    val availableTickets: List<BingoTicket>? = emptyList(),
+    val availableTicketsForJoining: List<BingoTicket>? = emptyList(),
+    val challengeTickets: List<BingoTicket>? = emptyList(),
     val allChallenges: Map<String, List<Challenge>>? = null, // Map of challenge status to list of challenges
     val allPendingChallenges: List<Challenge>? = null,
     val allActiveChallenges: List<Challenge>? = null,
@@ -403,7 +404,7 @@ class ChallengesViewModel @Inject constructor(
 
             _uiState.value = _uiState.value.copy(
                 isLoadingBingoTickets = false,
-                availableTickets = tickets
+                availableTicketsForJoining = tickets
             )
 
             if (ticketsResult.isFailure) {
@@ -420,6 +421,27 @@ class ChallengesViewModel @Inject constructor(
                     isLoadingBingoTickets = false,
                     errorMessage = null
                 )
+            }
+        }
+    }
+
+    /**
+     * Load a single ticket by ID and add it to availableTickets
+     */
+    fun loadTicketById(ticketId: String) {
+        viewModelScope.launch {
+            val ticketResult = ticketsRepository.getTicketById(ticketId)
+            val ticket = ticketResult.getOrNull()
+
+            if (ticket != null) {
+                // Add this ticket to availableTickets if not already there
+                val currentTickets = _uiState.value.challengeTickets?.toMutableList() ?: mutableListOf()
+                if (!currentTickets.any { it._id == ticket._id }) {
+                    currentTickets.add(ticket)
+                    _uiState.value = _uiState.value.copy(challengeTickets = currentTickets)
+                }
+            } else {
+                Log.w(TAG, "Failed to load ticket: $ticketId")
             }
         }
     }
