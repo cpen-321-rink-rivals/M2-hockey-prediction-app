@@ -1,7 +1,9 @@
 # Game Status Sync Feature
 
 ## Overview
+
 Automatically updates challenge statuses based on NHL game states:
+
 - **PENDING/ACTIVE → LIVE**: When the game starts
 - **LIVE → FINISHED**: When the game ends
 
@@ -28,10 +30,12 @@ Automatically updates challenge statuses based on NHL game states:
 ## NHL API Integration
 
 ### Endpoints Used
+
 - Primary: `https://api-web.nhle.com/v1/schedule/now`
 - Fallback: `https://api-web.nhle.com/v1/gamecenter/{gameId}/landing`
 
 ### Game States
+
 - `FUT` / `SCHEDULED`: Game scheduled (future)
 - `LIVE`: Game in progress
 - `CRIT`: Critical/close game (late stages)
@@ -43,16 +47,17 @@ Automatically updates challenge statuses based on NHL game states:
 The system uses adaptive polling based on game timing:
 
 | Time Until Start | Polling Interval |
-|-----------------|------------------|
-| > 1 hour        | 10 minutes       |
-| 10 min - 1 hour | 5 minutes        |
-| < 10 minutes    | 1 minute         |
-| During game     | 30 seconds       |
-| After game      | 5 minutes        |
+| ---------------- | ---------------- |
+| > 1 hour         | 10 minutes       |
+| 10 min - 1 hour  | 5 minutes        |
+| < 10 minutes     | 1 minute         |
+| During game      | 30 seconds       |
+| After game       | 5 minutes        |
 
 ## Configuration
 
 ### Starting the Job
+
 The job starts automatically when the server boots:
 
 ```typescript
@@ -61,12 +66,15 @@ gameStatusSyncJob.start(60000); // 60 seconds interval
 ```
 
 ### Stopping the Job
+
 ```typescript
 gameStatusSyncJob.stop();
 ```
 
 ### Manual Sync
+
 Force sync a specific challenge:
+
 ```typescript
 await gameStatusSyncJob.syncChallenge(challengeId);
 ```
@@ -83,12 +91,14 @@ await gameStatusSyncJob.syncChallenge(challengeId);
 ## Status Transitions
 
 ### Valid Transitions
+
 - PENDING → ACTIVE (when all invites resolved)
 - PENDING → LIVE (game starts before invites resolved)
 - ACTIVE → LIVE (game starts)
 - LIVE → FINISHED (game ends)
 
 ### Invalid Transitions (Prevented)
+
 - FINISHED → LIVE
 - LIVE → ACTIVE
 - CANCELLED → any other state
@@ -120,6 +130,7 @@ LaunchedEffect(socketEventListener) {
 ## Logging
 
 All status changes are logged:
+
 ```
 🔴 Challenge abc123: Game 2024020123 is now LIVE (was active)
 🏁 Challenge abc123: Game 2024020123 is now FINISHED (was live)
@@ -129,6 +140,7 @@ All status changes are logged:
 ## Testing
 
 ### Manual Testing
+
 1. Create a challenge with a real NHL game ID
 2. Wait for game to start (or use a game in progress)
 3. Check logs for status updates
@@ -136,6 +148,7 @@ All status changes are logged:
 5. Confirm frontend UI updates
 
 ### Test Script
+
 ```bash
 # Start the backend
 npm run dev

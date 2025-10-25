@@ -1,5 +1,8 @@
 import { challengeModel } from '../models/challenges.model';
-import { ChallengeStatus, ChallengeStatusType } from '../types/challenges.types';
+import {
+  ChallengeStatus,
+  ChallengeStatusType,
+} from '../types/challenges.types';
 import { nhlService } from '../services/nhl.service';
 import SocketEvents from '../socket.events';
 import logger from '../logger.util';
@@ -66,7 +69,9 @@ export class GameStatusSyncJob {
           ChallengeStatus.ACTIVE,
           ChallengeStatus.LIVE,
         ];
-        return statusesToCheck.includes(challenge.status as ChallengeStatusType);
+        return statusesToCheck.includes(
+          challenge.status as ChallengeStatusType
+        );
       });
 
       if (challengesToCheck.length === 0) {

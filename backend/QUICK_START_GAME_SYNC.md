@@ -3,6 +3,7 @@
 ## What Was Implemented
 
 Automatic challenge status updates based on NHL game state:
+
 - ✅ **NHL Service**: Fetches game data from NHL API
 - ✅ **Game Status Sync Job**: Polls challenges every 60 seconds
 - ✅ **Auto Status Updates**: ACTIVE → LIVE → FINISHED
@@ -23,6 +24,7 @@ Automatic challenge status updates based on NHL game state:
 ### Option 1: With Real NHL Games
 
 1. **Start the backend**:
+
    ```bash
    cd backend
    npm run dev
@@ -39,6 +41,7 @@ Automatic challenge status updates based on NHL game state:
    - Invite some users or join yourself
 
 4. **Watch the logs**:
+
    ```
    🔄 Running game status sync...
    Checking 1 challenge(s) for game status updates
@@ -59,6 +62,7 @@ npx ts-node scripts/testGameStatusSync.ts
 ```
 
 This will:
+
 - Fetch a test game from the NHL API
 - Display game state and metadata
 - Show recommended polling intervals
@@ -76,6 +80,7 @@ This filters logs to show only game status sync activities.
 ## Expected Behavior
 
 ### When Game Starts
+
 ```
 🔴 Challenge abc123: Game 2024020123 is now LIVE (was active)
 Notifying 3 member(s) of status change
@@ -83,6 +88,7 @@ Notifying 3 member(s) of status change
 ```
 
 ### When Game Ends
+
 ```
 🏁 Challenge abc123: Game 2024020123 is now FINISHED (was live)
 Notifying 3 member(s) of status change
@@ -90,6 +96,7 @@ Notifying 3 member(s) of status change
 ```
 
 ### Normal Polling (No Changes)
+
 ```
 🔄 Running game status sync...
 Checking 5 challenge(s) for game status updates
@@ -102,6 +109,7 @@ Challenge abc123: No status change needed (game: FUT, challenge: active)
 ### Adjust Polling Interval
 
 In `backend/src/index.ts`:
+
 ```typescript
 // Default: 60 seconds
 gameStatusSyncJob.start(60000);
@@ -130,23 +138,27 @@ await gameStatusSyncJob.syncChallenge('challenge-id-here');
 ### No status updates happening
 
 **Check 1**: Are there challenges in ACTIVE/LIVE status?
+
 ```bash
 # In MongoDB or via API
 db.challenges.find({ status: { $in: ['active', 'live'] } })
 ```
 
 **Check 2**: Is the job running?
+
 ```bash
 # Check logs for:
 🏒 Game status sync job started
 ```
 
 **Check 3**: Is the NHL API accessible?
+
 ```bash
 curl https://api-web.nhle.com/v1/schedule/now
 ```
 
 **Check 4**: Are gameIds valid?
+
 - GameIds should be NHL game IDs (numeric, e.g., `2024020123`)
 - Find valid IDs from the NHL API schedule endpoint
 
@@ -165,17 +177,20 @@ curl https://api-web.nhle.com/v1/schedule/now
 ## Files Created/Modified
 
 ### New Files
+
 - ✅ `backend/src/services/nhl.service.ts` - NHL API integration
 - ✅ `backend/src/jobs/gameStatusSync.job.ts` - Status sync scheduler
 - ✅ `backend/scripts/testGameStatusSync.ts` - Test script
 - ✅ `backend/GAME_STATUS_SYNC.md` - Detailed documentation
 
 ### Modified Files
+
 - ✅ `backend/src/index.ts` - Start job on server boot
 - ✅ `backend/src/socket.events.ts` - Enhanced status change event
 - ✅ `backend/package.json` - Added axios dependency
 
 ### Frontend (Already Integrated)
+
 - ✅ `SocketEventListener.kt` - Listens for `challenge_status_changed`
 - ✅ `ChallengesScreen.kt` - Auto-refreshes on status change
 - ✅ `EditChallengeScreen.kt` - Updates challenge details
@@ -202,6 +217,7 @@ Your app now automatically updates challenge statuses! 🎉
 ## Need Help?
 
 Check the detailed documentation in `GAME_STATUS_SYNC.md` for:
+
 - Architecture details
 - API endpoints
 - Polling strategies

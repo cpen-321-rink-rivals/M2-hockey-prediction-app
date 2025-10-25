@@ -16,10 +16,8 @@ export interface GameStatus {
 }
 
 export class NHLService {
-  private cache: Map<
-    string,
-    { data: GameStatus; timestamp: number }
-  > = new Map();
+  private cache: Map<string, { data: GameStatus; timestamp: number }> =
+    new Map();
   private readonly CACHE_TTL = 30000; // 30 seconds cache
 
   /**
@@ -108,7 +106,9 @@ export class NHLService {
    * Fetch game status directly from game-specific endpoint
    * @param gameId - The NHL game ID
    */
-  private async getGameStatusDirect(gameId: string): Promise<GameStatus | null> {
+  private async getGameStatusDirect(
+    gameId: string
+  ): Promise<GameStatus | null> {
     try {
       // Try the game-specific landing endpoint
       const url = `${NHL_API_BASE}/gamecenter/${gameId}/landing`;
