@@ -119,6 +119,7 @@ export class ChallengesModel {
         memberIds: [ownerId], // Owner is automatically a member
         memberNames: [ownerName], // Owner's name
         invitedUserNames: invitedUserNames, // Invited users' names
+        ticketIds: validated.ticketId ? { [ownerId]: validated.ticketId } : {}, // Add owner's ticket if provided
       };
 
       const challenge = new this.challenge(challengeData);

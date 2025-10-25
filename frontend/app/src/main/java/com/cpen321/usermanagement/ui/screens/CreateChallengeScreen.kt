@@ -77,7 +77,7 @@ fun CreateChallengeScreen(
     
     // Get games from ViewModel
     val availableGames = uiState.availableGames
-    val availableTickets = uiState.availableTickets
+    val availableTickets = uiState.availableTicketsForJoining
     Log.d("CreateChallengeScreen", "Available games: $availableGames")
     Log.d("CreateChallengeScreen", "Available tickets: $availableTickets")
 
@@ -137,7 +137,8 @@ fun CreateChallengeScreen(
                                 gameId = selectedGame!!.id.toString(),
                                 invitedUserIds = selectedFriends.map { it.id },
                                 maxMembers = maxMembers.toIntOrNull(),
-                                gameStartTime = null // Will be handled by backend from gameId
+                                gameStartTime = null, // Will be handled by backend from gameId
+                                ticketId = selectedTicket?._id // Include owner's selected ticket
                             )
                             
                             // Call ViewModel to create challenge

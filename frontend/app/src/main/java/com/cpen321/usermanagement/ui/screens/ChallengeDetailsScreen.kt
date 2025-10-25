@@ -79,12 +79,12 @@ fun ChallengeDetailsScreen(
 
     // State variables
     var selectedTicketForJoining by remember { mutableStateOf<BingoTicket?>(null) }
-    val availableTicketsForJoining = uiState.availableTickets
+    val availableTicketsForJoining = uiState.availableTicketsForJoining
     val challenge = uiState.selectedChallenge
     val userId = uiState.user?._id
     val allFriends = uiState.allFriends
     val upcomingGames = uiState.availableGames // Get games list
-    val allTickets = uiState.availableTickets // This now includes all loaded tickets
+    val allTickets = uiState.challengeTickets // This now includes all loaded tickets
 
     if (challenge != null && challenge.id == challengeId) {
         val isOwner = challenge.ownerId == userId

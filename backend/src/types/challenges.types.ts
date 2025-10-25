@@ -62,6 +62,7 @@ export const createChallengeSchema = z.object({
   invitedUserIds: z.array(z.string()).default([]),
   maxMembers: z.number().min(2).max(50).optional(),
   gameStartTime: z.date().optional(),
+  ticketId: z.string().optional(), // Owner's selected ticket
 });
 
 export const updateChallengeSchema = z.object({
