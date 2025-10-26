@@ -1,6 +1,7 @@
 package com.cpen321.usermanagement.data.local.preferences
 
 import android.util.Log
+import com.cpen321.usermanagement.BuildConfig
 import io.socket.client.IO
 import io.socket.client.Socket
 import io.socket.emitter.Emitter
@@ -20,8 +21,8 @@ class SocketManager @Inject constructor() {
 
     companion object {
         private const val TAG = "SocketManager"
-        private const val SERVER_URL = "http://10.0.2.2:3000" // Android emulator localhost
-        // For physical device, use your computer's IP: "http://192.168.x.x:3000"
+        // SOCKET_URL is configured in local.properties
+        private val SERVER_URL = BuildConfig.SOCKET_URL
     }
 
     private var socket: Socket? = null
