@@ -24,10 +24,6 @@ data class ProfileUiState(
 
     // Data states
     val user: User? = null,
-    val allHobbies: List<String> = emptyList(),
-    val allLanguages: List<String> = emptyList(),
-    val selectedHobbies: Set<String> = emptySet(),
-    val selectedLanguages: Set<String> = emptySet(),
     val isProfileDeleted: Boolean = false,
 
 
@@ -57,51 +53,18 @@ class ProfileViewModel @Inject constructor(
             )
 
             val profileResult = profileRepository.getProfile()
-            val hobbiesResult = profileRepository.getAvailableHobbies()
-            val languagesSpokenResult = profileRepository.getAvailableLanguages()
 
             val user = profileResult.getOrNull()
 
-            val availableHobbies = hobbiesResult.getOrNull()
-            val availableSpokenLanguages = languagesSpokenResult.getOrNull()
-
-            val selectedHobbies = user?.hobbies?.toSet()
-            val selectedLanguages = user?.languagesSpoken?.toSet()
-
-
             _uiState.value = _uiState.value.copy(
                 isLoadingProfile = false,
-                user = user,
-
-                allHobbies = availableHobbies ?: _uiState.value.allHobbies,
-                selectedHobbies = selectedHobbies ?: _uiState.value.selectedHobbies,
-
-                allLanguages = availableSpokenLanguages ?: _uiState.value.allLanguages,
-                selectedLanguages = selectedLanguages ?: _uiState.value.selectedLanguages
+                user = user
             )
 
             if (profileResult.isFailure) {
                 val error = profileResult.exceptionOrNull()
                 val errorMessage = error?.message ?: "Failed to load profile"
                 Log.e(TAG, "Failed to load profile", error)
-
-                _uiState.value = _uiState.value.copy(
-                    isLoadingProfile = false,
-                    errorMessage = errorMessage
-                )
-            } else if (hobbiesResult.isFailure) {
-                val error = hobbiesResult.exceptionOrNull()
-                val errorMessage = error?.message ?: "Failed to load hobbies"
-                Log.e(TAG, "Failed to load hobbies", error)
-
-                _uiState.value = _uiState.value.copy(
-                    isLoadingProfile = false,
-                    errorMessage = errorMessage
-                )
-            } else if (languagesSpokenResult.isFailure) {
-                val error = languagesSpokenResult.exceptionOrNull()
-                val errorMessage = error?.message ?: "Failed to load languages"
-                Log.e(TAG, "Failed to load languages", error)
 
                 _uiState.value = _uiState.value.copy(
                     isLoadingProfile = false,
@@ -133,100 +96,6 @@ class ProfileViewModel @Inject constructor(
         } catch (e: Exception) {
             Log.e(TAG, "Error in getUserInfoById", e)
             null
-        }
-    }
-
-    fun toggleHobby(hobby: String) {
-        val currentSelected = _uiState.value.selectedHobbies.toMutableSet()
-        if (currentSelected.contains(hobby)) {
-            currentSelected.remove(hobby)
-        } else {
-            currentSelected.add(hobby)
-        }
-        _uiState.value = _uiState.value.copy(selectedHobbies = currentSelected)
-    }
-
-    fun saveHobbies() {
-        viewModelScope.launch {
-            val originalHobbies = _uiState.value.user?.hobbies?.toSet() ?: emptySet()
-
-            _uiState.value =
-                _uiState.value.copy(
-                    isSavingProfile = true,
-                    errorMessage = null,
-                    successMessage = null
-                )
-
-            val selectedHobbiesList = _uiState.value.selectedHobbies.toList()
-            val result = profileRepository.updateProfile(hobbies = selectedHobbiesList)
-
-            if (result.isSuccess) {
-                val updatedUser = result.getOrNull()!!
-                _uiState.value = _uiState.value.copy(
-                    isSavingProfile = false,
-                    user = updatedUser,
-                    successMessage = "Hobbies updated successfully!"
-                )
-            } else {
-                // Revert to original hobbies on failure
-                val error = result.exceptionOrNull()
-                Log.d(TAG, "error: $error")
-                Log.e(TAG, "Failed to update hobbies", error)
-                val errorMessage = error?.message ?: "Failed to update hobbies"
-
-                _uiState.value = _uiState.value.copy(
-                    isSavingProfile = false,
-                    selectedHobbies = originalHobbies, // Revert the selected hobbies
-                    errorMessage = errorMessage
-                )
-            }
-        }
-    }
-
-    fun toggleSpokenLanguage(language: String) {
-        val currentSelected = _uiState.value.selectedLanguages.toMutableSet()
-        if (currentSelected.contains(language)) {
-            currentSelected.remove(language)
-        } else {
-            currentSelected.add(language)
-        }
-        _uiState.value = _uiState.value.copy(selectedLanguages = currentSelected)
-    }
-
-    fun saveSpokenLanguages() {
-        viewModelScope.launch {
-            val originalSpokenLanguages = _uiState.value.user?.languagesSpoken?.toSet() ?: emptySet()
-
-            _uiState.value =
-                _uiState.value.copy(
-                    isSavingProfile = true,
-                    errorMessage = null,
-                    successMessage = null
-                )
-
-            val selectedSpokenLanguagesList = _uiState.value.selectedLanguages.toList()
-            val result = profileRepository.updateProfile(languages = selectedSpokenLanguagesList)
-
-            if (result.isSuccess) {
-                val updatedUser = result.getOrNull()!!
-                _uiState.value = _uiState.value.copy(
-                    isSavingProfile = false,
-                    user = updatedUser,
-                    successMessage = "SpokenLanguages updated successfully!"
-                )
-            } else {
-                // Revert to original SpokenLanguages on failure
-                val error = result.exceptionOrNull()
-                Log.d(TAG, "error: $error")
-                Log.e(TAG, "Failed to update SpokenLanguages", error)
-                val errorMessage = error?.message ?: "Failed to update SpokenLanguages"
-
-                _uiState.value = _uiState.value.copy(
-                    isSavingProfile = false,
-                    selectedLanguages = originalSpokenLanguages, // Revert the selected SpokenLanguages
-                    errorMessage = errorMessage
-                )
-            }
         }
     }
 

@@ -21,10 +21,6 @@ data class MainUiState(
 
     // Data states
     val user: User? = null,
-    val allHobbies: List<String> = emptyList(),
-    val allLanguages: List<String> = emptyList(),
-    val selectedHobbies: Set<String> = emptySet(),
-    val selectedLanguages: Set<String> = emptySet(),
 
     // Message states
     val errorMessage: String? = null,
@@ -114,28 +110,12 @@ class MainViewModel @Inject constructor(
             _uiState.value = _uiState.value.copy(isLoadingProfile = true, errorMessage = null)
 
             val profileResult = profileRepository.getProfile()
-            val hobbiesResult = profileRepository.getAvailableHobbies()
-            val languagesSpokenResult = profileRepository.getAvailableLanguages()
 
             val user = profileResult.getOrNull()
 
-            val availableHobbies = hobbiesResult.getOrNull()
-            val availableSpokenLanguages = languagesSpokenResult.getOrNull()
-
-            val selectedHobbies = user?.hobbies?.toSet()
-            val selectedLanguages = user?.languagesSpoken?.toSet()
-
-
-
             _uiState.value = _uiState.value.copy(
                 isLoadingProfile = false,
-                user = user,
-
-                allHobbies = availableHobbies ?: _uiState.value.allHobbies,
-                selectedHobbies = selectedHobbies ?: _uiState.value.selectedHobbies,
-
-                allLanguages = availableSpokenLanguages ?: _uiState.value.allLanguages,
-                selectedLanguages = selectedLanguages ?: _uiState.value.selectedLanguages
+                user = user
             )
             
             // Authenticate socket with user info after successful profile load
@@ -147,15 +127,6 @@ class MainViewModel @Inject constructor(
                 val error = profileResult.exceptionOrNull()
                 val errorMessage = error?.message ?: "Failed to load profile"
                 Log.e(TAG, "Failed to load profile", error)
-
-                _uiState.value = _uiState.value.copy(
-                    isLoadingProfile = false,
-                    errorMessage = errorMessage
-                )
-            } else if (hobbiesResult.isFailure) {
-                val error = hobbiesResult.exceptionOrNull()
-                val errorMessage = error?.message ?: "Failed to load hobbies"
-                Log.e(TAG, "Failed to load hobbies", error)
 
                 _uiState.value = _uiState.value.copy(
                     isLoadingProfile = false,

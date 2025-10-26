@@ -2,8 +2,6 @@ package com.cpen321.usermanagement.di
 
 import com.cpen321.usermanagement.data.remote.api.AuthInterface
 import com.cpen321.usermanagement.data.remote.api.ChallengesInterface
-import com.cpen321.usermanagement.data.remote.api.HobbyInterface
-import com.cpen321.usermanagement.data.remote.api.LanguageInterface
 import com.cpen321.usermanagement.data.remote.api.ImageInterface
 import com.cpen321.usermanagement.data.remote.api.RetrofitClient
 import com.cpen321.usermanagement.data.remote.api.UserInterface
@@ -42,18 +40,6 @@ object NetworkModule {
     @Singleton
     fun provideMediaService(): ImageInterface {
         return RetrofitClient.imageInterface
-    }
-
-    @Provides
-    @Singleton
-    fun provideHobbyService(): HobbyInterface {
-        return RetrofitClient.hobbyInterface
-    }
-
-    @Provides
-    @Singleton
-    fun provideLanguageService(): LanguageInterface {
-        return RetrofitClient.languageInterface
     }
 
     @Provides
