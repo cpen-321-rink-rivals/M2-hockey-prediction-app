@@ -7,8 +7,11 @@
 | 25. Oct.          | 4.1                         | Added missing Interfaces and split Friends component into its own for                                                                better seperation    |
 | 25. Oct           | 4.4                         | Added new frameworks/libraries   |
 | 25. Oct           | 4.5                         | Updated Backend dependicy diagram with new dependencies   |
-| 25. Oct            | 3.5                        | Updated use case from creating the ticket before the events were selected to only creating the ticket after 9 events are chosen as we dont want empty ticekts.|
-| 25. Oct |3.5|Updated Use case 2 from choosing only a ticket to also choosing a game as this was easier to implement |
+| 25. Oct            | 3.5  use case 1            | Updated use case from creating the ticket before the events were selected to only creating the ticket after 9 events are chosen as we dont want empty ticekts.|
+| 25. Oct             |3.5 use case 2              |Updated Use case 2 from choosing only a ticket to also choosing a game as this was easier to implement |
+|25. Oct            | 3.5 use case 4                |We had to redefine use case 4 as we had to lower the project scope due to time constraints. We therefore do not have rankings, but instead we have a viewing of each persons ticket so events can be handled manually by the user.                         |
+|  25. Oct    |3.5 use case 5        | We changed the way to add friends to be with a friend code because of easier implementation and time constraints       |
+
 
 ---
 
@@ -175,34 +178,18 @@ Users can view a specific challenge and see the score of the real life game as w
 
   - 4a2. The user is returned to the main menu.
 
-#### Use Case 4: [View challenge rankings]
+#### Use Case 4: [View challenge tickets]
 
-**Description**: A user selects an ongoing challenge and can view the live progress of all participating bingo tickets as they automatically update.
+**Description**: A user selects an ongoing challenge and can view all the participating bingo tickets to see who predicted the most events right.
 
 **Primary actor(s)**: User
 
 **Main success scenario**:
 
 1. The user navigates to their list of current challenges.
-2. The user selects a specific ongoing challenge.
-3. The user opens the “Current Rankings” view.
-4. The system displays a list of all participating bingo tickets ranked by score.
-5. The system updates the scores automatically as game events occur.
+2. The user selects a specific live challenge.
+3. The system displays a list of all participating bingo tickets.
 
-**Failure scenario(s)**:
-
-- 2a. The hockey game has already ended.
-
-  - 2a1. The system replaces the “Current Rankings” option with a “View Results” option.
-  - 2a2. Continue at “View Results” use case.
-
-- 2b. The hockey game has not started yet.
-
-  - 2b1. The system does not display the “Current Rankings” option.
-
-- 5a. Live game data feed is unavailable.
-  - 5a1. The system displays a message: “Live updates temporarily unavailable, please refresh later.”
-  - 5a2. Rankings remain frozen at last known update.
 
 #### Use Case 5: [Send friend request]
 
@@ -213,19 +200,16 @@ Users can view a specific challenge and see the score of the real life game as w
 **Main success scenario**:
 
 1. The user navigates to their list of current friends.
-2. The user clicks an icon to add a new friend.
-3. The user types the email of the friend in a form.
-4. The user confirms the form data and sends the request.
-5. The system notifies the user that the request has been successfully sent.
+2. The user types the friendCode of the friend in a form.
+3. The user clicks an icon to add a new friend.
+4. The system notifies the user that the request has been successfully sent.
 
 **Failure scenario(s)**:
 
-- 3a. The user enters an invalid email
+- 2a. The user enters an invalid friendCode
+  - 2a1. The system displays a message: “Please enter a valid friend code.”
 
-  - 3a1. The system displays a message: “Please enter a valid email.”
-
-- 4a. There is no user associated with the email.
-
+- 4a. There is no user associated with the friendCode.
   - 4a1. The system notifies the user that no user is associated with that email.
 
 - 4b. The user associated with the email is already a friend.
