@@ -73,7 +73,6 @@ export class SocketEvents {
     }
   }
 
-  // challenge deleted
   static challengeDeleted(challengeId: string, challengeData: any) {
     if (global.socketService) {
       // Notify all members
@@ -247,71 +246,6 @@ export class SocketEvents {
           }
         );
       }
-    }
-  }
-
-  // Game/NHL-related events
-  static gameScoreUpdate(gameId: string, scoreData: any) {
-    if (global.socketService) {
-      // Broadcast to all users interested in this game
-      global.socketService.broadcastToAll('game_score_update', {
-        type: 'score_update',
-        gameId,
-        score: scoreData,
-        message: 'Game score updated!',
-      });
-    }
-  }
-
-  static gameStatusUpdate(gameId: string, status: string, gameData: any) {
-    if (global.socketService) {
-      global.socketService.broadcastToAll('game_status_update', {
-        type: 'game_status',
-        gameId,
-        status,
-        game: gameData,
-        message: `Game status: ${status}`,
-      });
-    }
-  }
-
-  // Friend-related events
-  static friendRequestReceived(userId: string, friendRequestData: any) {
-    if (global.socketService) {
-      global.socketService.sendToUser(userId, 'friend_request_received', {
-        type: 'friend_request',
-        friendRequest: friendRequestData,
-        message: `New friend request from ${friendRequestData.senderName || 'someone'}!`,
-      });
-    }
-  }
-
-  static friendRequestAccepted(userId: string, friendData: any) {
-    if (global.socketService) {
-      global.socketService.sendToUser(userId, 'friend_request_accepted', {
-        type: 'friend_accepted',
-        friend: friendData,
-        message: `${friendData.name || 'Someone'} accepted your friend request!`,
-      });
-    }
-  }
-
-  // Generic notification
-  static sendNotification(userId: string, notification: any) {
-    if (global.socketService) {
-      global.socketService.sendToUser(userId, 'notification', notification);
-    }
-  }
-
-  // Broadcast system announcement
-  static systemAnnouncement(message: string, data?: any) {
-    if (global.socketService) {
-      global.socketService.broadcastToAll('system_announcement', {
-        type: 'system',
-        message,
-        data,
-        timestamp: new Date().toISOString(),
-      });
     }
   }
 }

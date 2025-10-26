@@ -19,8 +19,6 @@ sealed class NavigationEvent {
 
     object NavigateToAddChallenge : NavigationEvent()
     object NavigateToManageProfile : NavigationEvent()
-    object NavigateToManageHobbies : NavigationEvent()
-    object NavigateToLanguagesSpoken: NavigationEvent()
     data class NavigateToAuthWithMessage(val message: String) : NavigationEvent()
     data class NavigateToMainWithMessage(val message: String) : NavigationEvent()
     object NavigateBack : NavigationEvent()
@@ -200,24 +198,6 @@ class NavigationStateManager @Inject constructor() {
         _navigationEvent.value = NavigationEvent.NavigateToManageProfile
         _navigationState.value =
             _navigationState.value.copy(currentRoute = NavRoutes.MANAGE_PROFILE)
-    }
-
-    /**
-     * Navigate to manage hobbies screen
-     */
-    fun navigateToManageHobbies() {
-        _navigationEvent.value = NavigationEvent.NavigateToManageHobbies
-        _navigationState.value =
-            _navigationState.value.copy(currentRoute = NavRoutes.MANAGE_HOBBIES)
-    }
-
-    /**
-     * Navigate to manage languages spoken screen
-     */
-    fun navigateToLanguagesSpoken() {
-        _navigationEvent.value = NavigationEvent.NavigateToLanguagesSpoken
-        _navigationState.value =
-            _navigationState.value.copy(currentRoute = NavRoutes.MANAGE_LANGUAGES_SPOKEN)
     }
 
     /**

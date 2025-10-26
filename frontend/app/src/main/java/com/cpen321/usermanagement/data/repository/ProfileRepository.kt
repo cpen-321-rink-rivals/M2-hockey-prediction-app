@@ -12,14 +12,8 @@ interface ProfileRepository {
     suspend fun updateProfile(
         name: String? = null,
         bio: String? = null,
-        hobbies: List<String>? = null,
-        languages: List<String>? = null,
         profilePicture: String? = null
     ): Result<User>
 
     suspend fun deleteProfile(): Result<Unit>
-
-    suspend fun getAvailableHobbies(): Result<List<String>>
-
-    suspend fun getAvailableLanguages(): Result<List<String>>
 }

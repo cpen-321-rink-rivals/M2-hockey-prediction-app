@@ -23,8 +23,6 @@ import com.cpen321.usermanagement.ui.screens.CreateChallengeScreen
 import com.cpen321.usermanagement.ui.screens.ChallengeDetailsScreen
 import com.cpen321.usermanagement.ui.screens.LoadingScreen
 import com.cpen321.usermanagement.ui.screens.MainScreen
-import com.cpen321.usermanagement.ui.screens.ManageHobbiesScreen
-import com.cpen321.usermanagement.ui.screens.ManageLanguagesSpokenScreen
 import com.cpen321.usermanagement.ui.screens.ManageProfileScreen
 import com.cpen321.usermanagement.ui.screens.ProfileScreenActions
 import com.cpen321.usermanagement.ui.screens.ProfileCompletionScreen
@@ -55,8 +53,6 @@ object NavRoutes {
     const val ADD_CHALLENGE = "$CHALLENGES/new"
 
     const val MANAGE_PROFILE = "manage_profile"
-    const val MANAGE_HOBBIES = "manage_hobbies"
-    const val MANAGE_LANGUAGES_SPOKEN = "languages_spoken"
     const val PROFILE_COMPLETION = "profile_completion"
 }
 
@@ -184,15 +180,6 @@ private fun handleNavigationEvent(
             navigationStateManager.clearNavigationEvent()
         }
 
-        is NavigationEvent.NavigateToManageHobbies -> {
-            navController.navigate(NavRoutes.MANAGE_HOBBIES)
-            navigationStateManager.clearNavigationEvent()
-        }
-        is NavigationEvent.NavigateToLanguagesSpoken -> {
-            navController.navigate(NavRoutes.MANAGE_LANGUAGES_SPOKEN)
-            navigationStateManager.clearNavigationEvent()
-        }
-
         is NavigationEvent.NavigateBack -> {
             navController.popBackStack()
             navigationStateManager.clearNavigationEvent()
@@ -259,8 +246,6 @@ private fun AppNavHost(
                 actions = ProfileScreenActions(
                     onBackClick = { navigationStateManager.navigateBack() },
                     onManageProfileClick = { navigationStateManager.navigateToManageProfile() },
-                    onManageHobbiesClick = { navigationStateManager.navigateToManageHobbies() },
-                    onManageLanguagesSpokenClick = {navigationStateManager.navigateToLanguagesSpoken()},
                     onAccountDeleted = { navigationStateManager.handleAccountDeletion() }
                 )
             )
@@ -338,20 +323,6 @@ private fun AppNavHost(
 
         composable(NavRoutes.MANAGE_PROFILE) {
             ManageProfileScreen(
-                profileViewModel = profileViewModel,
-                onBackClick = { navigationStateManager.navigateBack() }
-            )
-        }
-
-        composable(NavRoutes.MANAGE_HOBBIES) {
-            ManageHobbiesScreen(
-                profileViewModel = profileViewModel,
-                onBackClick = { navigationStateManager.navigateBack() }
-            )
-        }
-
-        composable(NavRoutes.MANAGE_LANGUAGES_SPOKEN) {
-            ManageLanguagesSpokenScreen(
                 profileViewModel = profileViewModel,
                 onBackClick = { navigationStateManager.navigateBack() }
             )
