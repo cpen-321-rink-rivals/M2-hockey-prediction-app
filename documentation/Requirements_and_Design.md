@@ -518,8 +518,15 @@ Users can view a specific challenge and see the score of the real life game as w
 ### **4.6. Use Case Sequence Diagram (5 Most Major Use Cases)**
 
 1. [**[Create Bingo Ticket]**](#uc1)\
-   ![Create bingo ticket use case sequence diagram](/documentation/images/createBingoTicketUseCase.svg)
-2. ...
+   ![Create bingo ticket use case sequence diagram](/documentation/images/seq-dia-1.png)
+1. [**[Send Challenge]**](#uc2)\
+   ![Send Challenge use case sequence diagram](/documentation/images/seq-dia-2.png)
+1. [**[Accept Challenge]**](#uc3)\
+   ![Accept Challenge use case sequence diagram](/documentation/images/seq-dia-3.png)
+1. [**[View challenge rankings]**](#uc4)\
+   ![View challenge rankings use case sequence diagram](/documentation/images/seq-dia-4.png)
+1. [**[Send friend request]**](#uc5)\
+   ![Send friend request use case sequence diagram](/documentation/images/seq-dia-5.png)
 
 ### **4.7. Design and Ways to Test Non-Functional Requirements**
 
