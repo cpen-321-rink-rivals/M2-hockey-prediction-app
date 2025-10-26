@@ -11,6 +11,7 @@
 | 25. Oct             |3.5 use case 2              |Updated Use case 2 from choosing only a ticket to also choosing a game as this was easier to implement |
 |25. Oct            | 3.5 use case 4                |We had to redefine use case 4 as we had to lower the project scope due to time constraints. We therefore do not have rankings, but instead we have a viewing of each persons ticket so events can be handled manually by the user.                         |
 |  25. Oct    |3.5 use case 5        | We changed the way to add friends to be with a friend code because of easier implementation and time constraints       |
+|  25. Oct    |3.4 feature 5, 4.3   | As mentioned before, we will not have rankings. |
 
 
 ---
@@ -84,7 +85,7 @@ Users can view a specific challenge and see the score of the real life game as w
 
 1. **[View challenge details]**: All users can see current participants and their bingo tickets.
 2. **[View active challenges]**: All users can view a list of challenges they are hosting or participating in.
-3. **[View challenge rankings]**: All users can view challenge rankings as bingo tickets update automatically during the game.
+3. **[View challenge rankings]**: All users can view challenge rankings as bingo tickets update automatically when users colour in squares.
 4. **[View results]**: All users can view the final scores of a challenge after the game.
 
 ### **3.5. Formal Use Case Specifications (5 Most Major Use Cases)**
@@ -460,12 +461,12 @@ Users can view a specific challenge and see the score of the real life game as w
 ### **4.2. Databases**
 
 1. **[MongoDB]**
-   - **Purpose**: Stores users/friends, tickets, challenges, and read-optimized projections (e.g., current rankings).
+   - **Purpose**: Stores users/friends, tickets, challenges, and read-optimized projections.
 
 ### **4.3. External Modules**
 
 1. **[NHL API]**
-   - **Purpose**: Fetches schedule metadata and live event data to drive scoring and rankings updates.
+   - **Purpose**: Fetches schedule metadata for ticket and challenge creation.
 2. **[Google authentications]**
    - **Purpose**: Handles user authentication when signing up/deleting account and logging in/out.
 
