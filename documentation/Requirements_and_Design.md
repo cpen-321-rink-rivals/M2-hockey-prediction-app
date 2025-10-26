@@ -265,74 +265,223 @@ Users can view a specific challenge and see the score of the real life game as w
 
 ### **4.1. Main Components**
 
+## 4.1. Main Components
+
 1. **[Users]**
-   - **Purpose**: Handles user profiles.
+   - **Purpose**: Handles user profile management including viewing, updating, and deleting user accounts.
    - **Interfaces**:
-        1. getProfile(authHeader: String): `ApiResponse<ProfileData>`
-            - **Purpose**: Retrieves the authenticated user’s profile data.
-        2. getUserInfoById(authHeader: String, userId: String): `ApiResponse<PublicProfileData>`
-            - **Purpose**: Fetches public information for any user by ID.
-        3. updateProfile(authHeader: String, request: UpdateProfileRequest): `ApiResponse<ProfileData>`
-            - **Purpose**: Updates profile fields such as username, bio and profilePictureURL.
-        4. deleteProfile(authHeader: String): `ApiResponse<Unit>`
-            - **Purpose**: Deletes the authenticated user’s account.
+        1. **HTTP/REST Interfaces** (Frontend → Backend):
+            - `GET /api/user/profile`
+                - **Parameters**: `Authorization: Bearer {token}`
+                - **Returns**: `User`
+                - **Purpose**: Retrieves the authenticated user's complete profile data including name, email, bio, and profile picture.
+            - `GET /api/user/:id`
+                - **Parameters**: `Authorization: Bearer {token}`, `userId: String`
+                - **Returns**: `PublicUserInfo`
+                - **Purpose**: Fetches public profile information for any user by their ID (name, profile picture, friend code).
+            - `PUT /api/user/profile`
+                - **Parameters**: `Authorization: Bearer {token}`, `{ name?: String, bio?: String, profilePictureURL?: String }`
+                - **Returns**: `User`
+                - **Purpose**: Updates the authenticated user's profile fields such as username, bio, or profile picture URL.
+            - `DELETE /api/user/profile`
+                - **Parameters**: `Authorization: Bearer {token}`
+                - **Returns**: `{ message: String }`
+                - **Purpose**: Permanently deletes the authenticated user's account and all associated data.
+        2. **Java-style Interfaces** (Backend Internal):
+            - `create(userInfo: GoogleUserInfo): User`
+                - **Purpose**: Creates a user document in database with ID.
+            - `update(userId: mongoose.Types.ObjectId, user: Partial<User>): User`
+                - **Purpose**: Updates user document in database with new field values.
+            - `delete(userId: mongoose.Types.ObjectId): void`
+                - **Purpose**: Removes user document and cascades deletion to related data.
+            - `findById(_id: mongoose.Types.ObjectId): User`
+                - **Purpose**: Retrieves a user document from database by ID.
+            - `findUserInfoById(userId: string): PublicUserInfo`
+                - **Purpose**: Retrieves only public info from user document from database by ID.
+            - `findByGoogleId(googleId: String): User`
+                - **Purpose**: Finds a user account by their Google OAuth ID.
+            - `findByFriendCode(code: String): User`
+                - **Purpose**: Finds a user account by their friend code.
+
+---
 
 2. **[Friends]**
-   - **Purpose**: Manages the friends relations — sending, accepting, rejecting, and removing friends.
+   - **Purpose**: Manages friend relationships including sending, accepting, rejecting, and removing friend connections.
    - **Interfaces**:
-        1. sendFriendRequest(authHeader: String, body: Map<String, String>): `ApiResponse<Unit>`
-            - **Purpose**: Sends a friend request using another user’s friend code.
-        2. acceptFriendRequest(authHeader: String, body: Map<String, String>): `ApiResponse<Unit>`
-            - **Purpose**: Accepts a pending friend request.
-        3. rejectFriendRequest(authHeader: String, body: Map<String, String>): `ApiResponse<Unit>`
-            - **Purpose**: Declines a pending friend request.
-        4. removeFriend(authHeader: String, friendId: String): `ApiResponse<Unit>`
-            - **Purpose**: Removes a user from the friend list.
-        5. getFriends(authHeader: String): `ApiResponse<List<FriendData>>`
-            - **Purpose**: Retrieves all accepted friends.
-        6. getPendingRequests(authHeader: String): `ApiResponse<List<PendingRequestData>>`
-            - **Purpose**: Lists all incoming and outgoing pending requests.
+        1. **HTTP/REST Interfaces** (Frontend → Backend):
+            - `POST /api/friends/request`
+                - **Parameters**: `Authorization: Bearer {token}`, `{ friendCode: String }`
+                - **Returns**: `{ message: String }`
+                - **Purpose**: Sends a friend request to another user using their unique friend code.
+            - `POST /api/friends/accept`
+                - **Parameters**: `Authorization: Bearer {token}`, `{ requesterId: String }`
+                - **Returns**: `{ message: String }`
+                - **Purpose**: Accepts a pending incoming friend request from specified user.
+            - `POST /api/friends/reject`
+                - **Parameters**: `Authorization: Bearer {token}`, `{ requesterId: String }`
+                - **Returns**: `{ message: String }`
+                - **Purpose**: Declines a pending friend request without establishing connection.
+            - `GET /api/friends/list`
+                - **Parameters**: `Authorization: Bearer {token}`
+                - **Returns**: `Friend[]`
+                - **Purpose**: Retrieves the complete list of all accepted friends with their profile information.
+            - `GET /api/friends/pending`
+                - **Parameters**: `Authorization: Bearer {token}`
+                - **Returns**: `{ incoming: PendingRequest[], outgoing: PendingRequest[] }`
+                - **Purpose**: Lists all incoming and outgoing pending friend requests.
+            - `DELETE /api/friends/:friendId`
+                - **Parameters**: `Authorization: Bearer {token}`, `friendId: String`
+                - **Returns**: `{ message: String }`
+                - **Purpose**: Removes an existing friend connection permanently from both users' friend lists.
+        2. **Java-style Interfaces** (Backend Internal):
+            - `sendRequest(senderId: String, receiverId: String): FriendRequest`
+                - **Purpose**: Creates a pending friend request entry in database.
+            - `acceptRequest(requestId: string): FriendRequest`
+                - **Purpose**: Sets the friendRequest's status to accepted in the database.
+            - `rejectRequest(requestId: string: FriendRequest)`
+                - **Purpose**: Sets the friendRequest's status to rejected in the database.
+            - `getFriends(userId: string): FriendRequest[] `
+                - **Purpose**: Gets a list of users friends.
+            - `removeFriend(userId: string, friendId: string): FriendRequest`
+                - **Purpose**: Deletes friend relationship from database.
+            - `getPendingRequests(userId: string): FriendRequest`
+                - **Purpose**: get all friend requests not accepted and with the userId as sender or receiver.
+
+---
 
 3. **[Bingo Tickets]**
-   - **Purpose**: Handles creation, deletion and getting of bingo tickets.
+   - **Purpose**: Handles creation, retrieval, and deletion of bingo tickets for NHL game predictions.
    - **Interfaces**:
-        1. getTickets(userId: String): `List<BingoTicket>`
-            - **Purpose**: Retrieves all bingo tickets owned by a user.
-        2. getTicketById(id: String): `BingoTicket`
-            - **Purpose**: Fetches a specific bingo ticket.
-        3. createTicket(ticket: BingoTicket): `BingoTicket`
-            - **Purpose**: Creates a new bingo ticket.
-        4. deleteTicket(id: String): `Unit`
-            - **Purpose**: Deletes an existing bingo ticket.
+        1. **HTTP/REST Interfaces** (Frontend → Backend):
+            - `POST /api/tickets`
+                - **Parameters**: `Authorization: Bearer {token}`, `{ userId: String, name: String, game: Game, events: String[9] }`
+                - **Returns**: `BingoTicket`
+                - **Purpose**: Creates a new bingo ticket with 9 selected events for a specific NHL game.
+            
+            - `GET /api/tickets/user/:userId`
+                - **Parameters**: `Authorization: Bearer {token}`, `userId: String`
+                - **Returns**: `BingoTicket[]`
+                - **Purpose**: Retrieves all bingo tickets created by a specific user, sorted by creation date.
+            
+            - `GET /api/tickets/:id`
+                - **Parameters**: `Authorization: Bearer {token}`, `ticketId: String`
+                - **Returns**: `BingoTicket`
+                - **Purpose**: Fetches a specific bingo ticket by its unique ID including all selected events.
+            
+            - `DELETE /api/tickets/:id`
+                - **Parameters**: `Authorization: Bearer {token}`, `ticketId: String`
+                - **Returns**: `{ message: String }`
+                - **Purpose**: Deletes a bingo ticket permanently from the database.
+        2. **Java-style Interfaces**
+             We do not have internal backend interactions for tickets as we do for the other backend components.
+
+
+---
 
 4. **[Challenges]**
-   - **Purpose**: Handles management, participation, and status of challenges.
+   - **Purpose**: Manages challenge lifecycle including creation, participation, invitations, and status tracking.
    - **Interfaces**:
-        1. getChallenges(token: String): `ApiResponse<Map<String, List<Challenge>>>`
-            - **Purpose**: Retrieves all challenges grouped by challenge status.
-        2. getChallenge(token: String, challengeId: String): `ApiResponse<Challenge>`
-            - **Purpose**: Fetches details for a single challenge.
-        3. createChallenge(token: String, request: CreateChallengeRequest): `ApiResponse<Challenge>`
-            - **Purpose**: Creates a new challenge.
-        4. updateChallenge(token: String, challengeId: String, updatedChallenge: Challenge): `ApiResponse<Challenge>`
-            - **Purpose**: Updates an existing challenge.
-        5. deleteChallenge(token: String, challengeId: String): `ApiResponse<Unit>`
-            - **Purpose**: Deletes a challenge.
-        6. joinChallenge(token: String, challengeId: String, body: Map<String, String>): `ApiResponse<Unit>`
-            - **Purpose**: Joins the authenticated user to a challenge.
-        7. leaveChallenge(token: String, challengeId: String): `ApiResponse<Unit>`
-            - **Purpose**: Removes the user from a joined challenge.
-        8. declineInvitation(token: String, challengeId: String): `ApiResponse<Unit>`
-            - **Purpose**: Declines a challenge invitation.
+        1. **HTTP/REST Interfaces** (Frontend → Backend):
+            - `GET /api/challenges`
+                - **Parameters**: `Authorization: Bearer {token}`
+                - **Returns**: `Challenge[]`
+                - **Purpose**: Retrieves all challenges with pagination support.
+            - `GET /api/challenges/user`
+                - **Parameters**: `Authorization: Bearer {token}`
+                - **Returns**: `{ owned: Challenge[], joined: Challenge[], invited: Challenge[] }`
+                - **Purpose**: Fetches all challenges where user is owner, member, or has pending invitation.
+            - `GET /api/challenges/:id`
+                - **Parameters**: `Authorization: Bearer {token}`, `challengeId: String`
+                - **Returns**: `Challenge`
+                - **Purpose**: Retrieves detailed information for a specific challenge including all members and their tickets.
+            - `GET /api/challenges/game/:gameId`
+                - **Parameters**: `Authorization: Bearer {token}`, `gameId: String`
+                - **Returns**: `Challenge[]`
+                - **Purpose**: Fetches all challenges associated with a specific NHL game.
+            - `POST /api/challenges`
+                - **Parameters**: `Authorization: Bearer {token}`, `{ title: String, description: String, gameId: String, invitedUserIds: String[], maxMembers?: Number, ticketId?: String }`
+                - **Returns**: `Challenge`
+                - **Purpose**: Creates a new challenge for an NHL game and sends invitations to specified friends.
+            - `PUT /api/challenges/:id`
+                - **Parameters**: `Authorization: Bearer {token}`, `challengeId: String`, `{ title?: String, description?: String, status?: String, maxMembers?: Number }`
+                - **Returns**: `Challenge`
+                - **Purpose**: Updates challenge details (owner only) such as title, description, or member limit.
+            - `DELETE /api/challenges/:id`
+                - **Parameters**: `Authorization: Bearer {token}`, `challengeId: String`
+                - **Returns**: `{ message: String }`
+                - **Purpose**: Permanently deletes a challenge and notifies all members (owner only).
+            - `POST /api/challenges/:id/join`
+                - **Parameters**: `Authorization: Bearer {token}`, `challengeId: String`, `{ ticketId: String }`
+                - **Returns**: `{ message: String }`
+                - **Purpose**: Joins user to a challenge with their selected bingo ticket.
+            - `POST /api/challenges/:id/leave`
+                - **Parameters**: `Authorization: Bearer {token}`, `challengeId: String`
+                - **Returns**: `{ message: String }`
+                - **Purpose**: Removes user from a challenge if game has not started yet.
+            - `POST /api/challenges/:id/decline`
+                - **Parameters**: `Authorization: Bearer {token}`, `challengeId: String`
+                - **Returns**: `{ message: String }`
+                - **Purpose**: Declines a challenge invitation without joining.
+            - `PATCH /api/challenges/:id/status`
+                - **Parameters**: `Authorization: Bearer {token}`, `challengeId: String`, `{ status: String }`
+                - **Returns**: `Challenge`
+                - **Purpose**: Updates challenge status (used by game sync system for PENDING→ACTIVE→LIVE→FINISHED transitions).
+        2. **Java-style Interfaces** (Backend Internal):
+            - `create(challengeData: CreateChallengeInput, ownerId: String): Challenge`
+                - **Purpose**: Creates new challenge document with owner automatically added as member.
+            - `update(id: string, data: Partial<Challenge>): Challenge`
+                - **Purpose**: Updates challenge document.
+            - `delete(id: string, ownerId: string): void`
+                - **Purpose**: deletes challenge document.
+            - `findById(id: string): Challenge`
+                - **Purpose**: Find a challenge by id.
+            - `findAll(page: number = 1, limit: number = 10): { challenges: Challenge[]; total: number }`
+                - **Purpose**: Get all challenges paginated
+            - `getUserChallenges(userId: string, status?: string): Challenge[]`
+                - **Purpose**: gets all challenges that a user is a part of.
+            - `joinChallenge(challengeId: string, userId: string, ticketId: string): Challenge`
+                - **Purpose**: lets a user join a challenge
+            - `leaveChallenge(challengeId: string, userId: string): Challenge`
+                - **Purpose**: lets the user leave challenge
+            - `declineInvitation(challengeId: string, userId: string) Challenge | null`
+                - **Purpose**: lets the user decline the invitation
+            - `updateStatus(challengeId: string, status: string, ownerId?: string): Challenge | null`
+                - **Purpose**: updates the challenge status
+            - `findByGameId(gameId: string): Challenge[]`
+                - **Purpose**: finds all the challenges with a given gameId
 
-5. **[NHL data]**
-   - **Purpose**: Fetches, processes, and updates NHL data for use by other components.
+---
+
+5. **[NHL Service (Game Status Sync)]**
+   - **Purpose**: Fetches, caches, and processes NHL game data from external API for schedule and game status tracking.
    - **Interfaces**:
-        1. getCurrentSchedule(): `ScheduleResponse`
-            - **Purpose**: Retrieves the current NHL game schedule.
-        2. getTeamRoster(teamCode: String): `TeamRosterResponse`
-            - **Purpose**: Returns the full roster for a given NHL team.
-        
+        1. **Java-style Interfaces** (Backend Internal):
+            - `getGameStatus(gameId: String): Promise<GameStatus | null>`
+                - **Purpose**: Fetches current game state from NHL API schedule endpoint with 30-second caching for performance, returns game status or falls back to direct endpoint if not found in schedule.
+            - `getGameStatusDirect(gameId: String): Promise<GameStatus | null>`
+                - **Purpose**: Retrieves game state directly from NHL API game-specific landing endpoint (`/gamecenter/{gameId}/landing`) bypassing schedule lookup.
+            - `isGameLive(gameState: String): boolean`
+                - **Purpose**: Determines if a game is currently in progress by checking if state matches LIVE, CRIT, or PRE.
+            - `isGameFinished(gameState: String): boolean`
+                - **Purpose**: Checks if a game has concluded by verifying state is OFF or FINAL.
+            - `isGameScheduled(gameState: String): boolean`
+                - **Purpose**: Verifies if a game is scheduled for the future by checking if state is FUT or SCHEDULED.
+            - `clearCache(gameId?: String): void`
+                - **Purpose**: Removes cached game status for specific game ID or clears entire cache if no ID provided.
+            - `getTimeUntilStart(startTimeUTC: String): number`
+                - **Purpose**: Calculates milliseconds until game starts from UTC timestamp, returns negative value if game already started.
+            - `getPollingInterval(gameStatus: GameStatus): number`
+                - **Purpose**: Determines optimal polling frequency in milliseconds based on game state (30s for live, 1min near start, 5min within hour, 10min otherwise).
+        2. **HTTP/REST Interfaces** (Backend → External NHL API):
+            - `GET https://api-web.nhle.com/v1/schedule/now`
+                - **Returns**: `ScheduleResponse`
+                - **Purpose**: Backend fetches game schedule for status sync job.
+            - `GET https://api-web.nhle.com/v1/gamecenter/{gameId}/landing`
+                - **Parameters**: `gameId: String`
+                - **Returns**: `GameData`
+                - **Purpose**: Retrieves detailed game information including current state for specific game. Was supposed to bridge to a future implementation of automatic check for events completion.
+
+---
 
 
 ### **4.2. Databases**
