@@ -145,7 +145,10 @@ private fun handleNavigationEvent(
         }
 
         is NavigationEvent.NavigateToTickets -> {
-            navController.navigate(NavRoutes.TICKETS)
+            navController.navigate(NavRoutes.TICKETS) {
+                popUpTo(NavRoutes.TICKETS) { inclusive = false }
+                launchSingleTop = true
+            }
             navigationStateManager.clearNavigationEvent()
         }
 
@@ -155,7 +158,10 @@ private fun handleNavigationEvent(
         }
 
         is NavigationEvent.NavigateToChallenges -> {
-            navController.navigate(NavRoutes.CHALLENGES)
+            navController.navigate(NavRoutes.CHALLENGES) {
+                popUpTo(NavRoutes.CHALLENGES) { inclusive = false }
+                launchSingleTop = true
+            }
             navigationStateManager.clearNavigationEvent()
         }
 
@@ -267,6 +273,7 @@ private fun AppNavHost(
                 ticketsViewModel = ticketsViewModel,
                 onBackClick = { navigationStateManager.navigateBack() },
                 authViewModel = authViewModel,
+                onTicketCreated = { navigationStateManager.navigateToTickets() }
             )
         }
 

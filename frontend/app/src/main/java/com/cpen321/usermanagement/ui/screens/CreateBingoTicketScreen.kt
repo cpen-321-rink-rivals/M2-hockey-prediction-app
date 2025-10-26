@@ -31,7 +31,8 @@ import com.cpen321.usermanagement.ui.viewmodels.TicketsViewModel
 fun CreateBingoTicketScreen(
     ticketsViewModel: TicketsViewModel,
     authViewModel: AuthViewModel,
-    onBackClick: () -> Unit
+    onBackClick: () -> Unit,
+    onTicketCreated: () -> Unit
 ) {
 
 
