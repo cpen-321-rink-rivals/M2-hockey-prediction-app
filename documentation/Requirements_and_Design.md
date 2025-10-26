@@ -4,6 +4,7 @@
 
 | **Change Date**   | **Modified Sections**       | **Rationale**                 |     
 | ----------------- | ---------------------       | -------------                 |
+| 24. Oct.| Whole project| Our project has unfortunately been downscaled a bit due to a changing team size. This has mostly influenced the live event updating feature that we pivoted to a feature of the user filling out the bingo squares instead. This automatic update of filling out tickets is something that is time consuming but can be fit into our architecture as we already have the backend live game sync up a dn running and we would focus on this as the next milestone in further development of the project.   |
 | 25. Oct.          | 4.1                         | Added missing Interfaces and split Friends component into its own for                                                                better seperation    |
 | 25. Oct           | 4.4                         | Added new frameworks/libraries   |
 | 25. Oct           | 4.5                         | Updated Backend dependicy diagram with new dependencies   |
@@ -12,7 +13,9 @@
 |25. Oct            | 3.5 use case 4                |We had to redefine use case 4 as we had to lower the project scope due to time constraints. We therefore do not have rankings, but instead we have a viewing of each persons ticket so events can be handled manually by the user.                         |
 |  25. Oct    |3.5 use case 5        | We changed the way to add friends to be with a friend code because of easier implementation and time constraints       |
 |  25. Oct    |3.4 feature 5, 4.3   | As mentioned before, we will not have rankings. |
-|  25. Oct    | 3.7 requirement 2   | Updated the non-functional requirement to have more of a justification |
+|  25. Oct    | 3.7 Non. Func. Requirement 2   | Updated the non-functional requirement to have more of a justification |
+|  26. Oct  | 3.7 Non. Func. Requirement 1   | Due to downsizing of the project, we have changes the non-functional req. to only involve the update of game status instead of all game events.  |
+| 26. Oct. | 4.7 | Added description of testing of NF req. 1 & 2|
 
 
 ---
@@ -227,8 +230,8 @@ Users can view a specific challenge and see the score of the real life game as w
 
 1. **[Live updates]**
 
-   - **Description**: Bingo ticket information should update within 1 min of the event occurring.
-   - **Justification**: The element of live interactivity is very important as the game depends on a live hockey event, and events need to be updated quickly for the user to follow the state of the challenge.
+   - **Description**: Bingo ticket status should update within 1 min of the event occurring.
+   - **Justification**: The element of live interactivity is very important as the game depends on a live hockey event, and the game needs to be updated quickly for the user to follow the state of the challenge. We include this requirement as it is essential for any further develpoments of the app even though the current state of the app does not rely as heavily on the live event updates as the user fills out the bingo ticket themselves. 
 
 2. **[Seamless bingo ticket building]**
    - **Description**: When creating a bingo ticket the system should be able to find events in less than 1 s.
@@ -511,6 +514,8 @@ Users can view a specific challenge and see the score of the real life game as w
 
 ### **4.7. Design and Ways to Test Non-Functional Requirements**
 
-1. [**[WRITE_NAME_HERE]**](#nfr1)
-   - **Validation**: ...
-2. ...
+1. [**[Live updates]**](#nfr1)
+   - **Validation**: We have tested and validated the game sync by logging messages in the backend terminal when a game sync has been run and, if any, which changes has been made to the game status. We have also tested by letting the backend server run in the cloud overnight and when the real live event has finished the users challenges has been correctly moved into the group of finished challenges.
+
+2. [**[Seamless bingo ticket building]**](#nfr2)
+   - **Validation**: We have continously tested this as we have been developing as it has involved making a lot of tickets. We have also tested by creating fetching the game events 10 times and logged the time stats in `/documentation/logs/fetching_events.txt`. This shows no longer than a quarter of a second on avg, which is far better than the 1 second requirement.
