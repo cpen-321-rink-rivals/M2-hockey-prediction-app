@@ -12,6 +12,7 @@
 |25. Oct            | 3.5 use case 4                |We had to redefine use case 4 as we had to lower the project scope due to time constraints. We therefore do not have rankings, but instead we have a viewing of each persons ticket so events can be handled manually by the user.                         |
 |  25. Oct    |3.5 use case 5        | We changed the way to add friends to be with a friend code because of easier implementation and time constraints       |
 |  25. Oct    |3.4 feature 5, 4.3   | As mentioned before, we will not have rankings. |
+|  25. Oct    | 3.7 requirement 2   | Updated the non-functional requirement to have more of a justification |
 
 
 ---
@@ -231,7 +232,7 @@ Users can view a specific challenge and see the score of the real life game as w
 
 2. **[Seamless bingo ticket building]**
    - **Description**: When creating a bingo ticket the system should be able to find events in less than 1 s.
-   - **Justification**: The core feature of our app is building bingo tickets and ideally this is where the user will spend the most time. This process therefore has to be seamless so that the user's flow of thought can remain uninterrupted and they can act quickly on thoughts and ideas.
+   - **Justification**: The core feature of our app is building bingo tickets and ideally this is where the user will spend the most time. Studies and UX standards indicate that response times under 1 second are perceived as instantaneous, maintaining the user’s sense of flow and engagement. This ensures users can quickly iterate and build tickets without frustration or cognitive interruption.
 
 ---
 
