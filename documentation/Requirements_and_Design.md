@@ -7,6 +7,8 @@
 | 25. Oct.          | 4.1                         | Added missing Interfaces and split Friends component into its own for                                                                better seperation    |
 | 25. Oct           | 4.4                         | Added new frameworks/libraries   |
 | 25. Oct           | 4.5                         | Updated Backend dependicy diagram with new dependencies   |
+| 25. Oct            | 3.5                        | Updated use case from creating the ticket before the events were selected to only creating the ticket after 9 events are chosen as we dont want empty ticekts.|
+|                     |                          |                                  |
 
 ---
 
@@ -94,32 +96,24 @@ Users can view a specific challenge and see the score of the real life game as w
 
 **Main success scenario**:
 
-1. The user selects an upcoming hockey game.
-2. The user assigns a name to the bingo ticket.
-3. The user creates the ticket.
-4. The system confirms the ticket has been created.
-5. The system generates a list of events to choose from (~30).
-6. The user selects 9 events and places them in the 3×3 grid.
-7. The system updates the ticket.
-8. The system confirms the ticket has been updated.
-
-
-**Alternate Triggers**
-1.1 The user enters from a challenge invitation.
-— The game is already specified by the challenge.
-— Continue at step 2.
+1. The user assigns a name to the bingo ticket.
+2. The user selects an upcoming hockey game.
+3. The system displays a list of events to choose from (30) based on the specific game.
+4. The user selects 9 events based on the game and places them in the 3×3 grid.
+5. The user creates the ticket.
+6. The system confirms the ticket has been created.
 
 **Failure scenario(s)**:
 
-- 1a. No upcoming hockey games are available.
-  - 1a1. The system displays an error message saying there are no upcoming games.
+- 1a. The ticket name exceeds the character limit.
+  - 1a1. The system displays an error message telling the user to remain within the character limit.
 
-- 2a. The ticket name exceeds the character limit.
-  - 2a1. The system displays an error message telling the user to remain within the character limit.
+- 2a. No upcoming hockey games are available.
+  - 2a1. The system displays an error message saying there are no upcoming games.
 
-- 3a. The hockey game has begun while naming the ticket.
-  - 3a1. The system displays an error message saying the game has already begun.
-  - 3a2. The user is returned to the main menu.
+- 5a. The hockey game has begun while naming the ticket.
+  - 5a1. The system displays an error message saying the game has already begun.
+  - 5a2. The user is returned to the main menu.
 
 ...
 
