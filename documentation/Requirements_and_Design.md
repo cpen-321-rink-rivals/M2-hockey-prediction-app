@@ -8,7 +8,7 @@
 | 25. Oct           | 4.4                         | Added new frameworks/libraries   |
 | 25. Oct           | 4.5                         | Updated Backend dependicy diagram with new dependencies   |
 | 25. Oct            | 3.5                        | Updated use case from creating the ticket before the events were selected to only creating the ticket after 9 events are chosen as we dont want empty ticekts.|
-|                     |                          |                                  |
+| 25. Oct |3.5|Updated Use case 2 from choosing only a ticket to also choosing a game as this was easier to implement |
 
 ---
 
@@ -127,27 +127,22 @@ Users can view a specific challenge and see the score of the real life game as w
 
 **Main success scenario**:
 
-1. The user selects a bingo ticket they have created.
-2. The user selects one or more friends to invite.
-3. The user sends the challenge invitation.
-4. The system notifies the invited friends of the challenge.
+1. The user selects a game that they want to make a challenge on
+2. The user selects a bingo ticket that is made on the same game.
+3. The user selects one or more friends to invite.
+4. The user creates the challenge invitation.
+5. The system notifies the invited friends of the challenge.
 
 **Failure scenario(s)**:
 
-- 2a. No friends are selected.
+- 3b. The owner has no friends in their list.
+  - 3b1. The system displays an error message saying a challenge cannot be created without friends.
 
-  - 2a1. The system displays an error message requiring at least one friend.
+- 4a. No friends, no game or no ticket is selected.
+  - 4a1. The system displays an error message requiring at least one friend, a game and a ticket.
 
-- 2b. The owner has no friends in their list.
-
-  - 2b1. The system displays an error message saying a challenge cannot be created without friends.
-  - The owner returns to the main menu.
-
-- 3a. The hockey game has already begun while creating the challenge.
-
-  - 3a1. The system displays an error message saying the game has already begun.
-
-  - 3a2. The owner is returned to the main menu.
+- 4b. The hockey game has already begun while creating the challenge.
+  - 4b1. The system displays an error message saying the game has already begun.
 
 #### Use Case 3: [Accept Challenge]
 
