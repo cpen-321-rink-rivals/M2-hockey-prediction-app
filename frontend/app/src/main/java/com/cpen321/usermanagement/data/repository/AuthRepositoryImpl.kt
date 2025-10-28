@@ -39,7 +39,7 @@ class AuthRepositoryImpl @Inject constructor(
     private val credentialManager = CredentialManager.create(context)
     private val signInWithGoogleOption: GetSignInWithGoogleOption =
         GetSignInWithGoogleOption.Builder(
-            serverClientId = BuildConfig.GOOGLE_CLIENT_ID
+            serverClientId = BuildConfig.GOOGLE_WEB_CLIENT_ID
         ).build()
 
     override suspend fun signInWithGoogle(context: Context): Result<GoogleIdTokenCredential> {
