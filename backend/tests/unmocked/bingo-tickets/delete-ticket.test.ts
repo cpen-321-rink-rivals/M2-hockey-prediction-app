@@ -9,16 +9,16 @@ import {
 import dotenv from 'dotenv';
 import request from 'supertest';
 import express from 'express';
-import { connectDB } from '../../src/database';
-import router from '../../src/routes/routes';
+import { connectDB } from '../../../src/database';
+import router from '../../../src/routes/routes';
 import mongoose from 'mongoose';
 import jwt from 'jsonwebtoken';
-import { userModel } from '../../src/models/user.model';
-import { Ticket } from '../../src/models/tickets.model';
+import { userModel } from '../../../src/models/user.model';
+import { Ticket } from '../../../src/models/tickets.model';
 import path from 'path';
 
 // Load test environment variables
-dotenv.config({ path: path.resolve(__dirname, '../../.env.test') });
+dotenv.config({ path: path.resolve(__dirname, '../../../.env.test') });
 
 // Create Express app for testing (same setup as index.ts)
 const app = express();

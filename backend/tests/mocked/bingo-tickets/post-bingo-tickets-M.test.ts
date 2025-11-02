@@ -9,23 +9,24 @@ import {
 import dotenv from 'dotenv';
 import request from 'supertest';
 import express from 'express';
-import router from '../../src/routes/routes';
+import router from '../../../src/routes/routes';
 import mongoose from 'mongoose';
 import jwt from 'jsonwebtoken';
-import { userModel } from '../../src/models/user.model';
-import { Ticket } from '../../src/models/tickets.model';
+import { userModel } from '../../../src/models/user.model';
+import { Ticket } from '../../../src/models/tickets.model';
+import { TicketType } from '../../../src/types/tickets.types';
 import path from 'path';
 
 // Load test environment variables
-dotenv.config({ path: path.resolve(__dirname, '../../.env.test') });
+dotenv.config({ path: path.resolve(__dirname, '../../../.env.test') });
 
 // Create Express app for testing (same setup as index.ts)
 const app = express();
 app.use(express.json());
 app.use('/api', router);
 
-// Interface GET /api/tickets/user/:userId
-describe('Mocked GET /api/tickets/user/:userId', () => {
+// Interface POST /api/tickets
+describe('Mocked POST /api/tickets', () => {
   let authToken: string;
   let testUserId: string;
 
@@ -58,26 +59,34 @@ describe('Mocked GET /api/tickets/user/:userId', () => {
     jest.restoreAllMocks();
   });
 
-  // Mocked behavior: Ticket.find throws an error
-  // Input: valid userId parameter
+  // Mocked behavior: Ticket.create throws an error
+  // Input: valid ticket data
   // Expected status code: 500
   // Expected behavior: the error was handled gracefully
-  // Expected output: Server error message
-  test('Database throws when Ticket.find fails', async () => {
-    // Arrange: mock Ticket.find to throw
-    const mockFind = jest.fn().mockImplementation(() => {
+  // Expected output: None
+  test('Database throws when Ticket.create fails', async () => {
+    // Arrange: mock Ticket.create to throw
+    jest.spyOn(Ticket, 'create').mockImplementationOnce(() => {
       throw new Error('Forced DB error');
     });
-    jest.spyOn(Ticket, 'find').mockImplementation(mockFind as any);
+
+    const validTicket: TicketType = {
+      userId: testUserId,
+      name: 'Mock Ticket',
+      game: { id: 1, homeTeam: { abbrev: 'HT' }, awayTeam: { abbrev: 'AT' } },
+      events: Array.from({ length: 9 }, (_, i) => `e${i}`),
+    };
 
     // Act
     const res = await request(app)
-      .get(`/api/tickets/user/${testUserId}`)
-      .set('Authorization', `Bearer ${authToken}`);
+      .post('/api/tickets')
+      .set('Authorization', `Bearer ${authToken}`)
+      .send(validTicket);
 
     // Assert: controller should return 500 on DB error
     expect(res.status).toBe(500);
-    expect(mockFind).toHaveBeenCalledWith({ userId: testUserId });
+    expect(Ticket.create).toHaveBeenCalledWith(validTicket);
+    expect(Ticket.create).toHaveBeenCalledTimes(1);
     expect(res.body).toHaveProperty('message', 'Server error');
   });
 });

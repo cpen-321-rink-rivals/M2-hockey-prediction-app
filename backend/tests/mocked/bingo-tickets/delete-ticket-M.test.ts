@@ -9,23 +9,23 @@ import {
 import dotenv from 'dotenv';
 import request from 'supertest';
 import express from 'express';
-import router from '../../src/routes/routes';
+import router from '../../../src/routes/routes';
 import mongoose from 'mongoose';
 import jwt from 'jsonwebtoken';
-import { userModel } from '../../src/models/user.model';
-import { Ticket } from '../../src/models/tickets.model';
+import { userModel } from '../../../src/models/user.model';
+import { Ticket } from '../../../src/models/tickets.model';
 import path from 'path';
 
 // Load test environment variables
-dotenv.config({ path: path.resolve(__dirname, '../../.env.test') });
+dotenv.config({ path: path.resolve(__dirname, '../../../.env.test') });
 
 // Create Express app for testing (same setup as index.ts)
 const app = express();
 app.use(express.json());
 app.use('/api', router);
 
-// Interface PUT /api/tickets/:id/crossedOff
-describe('Mocked PUT /api/tickets/:id/crossedOff', () => {
+// Interface DELETE /api/tickets/:id
+describe('Mocked DELETE /api/tickets/:id', () => {
   let authToken: string;
   let testUserId: string;
   let testTicketId: string;
@@ -60,42 +60,25 @@ describe('Mocked PUT /api/tickets/:id/crossedOff', () => {
     jest.restoreAllMocks();
   });
 
-  // Mocked behavior: Ticket.findByIdAndUpdate throws an error
-  // Input: valid ticket id and crossedOff array
+  // Mocked behavior: Ticket.findByIdAndDelete throws an error
+  // Input: valid ticket id
   // Expected status code: 500
   // Expected behavior: the error was handled gracefully
-  // Expected output: Error object with message
-  test('Database throws when Ticket.findByIdAndUpdate fails', async () => {
-    // Arrange: mock Ticket.findByIdAndUpdate to throw
-    jest.spyOn(Ticket, 'findByIdAndUpdate').mockImplementationOnce(() => {
+  // Expected output: Server error message
+  test('Database throws when Ticket.findByIdAndDelete fails', async () => {
+    // Arrange: mock Ticket.findByIdAndDelete to throw
+    jest.spyOn(Ticket, 'findByIdAndDelete').mockImplementationOnce(() => {
       throw new Error('Forced DB error');
     });
 
-    const crossedOff = [
-      true,
-      false,
-      true,
-      false,
-      true,
-      false,
-      true,
-      false,
-      true,
-    ];
-
     // Act
     const res = await request(app)
-      .put(`/api/tickets/${testTicketId}/crossedOff`)
-      .set('Authorization', `Bearer ${authToken}`)
-      .send({ crossedOff });
+      .delete(`/api/tickets/${testTicketId}`)
+      .set('Authorization', `Bearer ${authToken}`);
 
     // Assert: controller should return 500 on DB error
     expect(res.status).toBe(500);
-    expect(Ticket.findByIdAndUpdate).toHaveBeenCalledWith(
-      testTicketId,
-      { crossedOff },
-      { new: true }
-    );
-    expect(res.body).toHaveProperty('error');
+    expect(Ticket.findByIdAndDelete).toHaveBeenCalledWith(testTicketId);
+    expect(res.body).toHaveProperty('message', 'Server error');
   });
 });

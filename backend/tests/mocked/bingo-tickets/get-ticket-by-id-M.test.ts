@@ -9,26 +9,26 @@ import {
 import dotenv from 'dotenv';
 import request from 'supertest';
 import express from 'express';
-import router from '../../src/routes/routes';
+import router from '../../../src/routes/routes';
 import mongoose from 'mongoose';
 import jwt from 'jsonwebtoken';
-import { userModel } from '../../src/models/user.model';
-import { Ticket } from '../../src/models/tickets.model';
-import { TicketType } from '../../src/types/tickets.types';
+import { userModel } from '../../../src/models/user.model';
+import { Ticket } from '../../../src/models/tickets.model';
 import path from 'path';
 
 // Load test environment variables
-dotenv.config({ path: path.resolve(__dirname, '../../.env.test') });
+dotenv.config({ path: path.resolve(__dirname, '../../../.env.test') });
 
 // Create Express app for testing (same setup as index.ts)
 const app = express();
 app.use(express.json());
 app.use('/api', router);
 
-// Interface POST /api/tickets
-describe('Mocked POST /api/tickets', () => {
+// Interface GET /api/tickets/:id
+describe('Mocked GET /api/tickets/:id', () => {
   let authToken: string;
   let testUserId: string;
+  let testTicketId: string;
 
   // For mocked tests we do not connect to a real DB; instead mock user lookup
   beforeAll(() => {
@@ -37,6 +37,7 @@ describe('Mocked POST /api/tickets', () => {
 
     // create a fake user id and token
     testUserId = new mongoose.Types.ObjectId().toString();
+    testTicketId = new mongoose.Types.ObjectId().toString();
     authToken = jwt.sign(
       { id: testUserId },
       process.env.JWT_SECRET || 'test-secret'
@@ -59,34 +60,25 @@ describe('Mocked POST /api/tickets', () => {
     jest.restoreAllMocks();
   });
 
-  // Mocked behavior: Ticket.create throws an error
-  // Input: valid ticket data
+  // Mocked behavior: Ticket.findById throws an error
+  // Input: valid ticket id
   // Expected status code: 500
   // Expected behavior: the error was handled gracefully
-  // Expected output: None
-  test('Database throws when Ticket.create fails', async () => {
-    // Arrange: mock Ticket.create to throw
-    jest.spyOn(Ticket, 'create').mockImplementationOnce(() => {
+  // Expected output: Server error message
+  test('Database throws when Ticket.findById fails', async () => {
+    // Arrange: mock Ticket.findById to throw
+    jest.spyOn(Ticket, 'findById').mockImplementationOnce(() => {
       throw new Error('Forced DB error');
     });
 
-    const validTicket: TicketType = {
-      userId: testUserId,
-      name: 'Mock Ticket',
-      game: { id: 1, homeTeam: { abbrev: 'HT' }, awayTeam: { abbrev: 'AT' } },
-      events: Array.from({ length: 9 }, (_, i) => `e${i}`),
-    };
-
     // Act
     const res = await request(app)
-      .post('/api/tickets')
-      .set('Authorization', `Bearer ${authToken}`)
-      .send(validTicket);
+      .get(`/api/tickets/${testTicketId}`)
+      .set('Authorization', `Bearer ${authToken}`);
 
     // Assert: controller should return 500 on DB error
     expect(res.status).toBe(500);
-    expect(Ticket.create).toHaveBeenCalledWith(validTicket);
-    expect(Ticket.create).toHaveBeenCalledTimes(1);
+    expect(Ticket.findById).toHaveBeenCalledWith(testTicketId);
     expect(res.body).toHaveProperty('message', 'Server error');
   });
 });
