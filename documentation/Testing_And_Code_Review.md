@@ -60,15 +60,15 @@
 
 ### 2.3. Jest Coverage Report Screenshots for Tests Without Mocking
 
-![Jest Coverage Without Mocking](../images/jest-coverage-without-mocking.png)
+![Jest Coverage Without Mocking](/documentation/images/jest-coverage-without-mocking.png)
 
 ### 2.4. Jest Coverage Report Screenshots for Tests With Mocking
 
-![Jest Coverage With Mocking](../images/jest-coverage-with-mocking.png)
+![Jest Coverage With Mocking](/documentation/images/jest-coverage-with-mocking.png)
 
 ### 2.5. Jest Coverage Report Screenshots for Both Tests With and Without Mocking
 
-![Jest Coverage Combined](../images/jest-coverage-both.png)
+![Jest Coverage Combined](/documentation/images/jest-coverage-both.png)
 
 
 ---
