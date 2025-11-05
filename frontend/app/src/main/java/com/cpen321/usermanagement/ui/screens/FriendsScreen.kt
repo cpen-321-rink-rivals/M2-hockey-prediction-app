@@ -8,15 +8,17 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import com.cpen321.usermanagement.R
 import com.cpen321.usermanagement.ui.viewmodels.AuthViewModel
+import com.cpen321.usermanagement.ui.viewmodels.AuthViewModelContract
 import com.cpen321.usermanagement.ui.viewmodels.FriendsViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FriendsScreen(
-    authViewModel: AuthViewModel,
+    authViewModel: AuthViewModelContract,
     viewModel: FriendsViewModel,
     onBackClick: () -> Unit
 ) {
@@ -120,11 +122,20 @@ fun FriendsScreen(
 
 
             // Friend List
-            Text("Friends", style = MaterialTheme.typography.titleMedium)
+            Text(
+                "Friends",
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.testTag("friendsSectionHeader")
+            )
             if (uiState.friends.isEmpty()) {
-                Text("No friends yet.")
+                Text(
+                    "No friends yet.",
+                    modifier = Modifier.testTag("noFriendsText")
+                )
             } else {
-                LazyColumn {
+                LazyColumn(
+                    modifier = Modifier.testTag("friendsList")
+                ) {
                     items(uiState.friends) { friend ->
                         Row(
                             modifier = Modifier

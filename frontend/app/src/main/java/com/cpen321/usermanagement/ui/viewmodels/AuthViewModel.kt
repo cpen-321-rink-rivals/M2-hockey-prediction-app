@@ -39,14 +39,14 @@ data class AuthUiState(
 class AuthViewModel @Inject constructor(
     private val authRepository: AuthRepository,
     private val navigationStateManager: NavigationStateManager
-) : ViewModel() {
+) : ViewModel(), AuthViewModelContract {
 
     companion object {
         private const val TAG = "AuthViewModel"
     }
 
     private val _uiState = MutableStateFlow(AuthUiState())
-    val uiState: StateFlow<AuthUiState> = _uiState.asStateFlow()
+    override val uiState: StateFlow<AuthUiState> = _uiState.asStateFlow()
 
     init {
         if (!_uiState.value.shouldSkipAuthCheck) {
@@ -207,4 +207,8 @@ class AuthViewModel @Inject constructor(
     fun clearSuccessMessage() {
         _uiState.value = _uiState.value.copy(successMessage = null)
     }
+}
+
+interface AuthViewModelContract {
+    val uiState: StateFlow<AuthUiState>
 }

@@ -22,6 +22,7 @@ import com.cpen321.usermanagement.R
 import com.cpen321.usermanagement.data.remote.dto.BingoTicket
 import com.cpen321.usermanagement.data.remote.dto.TicketsUiState
 import com.cpen321.usermanagement.ui.viewmodels.AuthViewModel
+import com.cpen321.usermanagement.ui.viewmodels.AuthViewModelContract
 import com.cpen321.usermanagement.ui.viewmodels.TicketsViewModel
 
 data class TicketsScreenActions(
@@ -37,7 +38,7 @@ private data class TicketsScreenCallbacks(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TicketsScreen(
-    authViewModel: AuthViewModel,
+    authViewModel: AuthViewModelContract,
     actions: TicketsScreenActions,
     ticketsViewModel: TicketsViewModel
 ) {

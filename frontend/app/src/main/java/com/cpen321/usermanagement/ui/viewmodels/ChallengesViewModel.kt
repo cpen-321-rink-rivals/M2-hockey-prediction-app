@@ -1,7 +1,6 @@
 package com.cpen321.usermanagement.ui.viewmodels
 
 import android.util.Log
-import androidx.compose.animation.core.copy
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.cpen321.usermanagement.data.local.preferences.NhlDataManager
@@ -9,7 +8,6 @@ import com.cpen321.usermanagement.data.remote.dto.BingoTicket
 import com.cpen321.usermanagement.data.remote.dto.Challenge
 import com.cpen321.usermanagement.data.remote.dto.CreateChallengeRequest
 import com.cpen321.usermanagement.data.remote.dto.Game
-import com.cpen321.usermanagement.data.remote.dto.PublicProfileData
 import com.cpen321.usermanagement.data.remote.dto.User
 import com.cpen321.usermanagement.data.repository.ChallengesRepository
 import com.cpen321.usermanagement.data.repository.FriendsRepository

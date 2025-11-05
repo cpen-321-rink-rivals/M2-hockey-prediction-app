@@ -24,13 +24,14 @@ import com.cpen321.usermanagement.data.remote.dto.Team
 import com.cpen321.usermanagement.data.remote.dto.TvBroadcast
 import com.cpen321.usermanagement.data.remote.dto.Venue
 import com.cpen321.usermanagement.ui.viewmodels.AuthViewModel
+import com.cpen321.usermanagement.ui.viewmodels.AuthViewModelContract
 import com.cpen321.usermanagement.ui.viewmodels.TicketsViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CreateBingoTicketScreen(
     ticketsViewModel: TicketsViewModel,
-    authViewModel: AuthViewModel,
+    authViewModel: AuthViewModelContract,
     onBackClick: () -> Unit,
     onTicketCreated: () -> Unit
 ) {

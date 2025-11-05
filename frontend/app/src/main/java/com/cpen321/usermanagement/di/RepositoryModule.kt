@@ -1,14 +1,19 @@
 package com.cpen321.usermanagement.di
 
 import com.cpen321.usermanagement.data.local.preferences.NhlDataManager
+import com.cpen321.usermanagement.data.local.preferences.NhlDataManagerImpl
 import com.cpen321.usermanagement.data.repository.AuthRepository
 import com.cpen321.usermanagement.data.repository.AuthRepositoryImpl
 import com.cpen321.usermanagement.data.repository.ChallengesRepository
 import com.cpen321.usermanagement.data.repository.ChallengesRepositoryImpl
+import com.cpen321.usermanagement.data.repository.FriendsRepository
+import com.cpen321.usermanagement.data.repository.FriendsRepositoryImpl
 import com.cpen321.usermanagement.data.repository.NHLRepository
 import com.cpen321.usermanagement.data.repository.NHLRepositoryImpl
 import com.cpen321.usermanagement.data.repository.ProfileRepository
 import com.cpen321.usermanagement.data.repository.ProfileRepositoryImpl
+import com.cpen321.usermanagement.data.repository.TicketsRepository
+import com.cpen321.usermanagement.data.repository.TicketsRepositoryImpl
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -45,6 +50,22 @@ object RepositoryModule {
 
     @Provides
     @Singleton
+    fun provideFriendsRepository(
+        friendsRepositoryImpl: FriendsRepositoryImpl
+    ) : FriendsRepository {
+        return friendsRepositoryImpl
+    }
+
+    @Provides
+    @Singleton
+    fun provideTicketsRepository(
+        ticketsRepositoryImpl: TicketsRepositoryImpl
+    ) : TicketsRepository {
+        return ticketsRepositoryImpl
+    }
+
+    @Provides
+    @Singleton
     fun provideChallengesRepository(
         challengesRepositoryImpl: ChallengesRepositoryImpl
     ) : ChallengesRepository {
@@ -56,6 +77,6 @@ object RepositoryModule {
     fun provideNhlDataManager(
         nhlRepository: NHLRepository
     ): NhlDataManager {
-        return NhlDataManager(nhlRepository)
+        return NhlDataManagerImpl(nhlRepository)
     }
 }
