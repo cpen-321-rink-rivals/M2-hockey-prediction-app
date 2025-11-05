@@ -125,27 +125,6 @@
 
 ## 5. Automated Code Review Results
 
-### 5.1. Commit Hash Where Codacy Ran
 
-`[Insert Commit SHA here]`
-
-### 5.2. Unfixed Issues per Codacy Category
-
-_(Placeholder for screenshots of Codacy's Category Breakdown table in Overview)_
-
-### 5.3. Unfixed Issues per Codacy Code Pattern
-
-_(Placeholder for screenshots of Codacy's Issues page)_
-
-### 5.4. Justifications for Unfixed Issues
-
-- **Code Pattern: [Usage of Deprecated Modules](#)**
-
-  1. **Issue**
-
-     - **Location in Git:** [`src/services/chatService.js#L31`](#)
-     - **Justification:** ...
-
-  2. ...
-
-- ...
+#### This part of the testing was skipped due to reduced team sized as discussed with the professor
+----
