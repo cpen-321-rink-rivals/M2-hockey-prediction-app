@@ -53,74 +53,49 @@ describe('Mocked DELETE /api/friends/:friendId', () => {
     });
   });
 
+  // Ensure mocks and call counts are cleared before each test so spies
+  // don't accumulate call counts across tests.
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   afterAll(() => {
     jest.restoreAllMocks();
   });
 
-  // Mocked behavior: Successfully remove friend
-  // Input: Valid friend ID
-  // Expected behavior: Deletes friend relationship
-  // Expected output: 200 status, success message
-  test('Successfully removes friend', async () => {
-    // Mock friendModel.removeFriend
-    jest.spyOn(friendModel, 'removeFriend').mockResolvedValueOnce({
-      _id: new mongoose.Types.ObjectId(),
-      sender: testUserId,
-      receiver: friendId,
-      status: 'accepted',
-    } as any);
-
-    const response = await request(app)
-      .delete(`/api/friends/${friendId}`)
-      .set('Authorization', `Bearer ${authToken}`);
-
-    expect(response.status).toBe(200);
-    expect(response.body).toHaveProperty(
-      'message',
-      'Friend removed successfully'
-    );
-  });
-
-  // Mocked behavior: Remove friend without authentication
-  // Input: No auth token
-  // Expected behavior: Returns 401 unauthorized
-  // Expected output: 401 status
-  test('Returns 401 when not authenticated', async () => {
-    const response = await request(app).delete(`/api/friends/${friendId}`);
-
-    expect(response.status).toBe(401);
-  });
-
-  // Mocked behavior: Remove non-existent friend
-  // Input: Invalid friend ID
-  // Expected behavior: Handles gracefully
-  // Expected output: Success or error status
-  test('Handles removing non-existent friend', async () => {
-    // Mock friendModel.removeFriend to return null
-    jest.spyOn(friendModel, 'removeFriend').mockResolvedValueOnce(null);
-
-    const response = await request(app)
-      .delete(`/api/friends/${friendId}`)
-      .set('Authorization', `Bearer ${authToken}`);
-
-    // Should still return 200 even if friend doesn't exist
-    expect(response.status).toBe(200);
-  });
-
-  // Mocked behavior: Database error when removing friend
-  // Input: Valid friend ID
+  // Mocked behavior: Database connection error when removing friend
+  // Input: Valid friend ID, database connection fails
   // Expected behavior: Returns 500 error
-  // Expected output: 500 status
-  test('Returns 500 when database error occurs', async () => {
-    // Mock friendModel.removeFriend to throw error
+  // Expected output: 500 status with error message
+  test('Returns 500 when database connection error occurs', async () => {
     jest
       .spyOn(friendModel, 'removeFriend')
-      .mockRejectedValueOnce(new Error('Database error'));
+      .mockRejectedValueOnce(new Error('Database connection failed'));
 
     const response = await request(app)
       .delete(`/api/friends/${friendId}`)
       .set('Authorization', `Bearer ${authToken}`);
 
     expect(response.status).toBe(500);
+    expect(friendModel.removeFriend).toHaveBeenCalledTimes(1);
+    expect(friendModel.removeFriend).toHaveBeenCalledWith(testUserId, friendId);
+  });
+
+  // Mocked behavior: Database timeout when removing friend
+  // Input: Valid friend ID, database operation times out
+  // Expected behavior: Returns 500 error
+  // Expected output: 500 status with error message
+  test('Returns 500 when database timeout occurs', async () => {
+    jest
+      .spyOn(friendModel, 'removeFriend')
+      .mockRejectedValueOnce(new Error('Operation timed out'));
+
+    const response = await request(app)
+      .delete(`/api/friends/${friendId}`)
+      .set('Authorization', `Bearer ${authToken}`);
+
+    expect(response.status).toBe(500);
+    expect(friendModel.removeFriend).toHaveBeenCalledTimes(1);
+    expect(friendModel.removeFriend).toHaveBeenCalledWith(testUserId, friendId);
   });
 });

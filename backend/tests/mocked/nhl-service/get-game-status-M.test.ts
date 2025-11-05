@@ -134,6 +134,42 @@ describe('Mocked NHLService.getGameStatus', () => {
     expect(result!.isScheduled).toBe(true);
   });
 
+  // Mocked behavior: Game data with empty string gameState (uses default)
+  // Input: valid game ID with empty gameState
+  // Expected behavior: Uses default value 'FUT' for empty gameState
+  // Expected output: GameStatus with default gameState='FUT'
+  test('Handles game data with empty gameState', async () => {
+    const mockGameId = '2024020103';
+    const mockResponse = {
+      data: {
+        gameWeek: [
+          {
+            games: [
+              {
+                id: 2024020103,
+                gameState: '', // Empty string - should default to 'FUT'
+                gameScheduleState: '', // Empty string - should default to 'OK'
+                startTimeUTC: '2024-11-02T23:00:00Z',
+              },
+            ],
+          },
+        ],
+      },
+    };
+
+    mockedAxios.get.mockResolvedValueOnce(mockResponse);
+
+    const result = await nhlService.getGameStatus(mockGameId);
+
+    expect(result).not.toBeNull();
+    expect(result!.gameId).toBe(mockGameId);
+    expect(result!.gameState).toBe('FUT'); // Default value for empty string
+    expect(result!.gameScheduleState).toBe('OK'); // Default value for empty string
+    expect(result!.isScheduled).toBe(true); // Now correctly set
+    expect(result!.isLive).toBe(false);
+    expect(result!.isFinished).toBe(false);
+  });
+
   // Mocked behavior: Game not in schedule, falls back to direct endpoint
   // Input: valid game ID not in current schedule
   // Expected behavior: Calls direct endpoint and returns status
@@ -276,6 +312,48 @@ describe('Mocked NHLService.getGameStatus', () => {
     expect(mockedAxios.get).toHaveBeenCalledTimes(2);
   });
 
+  // Mocked behavior: API returns gameWeek with days missing games property
+  // Input: valid game ID
+  // Expected behavior: Skips days without games, falls back to direct endpoint
+  // Expected output: GameStatus from direct endpoint
+  test('Handles gameWeek with days missing games property', async () => {
+    const mockGameId = '2024020106';
+    const malformedResponse = {
+      data: {
+        gameWeek: [
+          {
+            // First day has no games property
+            date: '2024-10-31',
+          },
+          {
+            // Second day also missing games
+            date: '2024-11-01',
+            someOtherProp: 'test',
+          },
+        ],
+      },
+    };
+
+    const directResponse = {
+      data: {
+        gameState: 'LIVE',
+        gameScheduleState: 'OK',
+        startTimeUTC: '2024-10-31T23:00:00Z',
+      },
+    };
+
+    mockedAxios.get
+      .mockResolvedValueOnce(malformedResponse)
+      .mockResolvedValueOnce(directResponse);
+
+    const result = await nhlService.getGameStatus(mockGameId);
+
+    expect(result).not.toBeNull();
+    expect(result!.gameId).toBe(mockGameId);
+    expect(result!.gameState).toBe('LIVE');
+    expect(mockedAxios.get).toHaveBeenCalledTimes(2);
+  });
+
   // Mocked behavior: API returns empty games array
   // Input: valid game ID
   // Expected behavior: Falls back to direct endpoint
@@ -390,6 +468,41 @@ describe('Mocked NHLService.getGameStatus', () => {
     expect(result).toBeNull();
   });
 
+  // Mocked behavior: Direct endpoint returns data with missing optional fields
+  // Input: valid game ID, direct endpoint returns minimal data
+  // Expected behavior: Uses default values for missing fields
+  // Expected output: GameStatus with defaults applied
+  test('Handles direct endpoint with missing optional fields', async () => {
+    const mockGameId = '2024020112';
+
+    const scheduleResponse = {
+      data: {
+        gameWeek: [{ games: [] }],
+      },
+    };
+
+    const directResponse = {
+      data: {
+        // Missing gameState - should default to 'FUT'
+        // Missing gameScheduleState - should default to 'OK'
+        // Missing startTimeUTC - should default to current time
+      },
+    };
+
+    mockedAxios.get
+      .mockResolvedValueOnce(scheduleResponse)
+      .mockResolvedValueOnce(directResponse);
+
+    const result = await nhlService.getGameStatus(mockGameId);
+
+    expect(result).not.toBeNull();
+    expect(result!.gameId).toBe(mockGameId);
+    expect(result!.gameState).toBe('FUT'); // Default value
+    expect(result!.gameScheduleState).toBe('OK'); // Default value
+    expect(result!.startTimeUTC).toBeDefined(); // Default to current time
+    expect(result!.isScheduled).toBe(true);
+  });
+
   // Mocked behavior: Cache is cleared and API is called again
   // Input: same game ID, but cache cleared between calls
   // Expected behavior: First call hits API, cache cleared, second call hits API again
@@ -433,5 +546,22 @@ describe('Mocked NHLService.getGameStatus', () => {
     expect(result3).not.toBeNull();
     expect(mockedAxios.get).toHaveBeenCalledTimes(2); // Now 2 API calls!
     expect(result3!.gameId).toBe(mockGameId);
+  });
+
+  // Mocked behavior: Non-Axios error thrown
+  // Input: valid game ID
+  // Expected behavior: Handles error gracefully
+  // Expected output: null
+  test('Handles unexpected non-Axios errors', async () => {
+    const mockError = new TypeError('Unexpected error');
+
+    mockedAxios.get.mockRejectedValueOnce(mockError);
+    // Mock isAxiosError to return false so we hit the else branch
+    jest.spyOn(axios, 'isAxiosError').mockReturnValueOnce(false);
+
+    const result = await nhlService.getGameStatus('2023020001');
+
+    expect(result).toBeNull();
+    expect(mockedAxios.get).toHaveBeenCalledTimes(1);
   });
 });

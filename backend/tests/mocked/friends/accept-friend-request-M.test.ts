@@ -4,6 +4,7 @@ import {
   test,
   jest,
   beforeAll,
+  beforeEach,
   afterAll,
 } from '@jest/globals';
 import dotenv from 'dotenv';
@@ -13,7 +14,7 @@ import router from '../../../src/routes/routes';
 import mongoose from 'mongoose';
 import jwt from 'jsonwebtoken';
 import { userModel } from '../../../src/models/user.model';
-import { friendModel } from '../../../src/models/friends.model';
+import { friendModel, FriendRequest } from '../../../src/models/friends.model';
 import path from 'path';
 
 // Load test environment variables
@@ -42,7 +43,7 @@ describe('Mocked POST /api/friends/accept', () => {
       process.env.JWT_SECRET || 'test-secret'
     );
 
-    // Mock userModel.findById
+    // Mock userModel.findById (required by auth middleware)
     jest.spyOn(userModel, 'findById').mockImplementation(async (id: any) => {
       return {
         _id: id,
@@ -53,68 +54,25 @@ describe('Mocked POST /api/friends/accept', () => {
     });
   });
 
+  beforeEach(() => {
+    // Clear mock call history between tests
+    jest.clearAllMocks();
+  });
+
   afterAll(() => {
     jest.restoreAllMocks();
-  });
-
-  // Mocked behavior: Successfully accept friend request
-  // Input: Valid pending request ID
-  // Expected behavior: Updates request status to accepted
-  // Expected output: 200 status, updated request
-  test('Successfully accepts friend request', async () => {
-    // Mock friendModel.acceptRequest
-    jest.spyOn(friendModel, 'acceptRequest').mockResolvedValueOnce({
-      _id: pendingRequestId,
-      sender: new mongoose.Types.ObjectId(),
-      receiver: testUserId,
-      status: 'accepted',
-    } as any);
-
-    const response = await request(app)
-      .post('/api/friends/accept')
-      .set('Authorization', `Bearer ${authToken}`)
-      .send({ requestId: pendingRequestId });
-
-    expect(response.status).toBe(200);
-    expect(response.body).toHaveProperty('message', 'Friend request accepted');
-    expect(response.body.data).toHaveProperty('status', 'accepted');
-  });
-
-  // Mocked behavior: Accept request without authentication
-  // Input: No auth token
-  // Expected behavior: Returns 401 unauthorized
-  // Expected output: 401 status
-  test('Returns 401 when not authenticated', async () => {
-    const response = await request(app)
-      .post('/api/friends/accept')
-      .send({ requestId: pendingRequestId });
-
-    expect(response.status).toBe(401);
-  });
-
-  // Mocked behavior: Accept with missing requestId
-  // Input: Empty body
-  // Expected behavior: Returns 400 validation error
-  // Expected output: 400 status with error message
-  test('Returns 400 when requestId is missing', async () => {
-    const response = await request(app)
-      .post('/api/friends/accept')
-      .set('Authorization', `Bearer ${authToken}`)
-      .send({});
-
-    expect(response.status).toBe(400);
-    expect(response.body).toHaveProperty('message', 'Request ID is required');
   });
 
   // Mocked behavior: Database error when accepting
   // Input: Valid request ID
   // Expected behavior: Returns 500 error
   // Expected output: 500 status
+  // Note: This tests error handling that can't be provoked in unmocked tests
   test('Returns 500 when database error occurs', async () => {
     // Mock friendModel.acceptRequest to throw error
     jest
       .spyOn(friendModel, 'acceptRequest')
-      .mockRejectedValueOnce(new Error('Database error'));
+      .mockRejectedValueOnce(new Error('Database connection failed'));
 
     const response = await request(app)
       .post('/api/friends/accept')
@@ -122,5 +80,27 @@ describe('Mocked POST /api/friends/accept', () => {
       .send({ requestId: pendingRequestId });
 
     expect(response.status).toBe(500);
+    expect(friendModel.acceptRequest).toHaveBeenCalledTimes(1);
+    expect(friendModel.acceptRequest).toHaveBeenCalledWith(pendingRequestId);
+  });
+
+  // Mocked behavior: Database timeout error
+  // Input: Valid request ID
+  // Expected behavior: Returns 500 error
+  // Expected output: 500 status
+  test('Returns 500 when database timeout occurs', async () => {
+    // Mock friendModel.acceptRequest to throw timeout error
+    jest
+      .spyOn(friendModel, 'acceptRequest')
+      .mockRejectedValueOnce(new Error('Query timeout'));
+
+    const response = await request(app)
+      .post('/api/friends/accept')
+      .set('Authorization', `Bearer ${authToken}`)
+      .send({ requestId: pendingRequestId });
+
+    expect(response.status).toBe(500);
+    expect(friendModel.acceptRequest).toHaveBeenCalledTimes(1);
+    expect(friendModel.acceptRequest).toHaveBeenCalledWith(pendingRequestId);
   });
 });

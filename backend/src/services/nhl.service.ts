@@ -67,15 +67,19 @@ export class NHLService {
         return await this.getGameStatusDirect(gameId);
       }
 
+      // Apply default values before using in helper methods
+      const gameState = gameData.gameState || 'FUT';
+      const gameScheduleState = gameData.gameScheduleState || 'OK';
+
       const status: GameStatus = {
         gameId: gameData.id.toString(),
-        gameState: gameData.gameState || 'FUT',
-        gameScheduleState: gameData.gameScheduleState || 'OK',
+        gameState: gameState,
+        gameScheduleState: gameScheduleState,
         startTimeUTC: gameData.startTimeUTC,
         detailedState: gameData.gameScheduleState,
-        isLive: this.isGameLive(gameData.gameState),
-        isFinished: this.isGameFinished(gameData.gameState),
-        isScheduled: this.isGameScheduled(gameData.gameState),
+        isLive: this.isGameLive(gameState),
+        isFinished: this.isGameFinished(gameState),
+        isScheduled: this.isGameScheduled(gameState),
       };
 
       // Cache the result

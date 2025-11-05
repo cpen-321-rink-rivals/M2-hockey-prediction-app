@@ -51,97 +51,48 @@ describe('Mocked GET /api/friends/pending', () => {
     });
   });
 
+  // Ensure mocks and call counts are cleared before each test so spies
+  // don't accumulate call counts across tests.
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
   afterAll(() => {
     jest.restoreAllMocks();
   });
 
-  // Mocked behavior: Successfully get pending requests
-  // Input: Authenticated user
-  // Expected behavior: Returns list of pending friend requests
-  // Expected output: 200 status, array of pending requests
-  test('Successfully retrieves pending friend requests', async () => {
-    const mockPendingRequests = [
-      {
-        _id: new mongoose.Types.ObjectId(),
-        sender: {
-          _id: new mongoose.Types.ObjectId(),
-          name: 'Sender 1',
-          email: 'sender1@example.com',
-        },
-        receiver: testUserId,
-        status: 'pending',
-      },
-      {
-        _id: new mongoose.Types.ObjectId(),
-        sender: {
-          _id: new mongoose.Types.ObjectId(),
-          name: 'Sender 2',
-          email: 'sender2@example.com',
-        },
-        receiver: testUserId,
-        status: 'pending',
-      },
-    ];
-
-    // Mock friendModel.getPendingRequests
-    jest
-      .spyOn(friendModel, 'getPendingRequests')
-      .mockResolvedValueOnce(mockPendingRequests as any);
-
-    const response = await request(app)
-      .get('/api/friends/pending')
-      .set('Authorization', `Bearer ${authToken}`);
-
-    expect(response.status).toBe(200);
-    expect(response.body).toHaveProperty(
-      'message',
-      'Pending requests fetched successfully'
-    );
-    expect(response.body.data).toBeInstanceOf(Array);
-    expect(response.body.data).toHaveLength(2);
-  });
-
-  // Mocked behavior: Get pending requests with no pending requests
-  // Input: Authenticated user with no pending requests
-  // Expected behavior: Returns empty array
-  // Expected output: 200 status, empty array
-  test('Returns empty array when no pending requests', async () => {
-    // Mock friendModel.getPendingRequests to return empty array
-    jest.spyOn(friendModel, 'getPendingRequests').mockResolvedValueOnce([]);
-
-    const response = await request(app)
-      .get('/api/friends/pending')
-      .set('Authorization', `Bearer ${authToken}`);
-
-    expect(response.status).toBe(200);
-    expect(response.body.data).toBeInstanceOf(Array);
-    expect(response.body.data).toHaveLength(0);
-  });
-
-  // Mocked behavior: Get pending requests without authentication
-  // Input: No auth token
-  // Expected behavior: Returns 401 unauthorized
-  // Expected output: 401 status
-  test('Returns 401 when not authenticated', async () => {
-    const response = await request(app).get('/api/friends/pending');
-
-    expect(response.status).toBe(401);
-  });
-
-  // Mocked behavior: Database error when fetching pending requests
-  // Input: Authenticated user
+  // Mocked behavior: Database connection error when fetching pending requests
+  // Input: Authenticated user, database connection fails
   // Expected behavior: Returns 500 error
-  // Expected output: 500 status
-  test('Returns 500 when database error occurs', async () => {
-    // Mock friendModel.getPendingRequests to throw error
+  // Expected output: 500 status with error message
+  test('Returns 500 when database connection error occurs', async () => {
     jest
       .spyOn(friendModel, 'getPendingRequests')
-      .mockRejectedValueOnce(new Error('Database error'));
+      .mockRejectedValueOnce(new Error('Database connection failed'));
 
     const response = await request(app)
       .get('/api/friends/pending')
       .set('Authorization', `Bearer ${authToken}`);
 
     expect(response.status).toBe(500);
+    expect(friendModel.getPendingRequests).toHaveBeenCalledTimes(1);
+    expect(friendModel.getPendingRequests).toHaveBeenCalledWith(testUserId);
+  });
+
+  // Mocked behavior: Database timeout when fetching pending requests
+  // Input: Authenticated user, database operation times out
+  // Expected behavior: Returns 500 error
+  // Expected output: 500 status with error message
+  test('Returns 500 when database timeout occurs', async () => {
+    jest
+      .spyOn(friendModel, 'getPendingRequests')
+      .mockRejectedValueOnce(new Error('Operation timed out'));
+
+    const response = await request(app)
+      .get('/api/friends/pending')
+      .set('Authorization', `Bearer ${authToken}`);
+
+    expect(response.status).toBe(500);
+    expect(friendModel.getPendingRequests).toHaveBeenCalledTimes(1);
+    expect(friendModel.getPendingRequests).toHaveBeenCalledWith(testUserId);
   });
 });

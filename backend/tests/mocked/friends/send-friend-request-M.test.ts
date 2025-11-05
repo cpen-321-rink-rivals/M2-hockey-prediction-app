@@ -57,42 +57,14 @@ describe('Mocked POST /api/friends/request', () => {
     });
   });
 
-  afterAll(() => {
-    jest.restoreAllMocks();
+  // Ensure mocks and call counts are cleared before each test so spies
+  // don't accumulate call counts across tests.
+  beforeEach(() => {
+    jest.clearAllMocks();
   });
 
-  // Mocked behavior: Successfully send friend request
-  // Input: Valid receiver friend code
-  // Expected behavior: Creates friend request with pending status
-  // Expected output: 201 status, friend request object
-  test('Successfully sends friend request', async () => {
-    // Mock userModel.findByFriendCode to return receiver
-    jest.spyOn(userModel, 'findByFriendCode').mockResolvedValueOnce({
-      _id: new mongoose.Types.ObjectId(receiverUserId),
-      googleId: 'receiver-google-id',
-      email: 'receiver@example.com',
-      name: 'Receiver User',
-      friendCode: receiverFriendCode,
-    } as any);
-
-    // Mock friendModel.sendRequest to return created request
-    jest.spyOn(friendModel, 'sendRequest').mockResolvedValueOnce({
-      _id: new mongoose.Types.ObjectId(),
-      sender: testUserId,
-      receiver: receiverUserId,
-      status: 'pending',
-    } as any);
-
-    const response = await request(app)
-      .post('/api/friends/request')
-      .set('Authorization', `Bearer ${authToken}`)
-      .send({ receiverCode: receiverFriendCode });
-
-    expect(response.status).toBe(201);
-    expect(response.body).toHaveProperty('message', 'Friend request sent');
-    expect(response.body.data).toHaveProperty('sender', testUserId);
-    expect(response.body.data).toHaveProperty('receiver', receiverUserId);
-    expect(response.body.data).toHaveProperty('status', 'pending');
+  afterAll(() => {
+    jest.restoreAllMocks();
   });
 
   // Mocked behavior: Send request with non-existent friend code
@@ -100,7 +72,6 @@ describe('Mocked POST /api/friends/request', () => {
   // Expected behavior: Returns 404 error
   // Expected output: 404 status, error message
   test('Returns 404 when receiver not found', async () => {
-    // Mock findByFriendCode to return null
     jest.spyOn(userModel, 'findByFriendCode').mockResolvedValueOnce(null);
 
     const response = await request(app)
@@ -112,50 +83,11 @@ describe('Mocked POST /api/friends/request', () => {
     expect(response.body).toHaveProperty('message', 'User not found');
   });
 
-  // Mocked behavior: Send request without authentication
-  // Input: No auth token
-  // Expected behavior: Returns 401 unauthorized
-  // Expected output: 401 status
-  test('Returns 401 when not authenticated', async () => {
-    const response = await request(app)
-      .post('/api/friends/request')
-      .send({ receiverCode: receiverFriendCode });
-
-    expect(response.status).toBe(401);
-  });
-
-  // Mocked behavior: Send request with missing receiverCode
-  // Input: Empty body
-  // Expected behavior: Returns 400 validation error
-  // Expected output: 400 status
-  test('Returns 400 when receiverCode is missing', async () => {
-    const response = await request(app)
-      .post('/api/friends/request')
-      .set('Authorization', `Bearer ${authToken}`)
-      .send({});
-
-    expect(response.status).toBe(400);
-  });
-
-  // Mocked behavior: Send request with empty receiverCode
-  // Input: Empty string receiverCode
-  // Expected behavior: Returns 400 validation error
-  // Expected output: 400 status
-  test('Returns 400 when receiverCode is empty', async () => {
-    const response = await request(app)
-      .post('/api/friends/request')
-      .set('Authorization', `Bearer ${authToken}`)
-      .send({ receiverCode: '' });
-
-    expect(response.status).toBe(400);
-  });
-
-  // Mocked behavior: Database error when sending request
-  // Input: Valid friend code
+  // Mocked behavior: Database connection error when sending request
+  // Input: Valid friend code, database connection fails
   // Expected behavior: Returns 500 error
-  // Expected output: 500 status
-  test('Returns 500 when database error occurs', async () => {
-    // Mock userModel.findByFriendCode to return receiver
+  // Expected output: 500 status with error message
+  test('Returns 500 when database connection error occurs', async () => {
     jest.spyOn(userModel, 'findByFriendCode').mockResolvedValueOnce({
       _id: new mongoose.Types.ObjectId(receiverUserId),
       googleId: 'receiver-google-id',
@@ -164,10 +96,9 @@ describe('Mocked POST /api/friends/request', () => {
       friendCode: receiverFriendCode,
     } as any);
 
-    // Mock friendModel.sendRequest to throw error
     jest
       .spyOn(friendModel, 'sendRequest')
-      .mockRejectedValueOnce(new Error('Database error'));
+      .mockRejectedValueOnce(new Error('Database connection failed'));
 
     const response = await request(app)
       .post('/api/friends/request')
@@ -175,5 +106,40 @@ describe('Mocked POST /api/friends/request', () => {
       .send({ receiverCode: receiverFriendCode });
 
     expect(response.status).toBe(500);
+    expect(friendModel.sendRequest).toHaveBeenCalledTimes(1);
+    expect(friendModel.sendRequest).toHaveBeenCalledWith(
+      testUserId,
+      receiverUserId
+    );
+  });
+
+  // Mocked behavior: Database timeout when sending request
+  // Input: Valid friend code, database operation times out
+  // Expected behavior: Returns 500 error
+  // Expected output: 500 status with error message
+  test('Returns 500 when database timeout occurs', async () => {
+    jest.spyOn(userModel, 'findByFriendCode').mockResolvedValueOnce({
+      _id: new mongoose.Types.ObjectId(receiverUserId),
+      googleId: 'receiver-google-id',
+      email: 'receiver@example.com',
+      name: 'Receiver User',
+      friendCode: receiverFriendCode,
+    } as any);
+
+    jest
+      .spyOn(friendModel, 'sendRequest')
+      .mockRejectedValueOnce(new Error('Operation timed out'));
+
+    const response = await request(app)
+      .post('/api/friends/request')
+      .set('Authorization', `Bearer ${authToken}`)
+      .send({ receiverCode: receiverFriendCode });
+
+    expect(response.status).toBe(500);
+    expect(friendModel.sendRequest).toHaveBeenCalledTimes(1);
+    expect(friendModel.sendRequest).toHaveBeenCalledWith(
+      testUserId,
+      receiverUserId
+    );
   });
 });

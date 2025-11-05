@@ -53,68 +53,24 @@ describe('Mocked POST /api/friends/reject', () => {
     });
   });
 
+  // Ensure mocks and call counts are cleared before each test so spies
+  // don't accumulate call counts across tests.
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   afterAll(() => {
     jest.restoreAllMocks();
   });
 
-  // Mocked behavior: Successfully reject friend request
-  // Input: Valid pending request ID
-  // Expected behavior: Updates request status to rejected
-  // Expected output: 200 status, updated request
-  test('Successfully rejects friend request', async () => {
-    // Mock friendModel.rejectRequest
-    jest.spyOn(friendModel, 'rejectRequest').mockResolvedValueOnce({
-      _id: pendingRequestId,
-      sender: new mongoose.Types.ObjectId(),
-      receiver: testUserId,
-      status: 'rejected',
-    } as any);
-
-    const response = await request(app)
-      .post('/api/friends/reject')
-      .set('Authorization', `Bearer ${authToken}`)
-      .send({ requestId: pendingRequestId });
-
-    expect(response.status).toBe(200);
-    expect(response.body).toHaveProperty('message', 'Friend request rejected');
-    expect(response.body.data).toHaveProperty('status', 'rejected');
-  });
-
-  // Mocked behavior: Reject request without authentication
-  // Input: No auth token
-  // Expected behavior: Returns 401 unauthorized
-  // Expected output: 401 status
-  test('Returns 401 when not authenticated', async () => {
-    const response = await request(app)
-      .post('/api/friends/reject')
-      .send({ requestId: pendingRequestId });
-
-    expect(response.status).toBe(401);
-  });
-
-  // Mocked behavior: Reject with missing requestId
-  // Input: Empty body
-  // Expected behavior: Returns 400 validation error
-  // Expected output: 400 status with error message
-  test('Returns 400 when requestId is missing', async () => {
-    const response = await request(app)
-      .post('/api/friends/reject')
-      .set('Authorization', `Bearer ${authToken}`)
-      .send({});
-
-    expect(response.status).toBe(400);
-    expect(response.body).toHaveProperty('message', 'Request ID is required');
-  });
-
-  // Mocked behavior: Database error when rejecting
-  // Input: Valid request ID
+  // Mocked behavior: Database connection error when rejecting request
+  // Input: Valid request ID, database connection fails
   // Expected behavior: Returns 500 error
-  // Expected output: 500 status
-  test('Returns 500 when database error occurs', async () => {
-    // Mock friendModel.rejectRequest to throw error
+  // Expected output: 500 status with error message
+  test('Returns 500 when database connection error occurs', async () => {
     jest
       .spyOn(friendModel, 'rejectRequest')
-      .mockRejectedValueOnce(new Error('Database error'));
+      .mockRejectedValueOnce(new Error('Database connection failed'));
 
     const response = await request(app)
       .post('/api/friends/reject')
@@ -122,5 +78,26 @@ describe('Mocked POST /api/friends/reject', () => {
       .send({ requestId: pendingRequestId });
 
     expect(response.status).toBe(500);
+    expect(friendModel.rejectRequest).toHaveBeenCalledTimes(1);
+    expect(friendModel.rejectRequest).toHaveBeenCalledWith(pendingRequestId);
+  });
+
+  // Mocked behavior: Database timeout when rejecting request
+  // Input: Valid request ID, database operation times out
+  // Expected behavior: Returns 500 error
+  // Expected output: 500 status with error message
+  test('Returns 500 when database timeout occurs', async () => {
+    jest
+      .spyOn(friendModel, 'rejectRequest')
+      .mockRejectedValueOnce(new Error('Operation timed out'));
+
+    const response = await request(app)
+      .post('/api/friends/reject')
+      .set('Authorization', `Bearer ${authToken}`)
+      .send({ requestId: pendingRequestId });
+
+    expect(response.status).toBe(500);
+    expect(friendModel.rejectRequest).toHaveBeenCalledTimes(1);
+    expect(friendModel.rejectRequest).toHaveBeenCalledWith(pendingRequestId);
   });
 });
