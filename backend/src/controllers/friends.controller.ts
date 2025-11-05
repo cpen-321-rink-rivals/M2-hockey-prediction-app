@@ -19,7 +19,10 @@ export class FriendController {
         return res.status(404).json({ message: 'User not found' });
       }
 
-      const request = await friendModel.sendRequest(sender._id.toString(), receiver._id.toString());
+      const request = await friendModel.sendRequest(
+        sender._id.toString(),
+        receiver._id.toString()
+      );
       res.status(201).json({ message: 'Friend request sent', data: request });
     } catch (error) {
       logger.error('Error sending friend request:', error);
@@ -28,31 +31,46 @@ export class FriendController {
   }
 
   async acceptRequest(req: Request, res: Response, next: NextFunction) {
-      try {
-        const { requestId } = req.body;
-        const updated = await friendModel.acceptRequest(requestId);
-        res.status(200).json({ message: 'Friend request accepted', data: updated });
-      } catch (error) {
-        next(error);
-      }
-    }
+    try {
+      const { requestId } = req.body;
 
-    async rejectRequest(req: Request, res: Response, next: NextFunction) {
-      try {
-        const { requestId } = req.body;
-        const updated = await friendModel.rejectRequest(requestId);
-        res.status(200).json({ message: 'Friend request rejected', data: updated });
-      } catch (error) {
-        next(error);
+      if (!requestId) {
+        return res.status(400).json({ message: 'Request ID is required' });
       }
-    }
 
+      const updated = await friendModel.acceptRequest(requestId);
+      res
+        .status(200)
+        .json({ message: 'Friend request accepted', data: updated });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async rejectRequest(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { requestId } = req.body;
+
+      if (!requestId) {
+        return res.status(400).json({ message: 'Request ID is required' });
+      }
+
+      const updated = await friendModel.rejectRequest(requestId);
+      res
+        .status(200)
+        .json({ message: 'Friend request rejected', data: updated });
+    } catch (error) {
+      next(error);
+    }
+  }
 
   async getFriends(req: Request, res: Response, next: NextFunction) {
     try {
       const user = req.user!;
       const friends = await friendModel.getFriends(user._id.toString());
-      res.status(200).json({ message: 'Friends fetched successfully', data: friends });
+      res
+        .status(200)
+        .json({ message: 'Friends fetched successfully', data: friends });
     } catch (error) {
       next(error);
     }
@@ -61,9 +79,16 @@ export class FriendController {
   async getPendingRequests(req: Request, res: Response, next: NextFunction) {
     try {
       const user = req.user!;
-      const requests = await friendModel.getPendingRequests(user._id.toString());
+      const requests = await friendModel.getPendingRequests(
+        user._id.toString()
+      );
 
-      res.status(200).json({ message: 'Pending requests fetched successfully', data: requests });
+      res
+        .status(200)
+        .json({
+          message: 'Pending requests fetched successfully',
+          data: requests,
+        });
     } catch (error) {
       next(error);
     }

@@ -67,15 +67,19 @@ export class NHLService {
         return await this.getGameStatusDirect(gameId);
       }
 
+      // Apply default values before using in helper methods
+      const gameState = gameData.gameState || 'FUT';
+      const gameScheduleState = gameData.gameScheduleState || 'OK';
+
       const status: GameStatus = {
         gameId: gameData.id.toString(),
-        gameState: gameData.gameState || 'FUT',
-        gameScheduleState: gameData.gameScheduleState || 'OK',
+        gameState: gameState,
+        gameScheduleState: gameScheduleState,
         startTimeUTC: gameData.startTimeUTC,
         detailedState: gameData.gameScheduleState,
-        isLive: this.isGameLive(gameData.gameState),
-        isFinished: this.isGameFinished(gameData.gameState),
-        isScheduled: this.isGameScheduled(gameData.gameState),
+        isLive: this.isGameLive(gameState),
+        isFinished: this.isGameFinished(gameState),
+        isScheduled: this.isGameScheduled(gameState),
       };
 
       // Cache the result
@@ -194,42 +198,6 @@ export class NHLService {
     const startTime = new Date(startTimeUTC).getTime();
     const now = Date.now();
     return startTime - now;
-  }
-
-  /**
-   * Determine optimal polling interval based on game state and time until start
-   * @param gameStatus - Current game status
-   * @returns Polling interval in milliseconds
-   */
-  getPollingInterval(gameStatus: GameStatus): number {
-    if (gameStatus.isLive) {
-      return 30000; // 30 seconds during live game
-    }
-
-    if (gameStatus.isFinished) {
-      return 300000; // 5 minutes for finished games (in case of corrections)
-    }
-
-    // For scheduled games, check time until start
-    const timeUntilStart = this.getTimeUntilStart(gameStatus.startTimeUTC);
-
-    if (timeUntilStart < 0) {
-      // Game should have started but not marked live yet
-      return 60000; // 1 minute
-    }
-
-    if (timeUntilStart < 10 * 60 * 1000) {
-      // Within 10 minutes of start
-      return 60000; // 1 minute
-    }
-
-    if (timeUntilStart < 60 * 60 * 1000) {
-      // Within 1 hour of start
-      return 5 * 60000; // 5 minutes
-    }
-
-    // More than 1 hour away
-    return 10 * 60000; // 10 minutes
   }
 }
 

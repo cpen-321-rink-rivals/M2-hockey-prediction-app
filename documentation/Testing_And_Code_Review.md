@@ -14,12 +14,20 @@
 
 #### 2.1.1. Tests
 
-| **Interface**                 | **Describe Group Location, No Mocks**                | **Describe Group Location, With Mocks**            | **Mocked Components**              |
-| ----------------------------- | ---------------------------------------------------- | -------------------------------------------------- | ---------------------------------- |
-| **POST /user/login**          | [`tests/unmocked/authenticationLogin.test.js#L1`](#) | [`tests/mocked/authenticationLogin.test.js#L1`](#) | Google Authentication API, User DB |
-| **POST /study-groups/create** | ...                                                  | ...                                                | Study Group DB                     |
-| ...                           | ...                                                  | ...                                                | ...                                |
-| ...                           | ...                                                  | ...                                                | ...                                |
+| **Interface**                       | **Describe Group Location, No Mocks**                        | **Describe Group Location, With Mocks**                   | **Mocked Components**        |
+| ----------------------------------- | ------------------------------------------------------------ | --------------------------------------------------------- | ---------------------------- |
+| **GET /api/tickets/user/:userId**   | `tests/unmocked/bingo-tickets/get-user-tickets.test.ts`      | `tests/mocked/bingo-tickets/get-user-tickets-M.test.ts`   | Ticket DB, User DB, JWT Auth |
+| **GET /api/tickets/:id**            | `tests/unmocked/bingo-tickets/get-ticket-by-id.test.ts`      | `tests/mocked/bingo-tickets/get-ticket-by-id-M.test.ts`   | Ticket DB, User DB, JWT Auth |
+| **POST /api/tickets**               | `tests/unmocked/bingo-tickets/post-bingo-tickets-NM.test.ts` | `tests/mocked/bingo-tickets/post-bingo-tickets-M.test.ts` | Ticket DB, User DB, JWT Auth |
+| **PUT /api/tickets/:id/crossedOff** | `tests/unmocked/bingo-tickets/update-crossed-off.test.ts`    | `tests/mocked/bingo-tickets/update-crossed-off-M.test.ts` | Ticket DB, User DB, JWT Auth |
+| **DELETE /api/tickets/:id**         | `tests/unmocked/bingo-tickets/delete-ticket.test.ts`         | `tests/mocked/bingo-tickets/delete-ticket-M.test.ts`      | Ticket DB, User DB, JWT Auth |
+| **POST /api/friends/send**          | `tests/unmocked/friends/send-friend-request.test.ts`         | `tests/mocked/friends/send-friend-request-M.test.ts`      | Friend DB, User DB, JWT Auth |
+| **POST /api/friends/accept**        | `tests/unmocked/friends/accept-friend-request.test.ts`       | `tests/mocked/friends/accept-friend-request-M.test.ts`    | Friend DB, User DB, JWT Auth |
+| **POST /api/friends/reject**        | `tests/unmocked/friends/reject-friend-request.test.ts`       | `tests/mocked/friends/reject-friend-request-M.test.ts`    | Friend DB, User DB, JWT Auth |
+| **GET /api/friends/list**           | `tests/unmocked/friends/get-friends.test.ts`                 | `tests/mocked/friends/get-friends-M.test.ts`              | Friend DB, User DB, JWT Auth |
+| **GET /api/friends/pending**        | `tests/unmocked/friends/get-pending-requests.test.ts`        | `tests/mocked/friends/get-pending-requests-M.test.ts`     | Friend DB, User DB, JWT Auth |
+| **DELETE /api/friends/:friendId**   | `tests/unmocked/friends/remove-friend.test.ts`               | `tests/mocked/friends/remove-friend-M.test.ts`            | Friend DB, User DB, JWT Auth |
+| **NHLService.getGameStatus()**      | `tests/unmocked/nhl-service/get-game-status.test.ts`         | `tests/mocked/nhl-service/get-game-status-M.test.ts`      | Axios, NHL API               |
 
 #### 2.1.2. Commit Hash Where Tests Run
 
@@ -31,10 +39,20 @@
 
    - Open your terminal and run:
      ```
-     git clone https://github.com/example/your-project.git
+     git clone https://github.com/cpen-321-rink-rivals/M2-hockey-prediction-app.git
      ```
 
-2. **...**
+2. **Navigate to the backend**
+
+   ```
+    cd backend
+   ```
+
+3. Run the tests with coverage
+
+   ```
+     npm test -- --coverage
+   ```
 
 ### 2.2. GitHub Actions Configuration Location
 
@@ -56,29 +74,7 @@ _(Placeholder for Jest coverage screenshot both with and without mocking)_
 
 ## 3. Back-end Test Specification: Tests of Non-Functional Requirements
 
-### 3.1. Test Locations in Git
-
-| **Non-Functional Requirement**  | **Location in Git**                              |
-| ------------------------------- | ------------------------------------------------ |
-| **Performance (Response Time)** | [`tests/nonfunctional/response_time.test.js`](#) |
-| **Chat Data Security**          | [`tests/nonfunctional/chat_security.test.js`](#) |
-
-### 3.2. Test Verification and Logs
-
-- **Performance (Response Time)**
-
-  - **Verification:** This test suite simulates multiple concurrent API calls using Jest along with a load-testing utility to mimic real-world user behavior. The focus is on key endpoints such as user login and study group search to ensure that each call completes within the target response time of 2 seconds under normal load. The test logs capture metrics such as average response time, maximum response time, and error rates. These logs are then analyzed to identify any performance bottlenecks, ensuring the system can handle expected traffic without degradation in user experience.
-  - **Log Output**
-    ```
-    [Placeholder for response time test logs]
-    ```
-
-- **Chat Data Security**
-  - **Verification:** ...
-  - **Log Output**
-    ```
-    [Placeholder for chat security test logs]
-    ```
+#### This part of the testing was skipped due to reduced team sized as discussed with the professor
 
 ---
 
