@@ -16,17 +16,17 @@
 
 | **Interface**                       | **Describe Group Location, No Mocks**                        | **Describe Group Location, With Mocks**                   | **Mocked Components**        |
 | ----------------------------------- | ------------------------------------------------------------ | --------------------------------------------------------- | ---------------------------- |
-| **GET /api/tickets/user/:userId**   | `tests/unmocked/bingo-tickets/get-user-tickets.test.ts`      | `tests/mocked/bingo-tickets/get-user-tickets-M.test.ts`   | Ticket DB, User DB, JWT Auth |
-| **GET /api/tickets/:id**            | `tests/unmocked/bingo-tickets/get-ticket-by-id.test.ts`      | `tests/mocked/bingo-tickets/get-ticket-by-id-M.test.ts`   | Ticket DB, User DB, JWT Auth |
-| **POST /api/tickets**               | `tests/unmocked/bingo-tickets/post-bingo-tickets-NM.test.ts` | `tests/mocked/bingo-tickets/post-bingo-tickets-M.test.ts` | Ticket DB, User DB, JWT Auth |
-| **PUT /api/tickets/:id/crossedOff** | `tests/unmocked/bingo-tickets/update-crossed-off.test.ts`    | `tests/mocked/bingo-tickets/update-crossed-off-M.test.ts` | Ticket DB, User DB, JWT Auth |
-| **DELETE /api/tickets/:id**         | `tests/unmocked/bingo-tickets/delete-ticket.test.ts`         | `tests/mocked/bingo-tickets/delete-ticket-M.test.ts`      | Ticket DB, User DB, JWT Auth |
-| **POST /api/friends/send**          | `tests/unmocked/friends/send-friend-request.test.ts`         | `tests/mocked/friends/send-friend-request-M.test.ts`      | Friend DB, User DB, JWT Auth |
-| **POST /api/friends/accept**        | `tests/unmocked/friends/accept-friend-request.test.ts`       | `tests/mocked/friends/accept-friend-request-M.test.ts`    | Friend DB, User DB, JWT Auth |
-| **POST /api/friends/reject**        | `tests/unmocked/friends/reject-friend-request.test.ts`       | `tests/mocked/friends/reject-friend-request-M.test.ts`    | Friend DB, User DB, JWT Auth |
-| **GET /api/friends/list**           | `tests/unmocked/friends/get-friends.test.ts`                 | `tests/mocked/friends/get-friends-M.test.ts`              | Friend DB, User DB, JWT Auth |
-| **GET /api/friends/pending**        | `tests/unmocked/friends/get-pending-requests.test.ts`        | `tests/mocked/friends/get-pending-requests-M.test.ts`     | Friend DB, User DB, JWT Auth |
-| **DELETE /api/friends/:friendId**   | `tests/unmocked/friends/remove-friend.test.ts`               | `tests/mocked/friends/remove-friend-M.test.ts`            | Friend DB, User DB, JWT Auth |
+| **GET /api/tickets/user/:userId**   | `tests/unmocked/bingo-tickets/get-user-tickets.test.ts`      | `tests/mocked/bingo-tickets/get-user-tickets-M.test.ts`   | Ticket DB, User DB |
+| **GET /api/tickets/:id**            | `tests/unmocked/bingo-tickets/get-ticket-by-id.test.ts`      | `tests/mocked/bingo-tickets/get-ticket-by-id-M.test.ts`   | Ticket DB, User DB |
+| **POST /api/tickets**               | `tests/unmocked/bingo-tickets/post-bingo-tickets-NM.test.ts` | `tests/mocked/bingo-tickets/post-bingo-tickets-M.test.ts` | Ticket DB, User DB |
+| **PUT /api/tickets/:id/crossedOff** | `tests/unmocked/bingo-tickets/update-crossed-off.test.ts`    | `tests/mocked/bingo-tickets/update-crossed-off-M.test.ts` | Ticket DB, User DB |
+| **DELETE /api/tickets/:id**         | `tests/unmocked/bingo-tickets/delete-ticket.test.ts`         | `tests/mocked/bingo-tickets/delete-ticket-M.test.ts`      | Ticket DB, User DB |
+| **POST /api/friends/send**          | `tests/unmocked/friends/send-friend-request.test.ts`         | `tests/mocked/friends/send-friend-request-M.test.ts`      | Friend DB, User DB |
+| **POST /api/friends/accept**        | `tests/unmocked/friends/accept-friend-request.test.ts`       | `tests/mocked/friends/accept-friend-request-M.test.ts`    | Friend DB, User DB |
+| **POST /api/friends/reject**        | `tests/unmocked/friends/reject-friend-request.test.ts`       | `tests/mocked/friends/reject-friend-request-M.test.ts`    | Friend DB, User DB |
+| **GET /api/friends/list**           | `tests/unmocked/friends/get-friends.test.ts`                 | `tests/mocked/friends/get-friends-M.test.ts`              | Friend DB, User DB |
+| **GET /api/friends/pending**        | `tests/unmocked/friends/get-pending-requests.test.ts`        | `tests/mocked/friends/get-pending-requests-M.test.ts`     | Friend DB, User DB |
+| **DELETE /api/friends/:friendId**   | `tests/unmocked/friends/remove-friend.test.ts`               | `tests/mocked/friends/remove-friend-M.test.ts`            | Friend DB, User DB |
 | **NHLService.getGameStatus()**      | `tests/unmocked/nhl-service/get-game-status.test.ts`         | `tests/mocked/nhl-service/get-game-status-M.test.ts`      | Axios, NHL API               |
 
 #### 2.1.2. Commit Hash Where Tests Run
@@ -60,15 +60,16 @@
 
 ### 2.3. Jest Coverage Report Screenshots for Tests Without Mocking
 
-_(Placeholder for Jest coverage screenshot without mocking)_
+![Jest Coverage Without Mocking](../images/jest-coverage-without-mocking.png)
 
 ### 2.4. Jest Coverage Report Screenshots for Tests With Mocking
 
-_(Placeholder for Jest coverage screenshot with mocking)_
+![Jest Coverage With Mocking](../images/jest-coverage-with-mocking.png)
 
 ### 2.5. Jest Coverage Report Screenshots for Both Tests With and Without Mocking
 
-_(Placeholder for Jest coverage screenshot both with and without mocking)_
+![Jest Coverage Combined](../images/jest-coverage-both.png)
+
 
 ---
 
