@@ -42,7 +42,7 @@ jobs:
         working-directory: ./backend
         run: |
           cat > .env.test <<EOF
-          MONGO_URI=mongodb://localhost:27017/hockey-test
+          MONGODB_URI=mongodb://localhost:27017/hockey-test
           JWT_SECRET=${{ secrets.TEST_JWT_SECRET }}
           GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}
           PORT=3000
@@ -51,7 +51,7 @@ jobs:
 
       - name: Run tests
         working-directory: ./backend
-        run: npm test
+        run: npm test -- --coverage
 
       - name: Upload test coverage
         if: always()
