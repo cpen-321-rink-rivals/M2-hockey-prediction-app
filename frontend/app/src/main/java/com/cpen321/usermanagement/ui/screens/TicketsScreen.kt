@@ -167,6 +167,22 @@ fun TicketsList(
             modifier = modifier.padding(horizontal = 16.dp, vertical = 8.dp),
             contentPadding = PaddingValues(bottom = 100.dp)
         ) {
+            stickyHeader {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(MaterialTheme.colorScheme.surfaceVariant)
+                        .padding(vertical = 12.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "Click a ticket to fill in squares!",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
+
             items(
                 count = allTickets.size,
                 key = { index -> allTickets[index]._id }
