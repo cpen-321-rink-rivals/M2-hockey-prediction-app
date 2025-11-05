@@ -22,11 +22,17 @@ const friendRequestSchema = new Schema<IFriendRequest>(
   { timestamps: true }
 );
 
+// Export the mongoose model for direct database operations (testing)
+export const FriendRequest = mongoose.model<IFriendRequest>(
+  'FriendRequest',
+  friendRequestSchema
+);
+
 class FriendModel {
   private friendRequest: mongoose.Model<IFriendRequest>;
 
   constructor() {
-    this.friendRequest = mongoose.model<IFriendRequest>('FriendRequest', friendRequestSchema);
+    this.friendRequest = FriendRequest;
   }
 
   async sendRequest(senderId: string, receiverId: string) {
@@ -39,7 +45,10 @@ class FriendModel {
       throw new Error('Friend request already exists');
     }
 
-    return this.friendRequest.create({ sender: senderId, receiver: receiverId });
+    return this.friendRequest.create({
+      sender: senderId,
+      receiver: receiverId,
+    });
   }
 
   async acceptRequest(requestId: string) {

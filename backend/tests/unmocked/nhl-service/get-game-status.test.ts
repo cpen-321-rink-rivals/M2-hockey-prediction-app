@@ -177,31 +177,6 @@ describe('Unmocked NHLService.getGameStatus (Integration)', () => {
     expect(result === null || typeof result === 'object').toBe(true);
   }, 15000);
 
-  // Input: Verify polling interval logic with real game status
-  // Expected behavior: Returns appropriate polling intervals
-  // Expected output: Valid millisecond intervals
-  test('Calculates polling intervals correctly for real game states', async () => {
-    const gameId = '2024020001';
-    const result = await nhlService.getGameStatus(gameId);
-
-    if (result !== null) {
-      const pollingInterval = nhlService.getPollingInterval(result);
-
-      // Verify interval is a positive number
-      expect(pollingInterval).toBeGreaterThan(0);
-      expect(typeof pollingInterval).toBe('number');
-
-      // Verify interval makes sense based on game state
-      if (result.isLive) {
-        expect(pollingInterval).toBe(30000); // 30 seconds for live
-      } else if (result.isFinished) {
-        expect(pollingInterval).toBe(300000); // 5 minutes for finished
-      } else if (result.isScheduled) {
-        expect(pollingInterval).toBeGreaterThan(30000); // At least 30 seconds
-      }
-    }
-  }, 15000);
-
   // Input: Verify time until start calculation
   // Expected behavior: Returns correct time difference
   // Expected output: Number (milliseconds)

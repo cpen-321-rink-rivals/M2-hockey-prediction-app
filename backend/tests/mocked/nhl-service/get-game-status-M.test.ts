@@ -8,21 +8,10 @@ import {
 } from '@jest/globals';
 import axios from 'axios';
 
-// Mock logger BEFORE importing the service
-jest.mock('../../../src/logger.util', () => ({
-  __esModule: true,
-  default: {
-    debug: jest.fn(),
-    info: jest.fn(),
-    warn: jest.fn(),
-    error: jest.fn(),
-  },
-}));
-
 // Mock axios
 jest.mock('axios');
 
-import { NHLService, GameStatus } from '../../../src/services/nhl.service';
+import { NHLService } from '../../../src/services/nhl.service';
 
 const mockedAxios = axios as jest.Mocked<typeof axios>;
 
@@ -229,6 +218,7 @@ describe('Mocked NHLService.getGameStatus', () => {
     const result = await nhlService.getGameStatus(mockGameId);
 
     expect(result).toBeNull();
+    expect(mockedAxios.get).toHaveBeenCalledTimes(1);
   });
 
   // Mocked behavior: API returns 500 Internal Server Error
@@ -251,6 +241,7 @@ describe('Mocked NHLService.getGameStatus', () => {
     const result = await nhlService.getGameStatus(mockGameId);
 
     expect(result).toBeNull();
+    expect(mockedAxios.get).toHaveBeenCalledTimes(1);
   });
 
   // Mocked behavior: API returns malformed response (missing gameWeek)
