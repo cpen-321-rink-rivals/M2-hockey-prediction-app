@@ -26,7 +26,7 @@ interface TicketsInterface {
         @Path("id") id: String
     ): Response<Unit>
 
-    @PUT("tickets/{id}/crossedOff")
+    @PUT("tickets/crossedOff/{id}")
     suspend fun updateCrossedOff(
         @Path("id") id: String,
         @Body crossedOff: List<Boolean>

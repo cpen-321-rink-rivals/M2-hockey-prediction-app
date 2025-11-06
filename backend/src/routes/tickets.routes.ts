@@ -13,6 +13,6 @@ router.post('/', createBingoTicket);
 router.get('/user/:userId', getUserTickets); // Changed to /user/:userId to avoid conflict
 router.get('/:id', getTicketById); // Get ticket by ID
 router.delete('/:id', deleteTicket);
-router.put('/:id/crossedOff', updateCrossedOff);
+router.put('/crossedOff/:id', updateCrossedOff);
 
 export default router;

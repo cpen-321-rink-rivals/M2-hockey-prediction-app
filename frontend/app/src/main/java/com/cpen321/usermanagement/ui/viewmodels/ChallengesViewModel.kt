@@ -424,7 +424,7 @@ class ChallengesViewModel @Inject constructor(
     }
 
     /**
-     * Load a single ticket by ID and add it to availableTickets
+     * Load a single ticket by ID and add it to challengeTickets
      */
     fun loadTicketById(ticketId: String) {
         viewModelScope.launch {
@@ -432,12 +432,19 @@ class ChallengesViewModel @Inject constructor(
             val ticket = ticketResult.getOrNull()
 
             if (ticket != null) {
-                // Add this ticket to availableTickets if not already there
-                val currentTickets = _uiState.value.challengeTickets?.toMutableList() ?: mutableListOf()
-                if (!currentTickets.any { it._id == ticket._id }) {
+                // Update ticket if it exists, otherwise add it
+                val currentTickets = _uiState.value.challengeTickets.orEmpty().toMutableList()
+                val existingIndex = currentTickets.indexOfFirst { it._id == ticketId }
+                
+                if (existingIndex >= 0) {
+                    // Update existing ticket
+                    currentTickets[existingIndex] = ticket
+                } else {
+                    // Add new ticket
                     currentTickets.add(ticket)
-                    _uiState.value = _uiState.value.copy(challengeTickets = currentTickets)
                 }
+                
+                _uiState.value = _uiState.value.copy(challengeTickets = currentTickets)
             } else {
                 Log.w(TAG, "Failed to load ticket: $ticketId")
             }
