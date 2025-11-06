@@ -25,7 +25,7 @@ app.use(express.json());
 app.use('/api', router);
 
 // Interface PUT /api/tickets/:id/crossedOff
-describe('Mocked PUT /api/tickets/:id/crossedOff', () => {
+describe('Mocked PUT /api/tickets/crossedOff/:id', () => {
   let authToken: string;
   let testUserId: string;
   let testTicketId: string;
@@ -85,7 +85,7 @@ describe('Mocked PUT /api/tickets/:id/crossedOff', () => {
 
     // Act
     const res = await request(app)
-      .put(`/api/tickets/${testTicketId}/crossedOff`)
+      .put(`/api/tickets/crossedOff/${testTicketId}`)
       .set('Authorization', `Bearer ${authToken}`)
       .send({ crossedOff });
 
