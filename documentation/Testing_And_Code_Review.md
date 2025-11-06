@@ -87,19 +87,184 @@ Commit SHA: `84f27f68d5dacab9ba18a9fe7d990c4a4e37f31c`
 
 ### 4.2. Tests
 
-- **Use Case: Login**
+- **Use Case: Send Friend Request**
 
   - **Expected Behaviors:**
-    | **Scenario Steps** | **Test Case Steps** |
-    | ------------------ | ------------------- |
-    | 1. The user opens "Add Todo Items" screen. | Open "Add Todo Items" screen. |
-    | 2. The app shows an input text field and an "Add" button. The add button is disabled. | Check that the text field is present on screen.<br>Check that the button labelled "Add" is present on screen.<br>Check that the "Add" button is disabled. |
-    | 3a. The user inputs an ill-formatted string. | Input "_^_^^OQ#$" in the text field. |
-    | 3a1. The app displays an error message prompting the user for the expected format. | Check that a dialog is opened with the text: "Please use only alphanumeric characters ". |
-    | 3. The user inputs a new item for the list and the add button becomes enabled. | Input "buy milk" in the text field.<br>Check that the button labelled "add" is enabled. |
-    | 4. The user presses the "Add" button. | Click the button labelled "add ". |
-    | 5. The screen refreshes and the new item is at the bottom of the todo list. | Check that a text box with the text "buy milk" is present on screen.<br>Input "buy chocolate" in the text field.<br>Click the button labelled "add".<br>Check that two text boxes are present on the screen with "buy milk" on top and "buy chocolate" at the bottom. |
-    | 5a. The list exceeds the maximum todo-list size. | Repeat steps 3 to 5 ten times.<br>Check that a dialog is opened with the text: "You have too many items, try completing one first". |
+
+    | **Scenario Steps**                                                                               | **Test Case Steps**                                                                |
+| ------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------- |
+| 1. The user opens the Friends screen.                                                            | Launch the Friends screen with a fake repository and ViewModel.                    |
+| 2. The app shows an input field labeled "Enter friend code" and a button labeled "Send Request." | Check that the input field and "Send Request" button are visible on screen.        |
+| 3a. The user enters a valid friend code.                                                         | Type `"VALIDCODE"` into the input field.<br>Click the "Send Request" button.       |
+| 3a1. The app confirms that the friend request was sent.                                          | Verify that the text `"Friend request sent!"` is displayed.                        |
+| 3b. The user enters an invalid friend code.                                                      | Clear the text field and type `"INVALID"`.<br>Click the "Send Request" button.     |
+| 3b1. The app shows an error message indicating the failure.                                      | Verify that the text `"Failed to send request: Invalid friend code"` is displayed. |
+| 3c. The user tries to send an empty friend code.                                                 | Clear the text field.<br>Click the "Send Request" button.                          |
+| 3c1. The app prevents the action and displays a warning.                                         | Verify that the text `"Friend code cannot be empty"` is displayed.                 |
+
+
+  - **Test Logs:**
+    ```
+    [Placeholder for Espresso test execution logs]
+    ```
+
+- **Use Case: Accept Friend Request**
+
+  - **Expected Behaviors:**
+
+    | **Scenario Steps**                                                                | **Test Case Steps**                                                                                                      |
+| --------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| 1. The user opens the Friends screen with a pending request.                      | Launch the Friends screen with a fake repository containing pending requests.                                            |
+| 2. The app displays the "Pending Requests" section and a request from "Taylor."   | Verify that `"Pending Requests"` and `"Taylor"` are displayed.                                                           |
+| 3. The user clicks "Accept" next to the pending request.                          | Click the "Accept" button beside `"Taylor"`.                                                                             |
+| 4. The app confirms that the friend was added and moves them to the friends list. | Verify that `"Taylor"` remains visible under the friends list.<br>Verify that `"Friend request accepted!"` is displayed. |
+
+
+  - **Test Logs:**
+    ```
+    [Placeholder for Espresso test execution logs]
+    ```
+
+- **Use Case: Reject Friend Request**
+
+  - **Expected Behaviors:**
+
+    | **Scenario Steps**                                                              | **Test Case Steps**                                                                                            |
+| ------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| 1. The user opens the Friends screen with pending requests.                     | Launch the Friends screen with a fake repository containing pending requests.                                  |
+| 2. The app displays a pending request from "Taylor."                            | Verify that `"Taylor"` is visible.                                                                             |
+| 3. The user clicks "Reject" next to the request.                                | Click the "Reject" button beside `"Taylor"`.                                                                   |
+| 4. The app confirms that the request was rejected and removes it from the list. | Verify that `"Friend request rejected"` is displayed.<br>Wait until `"Taylor"` is no longer visible on screen. |
+
+
+  - **Test Logs:**
+    ```
+    [Placeholder for Espresso test execution logs]
+    ```
+
+- **Use Case: Remove Friend**
+
+  - **Expected Behaviors:**
+
+    | **Scenario Steps**                                                     | **Test Case Steps**                                                                    |
+| ---------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| 1. The user opens the Friends screen with an existing friend list.     | Launch the Friends screen with a fake repository containing `"Alex"`.                  |
+| 2. The app displays `"Alex"` with a "Remove" button beside their name. | Verify that `"Alex"` is visible on screen.                                             |
+| 3. The user clicks "Remove" next to `"Alex"`.                          | Click the first "Remove" button found.                                                 |
+| 4. The app confirms the removal and updates the list.                  | Wait until `"Alex"` no longer appears.<br>Verify that `"Friend removed"` is displayed. |
+
+
+  - **Test Logs:**
+    ```
+    [Placeholder for Espresso test execution logs]
+    ```
+
+- **Use Case: View Friends List**
+
+  - **Expected Behaviors:**
+
+    | **Scenario Steps**                                               | **Test Case Steps**                                                           |
+| ---------------------------------------------------------------- | ----------------------------------------------------------------------------- |
+| 1. The user opens the Friends screen with friends in their list. | Launch the Friends screen with a fake repository containing existing friends. |
+| 2. The app displays all current friends.                         | Verify that `"Alex"` is visible on screen.                                    |
+
+
+  - **Test Logs:**
+    ```
+    [Placeholder for Espresso test execution logs]
+    ```
+
+- **Use Case: View Friends List (empty list)**
+
+  - **Expected Behaviors:**
+
+    | **Scenario Steps**                                                            | **Test Case Steps**                                              |
+| ----------------------------------------------------------------------------- | ---------------------------------------------------------------- |
+| 1. The user opens the Friends screen with no friends and no pending requests. | Launch the Friends screen with a fake repository in empty state. |
+| 2. The app displays a message indicating the empty state.                     | Verify that `"No friends yet."` is displayed on screen.          |
+
+
+  - **Test Logs:**
+    ```
+    [Placeholder for Espresso test execution logs]
+    ```
+
+- **Use Case: View Tickets List**
+
+  - **Expected Behaviors:**
+
+    | **Scenario Steps**                                              | **Test Case Steps**                                                                                          |
+| --------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| 1. The user opens the Bingo Tickets screen.                     | Launch the Tickets screen with a fake repository and ViewModel.                                              |
+| 2. The app displays the screen title and a list of tickets.     | Verify that the text `"Bingo Tickets"` is displayed.<br>Verify that `"My First Ticket"` appears in the list. |
+| 3. The displayed list corresponds to the user’s stored tickets. | Confirm that the tickets shown match those in the fake repository data.                                      |
+
+
+  - **Test Logs:**
+    ```
+    [Placeholder for Espresso test execution logs]
+    ```
+
+- **Use Case: Delete Ticket**
+
+  - **Expected Behaviors:**
+
+    | **Scenario Steps**                                                   | **Test Case Steps**                                                              |
+| -------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
+| 1. The user opens the Bingo Tickets screen with at least one ticket. | Launch the Tickets screen with a fake repository containing `"My First Ticket"`. |
+| 2. The app displays the list of existing tickets.                    | Verify that `"My First Ticket"` is visible on screen.                            |
+| 3. The user clicks the "Delete" button beside a ticket.              | Click the "Delete" button associated with `"My First Ticket"`.                   |
+| 4. The ticket is removed from the list and no longer visible.        | Wait until `"My First Ticket"` is no longer displayed on screen.                 |
+
+
+  - **Test Logs:**
+    ```
+    [Placeholder for Espresso test execution logs]
+    ```
+
+- **Use Case: View Tickets (empty)**
+
+  - **Expected Behaviors:**
+
+    | **Scenario Steps**                                                | **Test Case Steps**                                                                   |
+| ----------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| 1. The user opens the Bingo Tickets screen with no saved tickets. | Configure the fake repository with `emptyState = true`.<br>Launch the Tickets screen. |
+| 2. The app shows an empty state message.                          | Verify that `"No bingo tickets yet."` is displayed on screen.                         |
+
+
+  - **Test Logs:**
+    ```
+    [Placeholder for Espresso test execution logs]
+    ```
+
+- **Use Case: Create new Ticket**
+
+  - **Expected Behaviors:**
+
+    | **Scenario Steps**                                              | **Test Case Steps**                                                                                          |
+| --------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| 1. The user navigates to the Create Ticket screen.              | Use `navManager.navigateToCreateTicket()` to move to the create ticket screen.                                                                                  |
+| 2. The user enters a ticket name and selects events for a game. | Retrieve a game from the fake NHL data.<br>Call `viewModel.createTicket()` with: <br>• `name = "Test Ticket"` <br>• 9 events (`"Event 1"` through `"Event 9"`). |
+| 3. The user returns to the Tickets screen.                      | Relaunch the Tickets screen using the same ViewModel.                                                                                                           |
+| 4. The newly created ticket appears in the list.                | Verify that `"Test Ticket"` is visible on screen.                                                                                                               |
+
+
+  - **Test Logs:**
+    ```
+    [Placeholder for Espresso test execution logs]
+    ```
+
+- **Use Case: Toggle Bingo square**
+
+  - **Expected Behaviors:**
+
+    | **Scenario Steps**                                                | **Test Case Steps**                                                                                                |
+| ----------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| 1. The user opens a specific Bingo Ticket detail view.            | Retrieve a ticket from the fake repository.<br>Set the content to `TicketDetailScreen` using that ticket.          |
+| 2. The app displays a grid of bingo squares.                      | Verify that multiple nodes with content description `"Bingo Square"` are displayed.                                |
+| 3. The user clicks a square to cross it off.                      | Perform click action on the first node with content description `"Bingo Square"`.                                  |
+| 4. The ViewModel updates the state of that square to crossed off. | Retrieve the updated ticket from the ViewModel’s state.<br>Assert that the first `crossedOff` entry equals `true`. |
+
 
   - **Test Logs:**
     ```
@@ -118,8 +283,6 @@ Commit SHA: `84f27f68d5dacab9ba18a9fe7d990c4a4e37f31c`
     ```
     [Placeholder for Espresso test execution logs]
     ```
-
-- **...**
 
 ---
 
