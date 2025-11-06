@@ -218,7 +218,7 @@ fun TicketsList(
                         Spacer(modifier = Modifier.height(12.dp))
 
                         TextButton(onClick = { ticketsViewModel.deleteTicket(ticket._id) }) {
-                            Text("Remove")
+                            Text("Delete")
                         }
                     }
                 }

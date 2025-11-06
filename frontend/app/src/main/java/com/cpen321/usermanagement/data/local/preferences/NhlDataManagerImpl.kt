@@ -197,19 +197,19 @@ class NhlDataManagerImpl @Inject constructor(
         val eventsPerTeam = count / 2
 
         fun randomThresholdFor(subject: String): Int = when (subject) {
-            "player.goals" -> (1..3).random(random)
-            "player.assists" -> (1..3).random(random)
-            "player.hits" -> (2..6).random(random)
+            "player.goals" -> (1..2).random(random)
+            "player.assists" -> (1..2).random(random)
+            "player.hits" -> (2..5).random(random)
             "player.sog" -> (3..7).random(random)
-            "player.blockedShots" -> (1..4).random(random)
-            "player.toi" -> (16..24).random(random)
-            "player.saves" -> (20..40).random(random)
+            "player.blockedShots" -> (2..5).random(random)
+            "player.toi" -> (13..21).random(random)
+            "player.saves" -> (20..35).random(random)
             "player.savePct" -> (89..95).random(random)
             "player.goalsAgainst" -> (1..3).random(random)
             "team.goals" -> (2..5).random(random)
             "team.sog" -> (20..35).random(random)
-            "team.faceoffWinningPctg" -> (45..60).random(random)
-            "team.penaltyMinutes" -> (4..10).random(random)
+            "team.faceoffWinningPctg" -> (50..55).random(random)
+            "team.penaltyMinutes" -> (4..8).random(random)
             else -> 1
         }
 
