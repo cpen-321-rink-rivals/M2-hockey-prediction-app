@@ -58,7 +58,7 @@ class TicketTests {
     fun viewTickets_displaysListCorrectly() {
         launchTicketsScreen()
 
-        composeTestRule.onNodeWithText("Tickets").assertIsDisplayed()
+        composeTestRule.onNodeWithText("Bingo Tickets").assertIsDisplayed()
         composeTestRule.onNodeWithText("My First Ticket").assertIsDisplayed()
     }
 
@@ -69,8 +69,7 @@ class TicketTests {
 
         composeTestRule.onNodeWithText("My First Ticket").assertIsDisplayed()
 
-        // Find and click "X" or delete button (adjust text/tag if different)
-        composeTestRule.onAllNodesWithContentDescription("Delete Ticket")[0].performClick()
+        composeTestRule.onNodeWithText("Delete").performClick()
 
         composeTestRule.waitUntilDoesNotExist(hasText("My First Ticket"))
     }
@@ -80,20 +79,13 @@ class TicketTests {
         fakeRepo.emptyState = true
         launchTicketsScreen()
 
-        composeTestRule.onNodeWithText("No tickets yet.").assertIsDisplayed()
+        composeTestRule.onNodeWithText("No bingo tickets yet.").assertIsDisplayed()
     }
 
     @Test
     fun createTicket_successfullyAddsToList() {
         // Navigate to Create Ticket screen
-        composeTestRule.setContent {
-            CreateBingoTicketScreen(
-                ticketsViewModel = viewModel,
-                onBackClick = {},
-                authViewModel = fakeAuth,
-                onTicketCreated = { navManager.navigateToTickets() }
-            )
-        }
+        navManager.navigateToCreateTicket()
 
         val userId = fakeAuth.uiState.value.user!!._id
         val game = fakeNhl.getGamesForTickets().first()
