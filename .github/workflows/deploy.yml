@@ -30,7 +30,7 @@ jobs:
           script: |
             cd /home/ubuntu/hockey_app/backend
             # Write secrets into .env file
-            cat > backend/.env <<EOF
+            cat > .env <<EOF
             PORT=${{ secrets.PROD_PORT }}
             JWT_SECRET=${{ secrets.PROD_JWT_SECRET }}
             MONGODB_URI=${{ secrets.PROD_DB_URI }}
@@ -40,10 +40,7 @@ jobs:
 
 
             # Give .env file permissions
-            chmod 600 backend/.env
-
-            # Build and run container
-            cd backend
+            chmod 600 .env
 
             # Cleanly recreate the stack
             docker compose down
