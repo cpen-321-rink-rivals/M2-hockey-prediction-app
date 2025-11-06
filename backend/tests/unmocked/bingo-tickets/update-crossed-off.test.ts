@@ -25,7 +25,7 @@ const app = express();
 app.use(express.json());
 app.use('/api', router);
 
-describe('Unmocked PUT /api/tickets/:id/crossedOff', () => {
+describe('Unmocked PUT /api/tickets/crossedOff/:id', () => {
   let authToken: string;
   let testUserId: string;
   let testTicketId: string;
@@ -90,9 +90,9 @@ describe('Unmocked PUT /api/tickets/:id/crossedOff', () => {
       true,
     ];
 
-    // Act: Make PUT request to /api/tickets/:id/crossedOff with auth token
+    // Act: Make PUT request to /api/tickets/crossedOff/:id with auth token
     const response = await request(app)
-      .put(`/api/tickets/${testTicketId}/crossedOff`)
+      .put(`/api/tickets/crossedOff/${testTicketId}`)
       .set('Authorization', `Bearer ${authToken}`)
       .send({ crossedOff })
       .expect('Content-Type', /json/);
@@ -127,7 +127,7 @@ describe('Unmocked PUT /api/tickets/:id/crossedOff', () => {
 
     // Act: Make PUT request sending array directly
     const response = await request(app)
-      .put(`/api/tickets/${testTicketId}/crossedOff`)
+      .put(`/api/tickets/crossedOff/${testTicketId}`)
       .set('Authorization', `Bearer ${authToken}`)
       .send(crossedOff)
       .expect('Content-Type', /json/);
@@ -153,7 +153,7 @@ describe('Unmocked PUT /api/tickets/:id/crossedOff', () => {
 
     // Act: Make PUT request with non-existent id
     const response = await request(app)
-      .put(`/api/tickets/${fakeTicketId}/crossedOff`)
+      .put(`/api/tickets/crossedOff/${fakeTicketId}`)
       .set('Authorization', `Bearer ${authToken}`)
       .send({ crossedOff })
       .expect('Content-Type', /json/);
@@ -170,7 +170,7 @@ describe('Unmocked PUT /api/tickets/:id/crossedOff', () => {
   test('Invalid crossedOff format', async () => {
     // Act: Make PUT request with invalid data
     const response = await request(app)
-      .put(`/api/tickets/${testTicketId}/crossedOff`)
+      .put(`/api/tickets/crossedOff/${testTicketId}`)
       .set('Authorization', `Bearer ${authToken}`)
       .send({ crossedOff: 'not-an-array' })
       .expect('Content-Type', /json/);
@@ -202,7 +202,7 @@ describe('Unmocked PUT /api/tickets/:id/crossedOff', () => {
 
     // Act: Make PUT request with invalid id format
     const response = await request(app)
-      .put('/api/tickets/invalid-id-format/crossedOff')
+      .put('/api/tickets/crossedOff/invalid-id-format')
       .set('Authorization', `Bearer ${authToken}`)
       .send({ crossedOff })
       .expect('Content-Type', /json/);
@@ -231,7 +231,7 @@ describe('Unmocked PUT /api/tickets/:id/crossedOff', () => {
 
     // Act: Make PUT request WITHOUT auth token
     const response = await request(app)
-      .put(`/api/tickets/${testTicketId}/crossedOff`)
+      .put(`/api/tickets/crossedOff/${testTicketId}`)
       .send({ crossedOff })
       .expect('Content-Type', /json/);
 
