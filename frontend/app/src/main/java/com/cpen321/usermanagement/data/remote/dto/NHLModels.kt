@@ -107,3 +107,60 @@ data class PlayerInfo(
 data class NameField(
     val default: String
 )
+
+data class BoxscoreResponse(
+    val gameId: Long,
+    val homeTeam: TeamStatsData,
+    val awayTeam: TeamStatsData
+)
+
+data class TeamStatsData(
+    val team: TeamInfo,
+    val teamStats: TeamStatLine,
+    val players: Map<String, PlayerBoxscore>,
+    val goalies: Map<String, GoalieBoxscore>
+)
+
+data class TeamInfo(
+    val id: Long,
+    val abbrev: String,
+    val name: String
+)
+
+data class TeamStatLine(
+    val goals: Int,
+    val assists: Int,
+    val shots: Int,
+    val hits: Int,
+    val blockedShots: Int,
+    val pim: Int
+)
+
+data class PlayerBoxscore(
+    val playerId: Long,
+    val firstName: String,
+    val lastName: String,
+    val stats: PlayerStats
+)
+
+data class PlayerStats(
+    val goals: Int,
+    val assists: Int,
+    val shots: Int,
+    val hits: Int,
+    val blockedShots: Int,
+    val timeOnIce: String
+)
+
+data class GoalieBoxscore(
+    val playerId: Long,
+    val firstName: String,
+    val lastName: String,
+    val stats: GoalieStats
+)
+
+data class GoalieStats(
+    val saves: Int,
+    val shotsAgainst: Int,
+    val goalsAgainst: Int
+)
