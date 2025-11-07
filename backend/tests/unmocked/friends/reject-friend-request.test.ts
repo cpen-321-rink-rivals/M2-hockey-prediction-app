@@ -14,7 +14,7 @@ import mongoose from 'mongoose';
 import jwt from 'jsonwebtoken';
 import { userModel } from '../../../src/models/user.model';
 import { FriendRequest } from '../../../src/models/friends.model';
-import { connectDB } from '../../../src/database';
+import { connectDB } from '../../../src/config/database';
 import path from 'path';
 
 // Load test environment variables

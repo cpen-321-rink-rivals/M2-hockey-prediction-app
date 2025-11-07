@@ -9,7 +9,7 @@ import {
 import dotenv from 'dotenv';
 import request from 'supertest';
 import express from 'express';
-import { connectDB } from '../../../src/database';
+import { connectDB } from '../../../src/config/database';
 import router from '../../../src/routes/routes';
 import mongoose from 'mongoose';
 import jwt from 'jsonwebtoken';
