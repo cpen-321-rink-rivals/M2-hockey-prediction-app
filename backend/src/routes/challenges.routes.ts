@@ -1,6 +1,6 @@
 import { ChallengesController } from '../controllers/challenges.controller';
 import { Router } from 'express';
-import { validateBody } from '../validation.middleware';
+import { validateBody } from '../middleware/validation.middleware';
 import {
   createChallengeSchema,
   updateChallengeSchema,

@@ -1,7 +1,10 @@
 import { Router } from 'express';
 import { FriendController } from '../controllers/friends.controller';
-import { validateBody } from '../validation.middleware';
-import { sendFriendRequestSchema, SendFriendRequestBody } from '../types/friends.types';
+import { validateBody } from '../middleware/validation.middleware';
+import {
+  sendFriendRequestSchema,
+  SendFriendRequestBody,
+} from '../types/friends.types';
 
 const router = Router();
 const friendController = new FriendController();

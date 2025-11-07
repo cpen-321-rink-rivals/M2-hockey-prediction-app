@@ -1,5 +1,5 @@
 import axios from 'axios';
-import logger from '../logger.util';
+import logger from '../utils/logger.util';
 
 // NHL API base URL - using the new NHL API (as of 2024+)
 const NHL_API_BASE = 'https://api-web.nhle.com/v1';

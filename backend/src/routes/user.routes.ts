@@ -2,7 +2,7 @@ import { Router } from 'express';
 
 import { UserController } from '../controllers/user.controller';
 import { UpdateProfileRequest, updateProfileSchema } from '../types/user.types';
-import { validateBody } from '../validation.middleware';
+import { validateBody } from '../middleware/validation.middleware';
 
 const router = Router();
 const userController = new UserController();

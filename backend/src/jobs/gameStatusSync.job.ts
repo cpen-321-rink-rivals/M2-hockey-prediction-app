@@ -4,8 +4,8 @@ import {
   ChallengeStatusType,
 } from '../types/challenges.types';
 import { nhlService } from '../services/nhl.service';
-import SocketEvents from '../socket.events';
-import logger from '../logger.util';
+import SocketEvents from '../utils/socket.events';
+import logger from '../utils/logger.util';
 
 export class GameStatusSyncJob {
   private intervalId: NodeJS.Timeout | null = null;

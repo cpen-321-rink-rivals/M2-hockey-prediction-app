@@ -3,7 +3,7 @@ import fs from 'fs';
 import multer from 'multer';
 import path from 'path';
 
-import { IMAGES_DIR } from './types/user.types';
+import { IMAGES_DIR } from '../types/user.types';
 
 if (!fs.existsSync(IMAGES_DIR)) {
   fs.mkdirSync(IMAGES_DIR, { recursive: true });

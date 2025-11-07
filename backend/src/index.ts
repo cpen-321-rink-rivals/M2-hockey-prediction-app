@@ -2,8 +2,11 @@ import dotenv from 'dotenv';
 import express from 'express';
 import { createServer } from 'http';
 
-import { connectDB } from './database';
-import { errorHandler, notFoundHandler } from './errorHandler.middleware';
+import { connectDB } from './config/database';
+import {
+  errorHandler,
+  notFoundHandler,
+} from './middleware/errorHandler.middleware';
 import router from './routes/routes';
 import SocketService from './services/socket.service';
 import { gameStatusSyncJob } from './jobs/gameStatusSync.job';

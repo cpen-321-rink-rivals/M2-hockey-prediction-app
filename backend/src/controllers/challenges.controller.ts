@@ -1,8 +1,8 @@
 import { Request, Response } from 'express';
-import logger from '../logger.util';
+import logger from '../utils/logger.util';
 import { challengeModel } from '../models/challenges.model';
 import { ChallengeStatus } from '../types/challenges.types';
-import SocketEvents from '../socket.events';
+import SocketEvents from '../utils/socket.events';
 
 export class ChallengesController {
   // Create a new challenge

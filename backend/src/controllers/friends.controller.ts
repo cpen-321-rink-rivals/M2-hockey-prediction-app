@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { friendModel } from '../models/friends.model';
 import { userModel } from '../models/user.model';
 import { SendFriendRequestBody } from '../types/friends.types';
-import logger from '../logger.util';
+import logger from '../utils/logger.util';
 
 export class FriendController {
   async sendRequest(
@@ -83,12 +83,10 @@ export class FriendController {
         user._id.toString()
       );
 
-      res
-        .status(200)
-        .json({
-          message: 'Pending requests fetched successfully',
-          data: requests,
-        });
+      res.status(200).json({
+        message: 'Pending requests fetched successfully',
+        data: requests,
+      });
     } catch (error) {
       next(error);
     }

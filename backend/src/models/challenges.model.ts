@@ -6,7 +6,7 @@ import {
   ChallengeStatus,
   joinChallengeSchema,
 } from '../types/challenges.types';
-import logger from '../logger.util';
+import logger from '../utils/logger.util';
 import z from 'zod';
 import { log } from 'console';
 

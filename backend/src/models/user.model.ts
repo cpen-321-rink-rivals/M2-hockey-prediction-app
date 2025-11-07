@@ -8,7 +8,7 @@ import {
   PublicUserInfo,
   updateProfileSchema,
 } from '../types/user.types';
-import logger from '../logger.util';
+import logger from '../utils/logger.util';
 
 const userSchema = new Schema<IUser>(
   {

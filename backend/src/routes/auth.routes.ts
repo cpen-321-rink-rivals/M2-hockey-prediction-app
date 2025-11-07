@@ -5,7 +5,7 @@ import {
   AuthenticateUserRequest,
   authenticateUserSchema,
 } from '../types/auth.types';
-import { validateBody } from '../validation.middleware';
+import { validateBody } from '../middleware/validation.middleware';
 
 const router = Router();
 const authController = new AuthController();
