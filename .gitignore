@@ -1,164 +1,62 @@
 # ============================================
-# Root-level .gitignore for Hockey Prediction App
+# Root .gitignore - Hockey Prediction App
 # ============================================
 
 # ============================================
-# IDE & Editor Files
+# IDE & Editor
 # ============================================
-.vscode/
 .idea/
+.vscode/
 *.swp
 *.swo
-*~
-.project
-.classpath
-.settings/
 
 # ============================================
-# OS Generated Files
+# OS Files
 # ============================================
 .DS_Store
-.DS_Store?
 ._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
 Thumbs.db
-desktop.ini
 
 # ============================================
-# Node.js (Backend)
+# Node.js
 # ============================================
 node_modules/
 npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-package-lock.json
-.npm/
-.yarn-integrity
+/package-lock.json
 
 # ============================================
-# Backend Build & Runtime
+# Backend
 # ============================================
-backend/dist/
-backend/build/
 backend/.env
 backend/.env.*
-!backend/.env.example
-backend/logs/
+!backend/.env.test
+backend/dist/
 backend/coverage/
 backend/uploads/
 
 # ============================================
-# Android/Kotlin (Frontend)
+# Frontend (Android/Kotlin)
 # ============================================
 frontend/.gradle/
+frontend/.kotlin/
 frontend/build/
 frontend/local.properties
 frontend/.idea/
-frontend/*.iml
-frontend/.DS_Store
-frontend/captures/
-frontend/.externalNativeBuild/
-frontend/.cxx/
 frontend/app/build/
-frontend/app/release/
+frontend/app/debug/
+frontend/app/google-services.json
 
-# Android Studio generates
+# Android
 *.apk
-*.ap_
 *.aab
 
-# Gradle files
-.gradle/
-build/
-
-# Local configuration file (sdk path, etc)
-local.properties
-
-# IntelliJ
-*.iml
-.idea/workspace.xml
-.idea/tasks.xml
-.idea/gradle.xml
-.idea/assetWizardSettings.xml
-.idea/dictionaries
-.idea/libraries
-.idea/jarRepositories.xml
-.idea/compiler.xml
-.idea/misc.xml
-.idea/deploymentTargetSelector.xml
-.idea/modules.xml
-.idea/.name
-
-# Keystore files
-*.jks
-*.keystore
-
-# Google Services (keep template only)
-# google-services.json
-
 # ============================================
-# Uploaded Files & Media
+# Uploads
 # ============================================
 uploads/
-backend/uploads/
-frontend/uploads/
 
 # ============================================
-# Logs & Debugging
+# Logs & Testing
 # ============================================
-logs/
 *.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-lerna-debug.log*
-
-# ============================================
-# Testing & Coverage
-# ============================================
 coverage/
-.nyc_output/
-*.lcov
-*.tsbuildinfo
-
-# ============================================
-# Docker & Deployment
-# ============================================
-.dockerignore
-
-# ============================================
-# Environment Variables
-# ============================================
-.env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
-.env.*
-!.env.example
-!.env.test
-
-# ============================================
-# Documentation Build
-# ============================================
-documentation/build/
-
-# ============================================
-# Temporary Files
-# ============================================
-*.tmp
-*.temp
-*.swp
-*.swo
-*.bak
-*.cache
-.cache/
-
-# ============================================
-# Dependencies Lock Files (Optional)
-# ============================================
-# Uncomment if you want to ignore lock files
-# package-lock.json
-# yarn.lock

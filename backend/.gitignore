@@ -1,5 +1,0 @@
-# Backend-specific ignores
-# (Most patterns are in root .gitignore)
-
-# Test environment file (committed for CI)
-!.env.test
