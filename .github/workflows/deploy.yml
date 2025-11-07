@@ -20,6 +20,7 @@ jobs:
           key: ${{ secrets.EC2_KEY }}
           source: "backend/*"
           target: "/home/ubuntu/hockey_app/"
+          rm: true  # Remove target directory before copying
 
       - name: Rebuild and Deploy
         uses: appleboy/ssh-action@master
