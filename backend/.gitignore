@@ -1,50 +1,5 @@
-# Dependencies
-node_modules/
-npm-debug.log*
+# Backend-specific ignores
+# (Most patterns are in root .gitignore)
 
-# Build output
-dist/
-build/
-
-# Environment variables
-.env
-
-# Logs
-logs
-*.log
-
-# Runtime data
-pids
-*.pid
-*.seed
-*.pid.lock
-
-# Test coverage directory used by tools like istanbul
-coverage/
-
-# Optional npm cache directory
-.npm
-
-# Optional REPL history
-.node_repl_history
-
-# Output of 'npm pack'
-*.tgz
-
-# Uploaded files
-uploads/
-
-# IDE files
-.vscode/
-.idea/
-*.swp
-*.swo
-
-# OS generated files
-.DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
-Thumbs.db
+# Test environment file (committed for CI)
+!.env.test
