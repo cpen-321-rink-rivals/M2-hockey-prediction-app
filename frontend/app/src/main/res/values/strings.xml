@@ -19,6 +19,9 @@
     <string name="selected_chip">Selected</string>
     <string name="bingo_tickets">Bingo Tickets</string>
     <string name="challenges">Challenges</string>
+    <string name="tickets">Tickets</string>
+    <string name="home">Home</string>
+    <string name="friends">Friends</string>
     <string name="google_logo">Google Logo</string>
     <string name="sign_in_with_google">Sign in with Google</string>
     <string name="sign_up_with_google">Sign up with Google</string>

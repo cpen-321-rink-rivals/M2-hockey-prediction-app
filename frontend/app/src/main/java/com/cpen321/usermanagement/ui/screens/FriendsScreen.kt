@@ -48,15 +48,10 @@ fun FriendsScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Friends") },
-                navigationIcon = {
-                    IconButton(onClick = onBackClick) {
-                        Icon(name = R.drawable.ic_arrow_back)
-                    }
-                }
+                title = { Text("Friends") }
             )
         }
-    ) { padding ->
+        ) { padding ->
         Column(
             modifier = Modifier
                 .padding(padding)

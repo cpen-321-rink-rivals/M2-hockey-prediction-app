@@ -36,6 +36,9 @@ import com.cpen321.usermanagement.ui.viewmodels.MainViewModel
 import com.cpen321.usermanagement.ui.viewmodels.NavigationViewModel
 import com.cpen321.usermanagement.ui.viewmodels.ProfileViewModel
 import com.cpen321.usermanagement.ui.viewmodels.TicketsViewModel
+import androidx.compose.ui.Modifier
+import androidx.compose.foundation.layout.padding
+import com.cpen321.usermanagement.ui.components.BottomNavigationBar
 
 object NavRoutes {
     const val LOADING = "loading"
@@ -87,15 +90,28 @@ fun AppNavigation(
         )
     }
 
-    AppNavHost(
-        navController = navController,
-        authViewModel = authViewModel,
-        profileViewModel = profileViewModel,
-        mainViewModel = mainViewModel,
-        ticketsViewModel = ticketsViewModel,
-        challengesViewModel = challengesViewModel,
-        navigationStateManager = navigationStateManager
-    )
+    val navState by navigationStateManager.navigationState.collectAsState()
+    // Show bottom bar on all app routes except auth and loading screens
+    val showBottomBar = navState.currentRoute != NavRoutes.AUTH && navState.currentRoute != NavRoutes.LOADING
+
+    androidx.compose.material3.Scaffold(
+        bottomBar = {
+            if (showBottomBar) {
+                BottomNavigationBar(navigationViewModel)
+            }
+        }
+    ) { innerPadding ->
+        AppNavHost(
+            navController = navController,
+            authViewModel = authViewModel,
+            profileViewModel = profileViewModel,
+            mainViewModel = mainViewModel,
+            ticketsViewModel = ticketsViewModel,
+            challengesViewModel = challengesViewModel,
+            navigationStateManager = navigationStateManager,
+            modifier = Modifier.padding(innerPadding)
+        )
+    }
 }
 
 private fun handleNavigationEvent(
@@ -219,11 +235,13 @@ private fun AppNavHost(
     ticketsViewModel: TicketsViewModel,
     challengesViewModel: ChallengesViewModel,
     mainViewModel: MainViewModel,
-    navigationStateManager: NavigationStateManager
+    navigationStateManager: NavigationStateManager,
+    modifier: Modifier = Modifier
 ) {
     NavHost(
         navController = navController,
-        startDestination = NavRoutes.LOADING
+        startDestination = NavRoutes.LOADING,
+        modifier = modifier
     ) {
         composable(NavRoutes.LOADING) {
             LoadingScreen(message = stringResource(R.string.checking_authentication))
