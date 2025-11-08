@@ -2,7 +2,9 @@ package com.cpen321.usermanagement.ui.viewmodels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.cpen321.usermanagement.data.local.preferences.EventCondition
 import com.cpen321.usermanagement.data.local.preferences.NhlDataManager
+import com.cpen321.usermanagement.data.remote.dto.BingoTicket
 import com.cpen321.usermanagement.data.remote.dto.Game
 import com.cpen321.usermanagement.data.remote.dto.TicketsUiState
 import com.cpen321.usermanagement.data.repository.TicketsRepository
@@ -17,7 +19,7 @@ import javax.inject.Inject
 class TicketsViewModel @Inject constructor(
     private val repository: TicketsRepository,
     private val navigationStateManager: NavigationStateManager,
-    private val nhlDataManager: NhlDataManager
+    val nhlDataManager: NhlDataManager
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(TicketsUiState())
@@ -34,11 +36,12 @@ class TicketsViewModel @Inject constructor(
         }
     }
 
-    fun createTicket(userId: String, name: String, game: Game, events: List<String>) {
+    fun createTicket(userId: String, name: String, game: Game, events: List<EventCondition>) {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isCreating = true)
 
             val result = repository.createTicket(userId, name, game, events)
+
             result.onSuccess { newTicket ->
                 _uiState.value = _uiState.value.copy(
                     allTickets = _uiState.value.allTickets + newTicket,
@@ -93,11 +96,11 @@ class TicketsViewModel @Inject constructor(
         }
     }
 
-    fun getEventsForGame(gameId: Long, onEventsLoaded: (List<String>) -> Unit) {
+    fun getEventsForGame(gameId: Long, onEventsLoaded: (List<EventCondition>) -> Unit) {
         viewModelScope.launch {
             try {
                 val events = nhlDataManager.getEventsForGame(gameId)
-                onEventsLoaded(events.map { it.labelTemplates.firstOrNull() ?: "" })
+                onEventsLoaded(events)
             } catch (e: Exception) {
                 onEventsLoaded(emptyList())
             }
@@ -126,12 +129,40 @@ class TicketsViewModel @Inject constructor(
             currentTickets[ticketIndex] = ticket.copy(crossedOff = safeCrossed)
             _uiState.value = _uiState.value.copy(allTickets = currentTickets)
 
-            // Sync to backend (optional but recommended)
+            // Sync to backend
             repository.updateCrossedOff(ticketId, safeCrossed)
         }
     }
 
     fun selectTicket(ticketId: String) {
         navigationStateManager.navigateToTicketDetail(ticketId)
+    }
+
+    fun updateTicketFromBoxscore(ticketId: String) {
+        viewModelScope.launch {
+            val currentTickets = _uiState.value.allTickets.toMutableList()
+            val index = currentTickets.indexOfFirst { it._id == ticketId }
+            if (index == -1) return@launch
+
+            val ticket = currentTickets[index]
+
+            val boxscoreResult = nhlDataManager.getBoxscore(ticket.game.id)
+            if (boxscoreResult.isFailure) return@launch
+
+            val boxscore = boxscoreResult.getOrNull() ?: return@launch
+
+            // Use the centralized logic from NhlDataManager
+            val newCrossedOff = ticket.events.map { event ->
+                nhlDataManager.isFulfilled(event, boxscore)
+            }
+
+            val updatedTicket = ticket.copy(crossedOff = newCrossedOff)
+            currentTickets[index] = updatedTicket
+
+            _uiState.value = _uiState.value.copy(allTickets = currentTickets)
+
+            // Sync changes to backend
+            repository.updateCrossedOff(ticketId, newCrossedOff)
+        }
     }
 }

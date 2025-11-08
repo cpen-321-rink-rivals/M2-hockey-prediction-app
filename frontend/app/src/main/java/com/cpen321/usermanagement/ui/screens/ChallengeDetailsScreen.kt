@@ -22,11 +22,13 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.cpen321.usermanagement.R
+import com.cpen321.usermanagement.data.local.preferences.NhlDataManager
 import com.cpen321.usermanagement.data.local.preferences.SocketEventListener
 import com.cpen321.usermanagement.data.local.preferences.SocketManager
 import com.cpen321.usermanagement.data.remote.dto.BingoTicket
 import com.cpen321.usermanagement.data.remote.dto.Challenge
 import com.cpen321.usermanagement.data.remote.dto.ChallengeStatus
+import com.cpen321.usermanagement.data.remote.dto.Game
 import com.cpen321.usermanagement.data.remote.dto.User
 import com.cpen321.usermanagement.ui.viewmodels.ChallengesViewModel
 import com.cpen321.usermanagement.ui.viewmodels.Friend
@@ -40,6 +42,7 @@ fun ChallengeDetailsScreen(
     challengesViewModel: ChallengesViewModel,
     socketManager: SocketManager,
     socketEventListener: SocketEventListener,
+    nhlDataManager: NhlDataManager,
     onBackClick: () -> Unit
 ) {
     val uiState by challengesViewModel.uiState.collectAsState()
@@ -128,7 +131,8 @@ fun ChallengeDetailsScreen(
                 onBackClick()
             },
             upcomingGames = upcomingGames,
-            allTickets = allTickets
+            allTickets = allTickets,
+            nhlDataManager = nhlDataManager
         )
     } else {
         Log.e("ChallengeDetailsScreen", "Challenge not found")
@@ -154,8 +158,9 @@ private fun ChallengeDetailsContent(
     onJoinChallenge: () -> Unit,
     onLeaveChallenge: () -> Unit,
     onDeclineInvitation: () -> Unit,
-    upcomingGames: List<com.cpen321.usermanagement.data.remote.dto.Game>?,
-    allTickets: List<BingoTicket>?
+    upcomingGames: List<Game>?,
+    allTickets: List<BingoTicket>?,
+    nhlDataManager: NhlDataManager
 ) {
     var isEditing by remember { mutableStateOf(false) }
     var title by remember { mutableStateOf(challenge.title) }
@@ -261,7 +266,8 @@ private fun ChallengeDetailsContent(
                     isEditing = isEditing,
                     maxMembers = maxMembers,
                     onMaxMembersChange = { maxMembers = it },
-                    allTickets = allTickets
+                    allTickets = allTickets,
+                    nhlDataManager = nhlDataManager
                 )
 
                 // Invited Users Section - Separate and Clear
@@ -402,7 +408,7 @@ private fun ChallengeTitleSection(
 @Composable
 private fun GameInfoCard(
     challenge: Challenge,
-    upcomingGames: List<com.cpen321.usermanagement.data.remote.dto.Game>?
+    upcomingGames: List<Game>?
 ) {
     // Find the game that matches the challenge's gameId
     val game = upcomingGames?.firstOrNull { it.id.toString() == challenge.gameId }
@@ -516,7 +522,8 @@ private fun MembersSection(
     isEditing: Boolean,
     maxMembers: String,
     onMaxMembersChange: (String) -> Unit,
-    allTickets: List<BingoTicket>?
+    allTickets: List<BingoTicket>?,
+    nhlDataManager: NhlDataManager
 ) {
     Card(
         modifier = Modifier.fillMaxWidth()
@@ -596,7 +603,8 @@ private fun MembersSection(
                             isOwner = memberId == challenge.ownerId,
                             isYou = memberId == user?._id,
                             ticket = memberTicket,
-                            hasTicketId = ticketId != null
+                            hasTicketId = ticketId != null,
+                            nhlDataManager = nhlDataManager
                         )
                     }
                 }
@@ -728,7 +736,8 @@ private fun MemberRowWithTicket(
     isOwner: Boolean,
     isYou: Boolean,
     ticket: BingoTicket?,
-    hasTicketId: Boolean
+    hasTicketId: Boolean,
+    nhlDataManager: NhlDataManager
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -837,7 +846,7 @@ private fun MemberRowWithTicket(
             // Show bingo ticket grid if available
             if (ticket != null) {
                 Divider()
-                BingoGridPreview(events = ticket.events, crossedOff = ticket.crossedOff)
+                BingoGridPreview(events = ticket.events, crossedOff = ticket.crossedOff, nhlDataManager = nhlDataManager)
             }
         }
     }

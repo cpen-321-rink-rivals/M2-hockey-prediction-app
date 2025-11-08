@@ -3,7 +3,7 @@ package com.cpen321.usermanagement.data.repository
 import android.content.Context
 import android.util.Log
 import com.cpen321.usermanagement.data.remote.api.NHLInterface
-import com.cpen321.usermanagement.data.remote.dto.BoxscoreResponse
+import com.cpen321.usermanagement.data.remote.dto.Boxscore
 import com.cpen321.usermanagement.data.remote.dto.GameDay
 import com.cpen321.usermanagement.data.remote.dto.TeamRosterResponse
 import com.cpen321.usermanagement.utils.JsonUtils.parseErrorMessage
@@ -66,7 +66,7 @@ class NHLRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun getBoxscore(gameId: Long): Result<BoxscoreResponse> {
+    override suspend fun getBoxscore(gameId: Long): Result<Boxscore> {
         return try {
             val response = nhlInterface.getBoxscore(gameId)
             if (response.isSuccessful && response.body() != null) {
