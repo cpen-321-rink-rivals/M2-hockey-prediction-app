@@ -30,9 +30,27 @@ class TicketsViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoadingTickets = true)
             val result = repository.getTickets(userId)
+            val tickets = result.getOrDefault(emptyList())
+
+            // Immediately populate UI state with fetched tickets so subsequent
+            // updateTicketFromBoxscore calls can find them in the UI state.
             _uiState.value = _uiState.value.copy(
                 isLoadingTickets = false,
-                allTickets = result.getOrDefault(emptyList())
+                allTickets = tickets
+            )
+
+            // For every ticket, asynchronously refresh its crossedOff state
+            tickets.forEach { ticket ->
+                updateTicketFromBoxscore(ticket._id)
+            }
+
+            // get the new updated tickets and append them to the UI state
+            val updatedResult = repository.getTickets(userId)
+            val updatedTickets = updatedResult.getOrDefault(emptyList())
+
+            _uiState.value = _uiState.value.copy(
+                isLoadingTickets = false,
+                allTickets = updatedTickets
             )
         }
     }
