@@ -15,9 +15,15 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.cpen321.usermanagement.R
-import com.cpen321.usermanagement.data.local.preferences.EventCondition
 import com.cpen321.usermanagement.data.local.preferences.NhlDataManager
+import com.cpen321.usermanagement.data.remote.dto.BingoTicket
 import com.cpen321.usermanagement.data.remote.dto.Game
+import com.cpen321.usermanagement.data.remote.dto.Name
+import com.cpen321.usermanagement.data.remote.dto.PeriodDescriptor
+import com.cpen321.usermanagement.data.remote.dto.Team
+import com.cpen321.usermanagement.data.remote.dto.TvBroadcast
+import com.cpen321.usermanagement.data.remote.dto.Venue
+import com.cpen321.usermanagement.ui.viewmodels.AuthViewModel
 import com.cpen321.usermanagement.ui.viewmodels.AuthViewModelContract
 import com.cpen321.usermanagement.ui.viewmodels.TicketsViewModel
 
@@ -26,20 +32,19 @@ import com.cpen321.usermanagement.ui.viewmodels.TicketsViewModel
 fun CreateBingoTicketScreen(
     ticketsViewModel: TicketsViewModel,
     authViewModel: AuthViewModelContract,
-    nhlDataManager: NhlDataManager,
     onBackClick: () -> Unit,
     onTicketCreated: () -> Unit
 ) {
+
+
     val uiState by ticketsViewModel.uiState.collectAsState()
     val authState by authViewModel.uiState.collectAsState()
     val userId = authState.user?._id ?: ""
 
     var ticketName by remember { mutableStateOf("") }  // Ticket name state
     var selectedGame by remember { mutableStateOf<Game?>(null) }
-
-    var availableEvents by remember { mutableStateOf<List<EventCondition>>(emptyList()) }
-    var selectedEvents by remember { mutableStateOf(List<EventCondition?>(9) { null }) }
-
+    var availableEvents by remember { mutableStateOf<List<String>>(emptyList()) }
+    var selectedEvents by remember { mutableStateOf(List(9) { "" }) }
     var showEventPickerForIndex by remember { mutableStateOf<Int?>(null) }
 
     LaunchedEffect(Unit) {
@@ -65,7 +70,7 @@ fun CreateBingoTicketScreen(
                 .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Step 0: Enter Ticket Name
+            // 🆕 Step 0: Enter Ticket Name
             OutlinedTextField(
                 value = ticketName,
                 onValueChange = { ticketName = it },
@@ -78,7 +83,6 @@ fun CreateBingoTicketScreen(
             // Step 1: Select Game
             Text("Select an upcoming game:", style = MaterialTheme.typography.titleMedium)
             Spacer(modifier = Modifier.height(8.dp))
-
             if (uiState.isLoadingGames) {
                 CircularProgressIndicator()
             } else if (uiState.availableGames.isEmpty()) {
@@ -92,7 +96,7 @@ fun CreateBingoTicketScreen(
                         ticketsViewModel.getEventsForGame(game.id) { events ->
                             availableEvents = events
                         }
-                        selectedEvents = List(9) { null }
+                        selectedEvents = List(9) { "" }
                     }
                 )
             }
@@ -104,14 +108,12 @@ fun CreateBingoTicketScreen(
             if (selectedGame != null) {
                 Text("Fill your bingo ticket:", style = MaterialTheme.typography.titleMedium)
                 Spacer(modifier = Modifier.height(8.dp))
-
                 BingoGrid(
                     selectedEvents = selectedEvents,
                     onSquareClick = { index -> showEventPickerForIndex = index },
                     onRemoveEvent = { index ->
-                        selectedEvents = selectedEvents.toMutableList().also { it[index] = null }
-                    },
-                    nhlDataManager = nhlDataManager
+                        selectedEvents = selectedEvents.toMutableList().also { it[index] = "" }
+                    }
                 )
 
                 Spacer(modifier = Modifier.height(24.dp))
@@ -122,15 +124,11 @@ fun CreateBingoTicketScreen(
                                 userId = userId,
                                 name = ticketName,
                                 game = selectedGame!!,
-                                events = selectedEvents.filterNotNull()
+                                events = selectedEvents
                             )
-                            onTicketCreated()
                         }
                     },
-                    enabled = !uiState.isCreating &&
-                            userId.isNotBlank() &&
-                            ticketName.isNotBlank() &&
-                            selectedEvents.none { it == null },
+                    enabled = !uiState.isCreating && userId.isNotBlank() && ticketName.isNotBlank() && selectedEvents.none { it.isBlank() },
                 ) {
                     Text("Save Bingo Ticket")
                 }
@@ -141,13 +139,12 @@ fun CreateBingoTicketScreen(
         showEventPickerForIndex?.let { index ->
             EventPickerDialog(
                 allEvents = availableEvents,
-                selectedEvents = selectedEvents.filterNotNull(),
+                selectedEvents = selectedEvents,
                 onDismiss = { showEventPickerForIndex = null },
                 onEventSelected = { chosen ->
                     selectedEvents = selectedEvents.toMutableList().also { it[index] = chosen }
                     showEventPickerForIndex = null
-                },
-                nhlDataManager = nhlDataManager
+                }
             )
         }
     }
@@ -209,10 +206,9 @@ private fun GameDropdown(
 
 @Composable
 private fun BingoGrid(
-    selectedEvents: List<EventCondition?>,
+    selectedEvents: List<String>,
     onSquareClick: (Int) -> Unit,
-    onRemoveEvent: (Int) -> Unit,
-    nhlDataManager: NhlDataManager
+    onRemoveEvent: (Int) -> Unit
 ) {
     Column {
         for (row in 0 until 3) {
@@ -223,9 +219,7 @@ private fun BingoGrid(
                 for (col in 0 until 3) {
                     val index = row * 3 + col
                     BingoSquare(
-                        eventText = selectedEvents[index]?.let {
-                            nhlDataManager.formatEventLabel(it)
-                        } ?: "",
+                        eventText = selectedEvents[index],
                         onClick = { onSquareClick(index) },
                         onRemove = { onRemoveEvent(index) }
                     )
@@ -276,30 +270,31 @@ private fun BingoSquare(
 
 @Composable
 private fun EventPickerDialog(
-    allEvents: List<EventCondition>,
-    selectedEvents: List<EventCondition>,
+    allEvents: List<String>,
+    selectedEvents: List<String>,
     onDismiss: () -> Unit,
-    onEventSelected: (EventCondition) -> Unit,
-    nhlDataManager: NhlDataManager
+    onEventSelected: (String) -> Unit
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
         confirmButton = {},
-        title = { Text("Select an Event") },
         text = {
             LazyColumn {
                 val available = allEvents.filterNot { it in selectedEvents }
                 items(available.size) { index ->
                     val event = available[index]
                     Text(
-                        text = nhlDataManager.formatEventLabel(event),
+                        text = event,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clickable { onEventSelected(event) }
+                            .clickable {
+                                onEventSelected(event)
+                            }
                             .padding(8.dp)
                     )
                 }
             }
-        }
+        },
+        title = { Text("Select an Event") }
     )
 }

@@ -79,36 +79,12 @@ export type PeriodDescriptor = {
   maxRegulationPeriods: number;
 };
 
-// --- EventCondition matching frontend ---
-export enum EventCategory {
-  FORWARD = "FORWARD",
-  DEFENSE = "DEFENSE",
-  GOALIE = "GOALIE",
-}
-
-export enum ComparisonType {
-  GREATER_THAN = "GREATER_THAN",
-  LESS_THAN = "LESS_THAN",
-  EQUAL = "EQUAL",
-}
-
-export type EventCondition = {
-  id: string;
-  category: EventCategory;
-  subject: string;           // e.g. "goals", "assists", "penaltyMinutes"
-  comparison: ComparisonType;
-  threshold: number;
-  teamAbbrev?: string;       // e.g. "VAN" or "BOS"
-  playerId?: number;         // optional for player-specific events
-  playerName?: string;       // cached for label generation
-};
-
 // Interface used internally by Mongoose
 export interface ITicket extends Document {
   userId: string;
   name: string;
   game: Game;
-  events: EventCondition[];
+  events: string[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -119,22 +95,17 @@ export const createTicketSchema = z.object({
   name: z.string().min(1, 'Name required'),
   game: z.object({
     id: z.number(),
-    homeTeam: z.object({ abbrev: z.string().min(1, 'Home team abbrev required') }),
-    awayTeam: z.object({ abbrev: z.string().min(1, 'Away team abbrev required') }),
+    homeTeam: z.object({
+      abbrev: z.string().min(1, 'Home team abbrev required'),
+    }),
+    awayTeam: z.object({
+      abbrev: z.string().min(1, 'Away team abbrev required'),
+    }),
   }),
-  events: z.array(
-    z.object({
-      id: z.string(),
-      category: z.nativeEnum(EventCategory),
-      subject: z.string(),
-      comparison: z.nativeEnum(ComparisonType),
-      threshold: z.number(),
-      teamAbbrev: z.string().optional(),
-      playerId: z.number().optional(),
-      playerName: z.string().optional(),
-    })
-  ).length(9, 'Exactly 9 events required'),
+  events: z.array(z.string()).length(9, 'Exactly 9 events required'),
 });
 
 export type CreateTicketBody = z.infer<typeof createTicketSchema>;
+
+// Optional: maintain compatibility with your previous naming
 export type TicketType = CreateTicketBody;
