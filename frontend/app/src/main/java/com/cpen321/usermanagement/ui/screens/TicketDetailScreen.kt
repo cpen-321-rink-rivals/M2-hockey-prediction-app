@@ -95,10 +95,7 @@ fun BingoGridInteractive(ticket: BingoTicket, viewModel: TicketsViewModel) {
                             .padding(4.dp)
                             .size(100.dp)
                             .border(2.dp, Color.Gray, RoundedCornerShape(8.dp))
-                            .background(if (isCrossed) Color.Green.copy(alpha = 0.4f) else Color.White)
-                            .clickable {
-                                viewModel.toggleSquare(ticket._id, index)
-                            },
+                            .background(if (isCrossed) Color.Green.copy(alpha = 0.4f) else Color.White),
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
