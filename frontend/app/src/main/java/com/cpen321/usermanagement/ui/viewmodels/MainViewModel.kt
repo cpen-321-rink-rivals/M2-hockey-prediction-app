@@ -6,8 +6,10 @@ import androidx.lifecycle.viewModelScope
 import com.cpen321.usermanagement.data.local.preferences.NhlDataManager
 import com.cpen321.usermanagement.data.local.preferences.SocketManager
 import com.cpen321.usermanagement.data.local.preferences.SocketEventListener
+import com.cpen321.usermanagement.data.remote.dto.BingoTicket
 import com.cpen321.usermanagement.data.remote.dto.User
 import com.cpen321.usermanagement.data.repository.ProfileRepository
+import com.cpen321.usermanagement.data.repository.TicketsRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -18,9 +20,11 @@ import javax.inject.Inject
 data class MainUiState(
     // Loading messages
     val isLoadingProfile: Boolean = false,
+    val isLoadingTickets: Boolean = false,
 
     // Data states
     val user: User? = null,
+    val userTickets: List<BingoTicket> = emptyList(),
 
     // Message states
     val errorMessage: String? = null,
@@ -30,6 +34,7 @@ data class MainUiState(
 @HiltViewModel
 class MainViewModel @Inject constructor(
     private val profileRepository: ProfileRepository,
+    private val ticketsRepository: TicketsRepository,
     private val nhlDataManager: NhlDataManager,
     val socketManager: SocketManager,
     val socketEventListener: SocketEventListener
@@ -121,6 +126,8 @@ class MainViewModel @Inject constructor(
             // Authenticate socket with user info after successful profile load
             if (user != null) {
                 authenticateSocket(user._id, user.email)
+                // Load user's tickets
+                loadTickets(user._id)
             }
 
             if (profileResult.isFailure) {
@@ -138,6 +145,19 @@ class MainViewModel @Inject constructor(
                     errorMessage = null
                 )
             }
+        }
+    }
+    
+    fun loadTickets(userId: String) {
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(isLoadingTickets = true)
+            val result = ticketsRepository.getTickets(userId)
+            val tickets = result.getOrDefault(emptyList())
+
+            _uiState.value = _uiState.value.copy(
+                isLoadingTickets = false,
+                userTickets = tickets
+            )
         }
     }
 }

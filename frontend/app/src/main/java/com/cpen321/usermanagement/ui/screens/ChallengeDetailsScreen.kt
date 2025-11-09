@@ -21,6 +21,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.cpen321.usermanagement.R
 import com.cpen321.usermanagement.data.local.preferences.NhlDataManager
 import com.cpen321.usermanagement.data.local.preferences.SocketEventListener
@@ -30,6 +31,7 @@ import com.cpen321.usermanagement.data.remote.dto.Challenge
 import com.cpen321.usermanagement.data.remote.dto.ChallengeStatus
 import com.cpen321.usermanagement.data.remote.dto.Game
 import com.cpen321.usermanagement.data.remote.dto.User
+import com.cpen321.usermanagement.ui.components.TeamMatchup
 import com.cpen321.usermanagement.ui.viewmodels.ChallengesViewModel
 import com.cpen321.usermanagement.ui.viewmodels.Friend
 import java.text.SimpleDateFormat
@@ -441,35 +443,21 @@ private fun GameInfoCard(
             Divider()
 
             if (game != null) {
-                // Show game matchup
-                Row(
+                // Show game matchup with logos
+                TeamMatchup(
+                    awayTeamLogoUrl = game.awayTeam.logo,
+                    awayTeamAbbrev = game.awayTeam.abbrev,
+                    homeTeamLogoUrl = game.homeTeam.logo,
+                    homeTeamAbbrev = game.homeTeam.abbrev,
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = game.awayTeam.abbrev,
-                        style = MaterialTheme.typography.headlineSmall,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.weight(1f),
-                        textAlign = TextAlign.End
-                    )
-                    Text(
-                        text = " @ ",
-                        style = MaterialTheme.typography.titleMedium,
-                        modifier = Modifier.padding(horizontal = 8.dp),
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Text(
-                        text = game.homeTeam.abbrev,
-                        style = MaterialTheme.typography.headlineSmall,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.weight(1f),
-                        textAlign = TextAlign.Start
-                    )
-                }
+                    logoSize = 48.dp,
+                    showAbbrevs = true,
+                    abbrevFontSize = 14.sp,
+                    abbrevColor = MaterialTheme.colorScheme.onSurface,
+                    vsText = "@"
+                )
 
-                Spacer(modifier = Modifier.height(4.dp))
+                Spacer(modifier = Modifier.height(12.dp))
 
                 // Show game time
                 Text(

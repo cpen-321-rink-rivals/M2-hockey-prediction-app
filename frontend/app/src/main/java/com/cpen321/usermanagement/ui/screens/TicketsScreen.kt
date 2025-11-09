@@ -20,11 +20,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.cpen321.usermanagement.R
 import com.cpen321.usermanagement.data.local.preferences.EventCondition
 import com.cpen321.usermanagement.data.local.preferences.NhlDataManager
 import com.cpen321.usermanagement.data.remote.dto.BingoTicket
 import com.cpen321.usermanagement.data.remote.dto.TicketsUiState
+import com.cpen321.usermanagement.ui.components.TeamLogo
 import com.cpen321.usermanagement.ui.viewmodels.AuthViewModel
 import com.cpen321.usermanagement.ui.viewmodels.AuthViewModelContract
 import com.cpen321.usermanagement.ui.viewmodels.TicketsViewModel
@@ -242,6 +244,18 @@ fun BingoGridPreview(
                         }
                     }
 
+                    // Get team logo if this is a team-specific event
+                    val teamAbbrev = event?.teamAbbrev
+                    val logoUrl = remember(teamAbbrev) {
+                        teamAbbrev?.let { abbrev ->
+                            nhlDataManager.uiState.value.gameSchedule
+                                ?.flatMap { it.games }
+                                ?.flatMap { listOf(it.homeTeam, it.awayTeam) }
+                                ?.find { it.abbrev == abbrev }
+                                ?.logo
+                        }
+                    }
+
                     Box(
                         modifier = Modifier
                             .padding(4.dp)
@@ -256,15 +270,31 @@ fun BingoGridPreview(
                             ),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text(
-                            text = label.value,
-                            style = MaterialTheme.typography.bodySmall,
-                            modifier = Modifier.padding(6.dp),
-                            color = if (isCrossed)
-                                MaterialTheme.colorScheme.primary
-                            else
-                                MaterialTheme.colorScheme.onSurface
-                        )
+                        if (!logoUrl.isNullOrBlank()) {
+                            // Show logo with label for team events
+                            TeamLogo(
+                                logoUrl = logoUrl,
+                                teamAbbrev = label.value,
+                                size = 32.dp,
+                                showAbbrev = true,
+                                abbrevFontSize = 9.sp,
+                                abbrevColor = if (isCrossed)
+                                    MaterialTheme.colorScheme.primary
+                                else
+                                    MaterialTheme.colorScheme.onSurface
+                            )
+                        } else {
+                            // Show text only for non-team events
+                            Text(
+                                text = label.value,
+                                style = MaterialTheme.typography.bodySmall,
+                                modifier = Modifier.padding(6.dp),
+                                color = if (isCrossed)
+                                    MaterialTheme.colorScheme.primary
+                                else
+                                    MaterialTheme.colorScheme.onSurface
+                            )
+                        }
                     }
                 }
             }

@@ -24,11 +24,13 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import com.cpen321.usermanagement.R
 import com.cpen321.usermanagement.data.remote.dto.BingoTicket
 import com.cpen321.usermanagement.data.remote.dto.CreateChallengeRequest
 import com.cpen321.usermanagement.data.remote.dto.Game
+import com.cpen321.usermanagement.ui.components.TeamMatchup
 import com.cpen321.usermanagement.ui.viewmodels.ChallengesViewModel
 import com.cpen321.usermanagement.ui.viewmodels.Friend
 import com.cpen321.usermanagement.ui.viewmodels.MainViewModel
@@ -511,15 +513,22 @@ private fun GameItem(
                 .fillMaxWidth()
                 .padding(12.dp)
         ) {
-            Text(
-                text = "${game.awayTeam.abbrev} vs ${game.homeTeam.abbrev}",
-                style = MaterialTheme.typography.bodyLarge,
-                fontWeight = FontWeight.Medium
+            TeamMatchup(
+                awayTeamLogoUrl = game.awayTeam.logo,
+                awayTeamAbbrev = game.awayTeam.abbrev,
+                homeTeamLogoUrl = game.homeTeam.logo,
+                homeTeamAbbrev = game.homeTeam.abbrev,
+                logoSize = 36.dp,
+                showAbbrevs = true,
+                abbrevFontSize = 11.sp,
+                abbrevColor = MaterialTheme.colorScheme.onSurface
             )
+            Spacer(modifier = Modifier.height(8.dp))
             Text(
                 text = formatDateTime(game.startTimeUTC),
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.fillMaxWidth()
             )
         }
     }

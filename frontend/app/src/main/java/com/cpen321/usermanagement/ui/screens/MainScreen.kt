@@ -1,19 +1,21 @@
 package com.cpen321.usermanagement.ui.screens
 
 import Icon
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -21,17 +23,25 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.cpen321.usermanagement.R
+import com.cpen321.usermanagement.data.remote.dto.Game
 import com.cpen321.usermanagement.ui.components.MessageSnackbar
 import com.cpen321.usermanagement.ui.components.MessageSnackbarState
+import com.cpen321.usermanagement.ui.components.TeamMatchup
 import com.cpen321.usermanagement.ui.viewmodels.MainUiState
 import com.cpen321.usermanagement.ui.viewmodels.MainViewModel
-import com.cpen321.usermanagement.ui.theme.LocalFontSizes
 import com.cpen321.usermanagement.ui.theme.LocalSpacing
+import java.text.SimpleDateFormat
+import java.util.*
 
 
 
@@ -44,8 +54,8 @@ fun MainScreen(
     onChallengeClick: () -> Unit
 ) {
     val uiState by mainViewModel.uiState.collectAsState()
+    val nhlDataState by mainViewModel.nhlDataState.collectAsState()
     val snackBarHostState = remember { SnackbarHostState() }
-
 
     // Side effects
     LaunchedEffect(Unit) {
@@ -63,7 +73,8 @@ fun MainScreen(
         onTicketClick = onTicketClick,
         onFriendsClick = onFriendsClick,
         onChallengeClick = onChallengeClick,
-        onSuccessMessageShown = mainViewModel::clearSuccessMessage
+        onSuccessMessageShown = mainViewModel::clearSuccessMessage,
+        upcomingGames = nhlDataState.gameSchedule?.flatMap { it.games }?.take(5) ?: emptyList()
     )
 }
 
@@ -76,6 +87,7 @@ private fun MainContent(
     onFriendsClick: () -> Unit,
     onChallengeClick: () -> Unit,
     onSuccessMessageShown: () -> Unit,
+    upcomingGames: List<Game>,
     modifier: Modifier = Modifier
 ) {
     Scaffold(
@@ -93,8 +105,10 @@ private fun MainContent(
     ) { paddingValues ->
         MainBody(
             paddingValues = paddingValues,
-            uiState = uiState
-            )
+            uiState = uiState,
+            upcomingGames = upcomingGames,
+            onTicketClick = onTicketClick
+        )
     }
 }
 
@@ -128,89 +142,6 @@ private fun AppTitle(
 }
 
 @Composable
-private fun ProfileActionButton(
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    val spacing = LocalSpacing.current
-
-    IconButton(
-        onClick = onClick,
-        modifier = modifier.size(spacing.extraLarge2)
-    ) {
-        ProfileIcon()
-    }
-}
-
-@Composable
-private fun BingoTicketActionButton(
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    val spacing = LocalSpacing.current
-
-    IconButton(
-        onClick = onClick,
-        modifier = modifier.size(spacing.extraLarge2)
-    ) {
-        BingoTicketIcon(onClick = onClick)
-    }
-}
-
-@Composable
-private fun ChallengeActionButton(
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    val spacing = LocalSpacing.current
-
-    IconButton(
-        onClick = onClick,
-        modifier = modifier.size(spacing.extraLarge2)
-    ) {
-        ChallengeIcon(onClick = onClick)
-    }
-}
-
-@Composable
-private fun FriendsActionButton(
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    val spacing = LocalSpacing.current
-
-    IconButton(
-        onClick = onClick,
-        modifier = modifier.size(spacing.extraLarge2)
-    ) {
-        Icon(
-            name = R.drawable.ic_heart_smile, // or another icon you prefer
-        )
-    }
-}
-
-@Composable
-private fun ProfileIcon() {
-    Icon(
-        name = R.drawable.ic_account_circle,
-    )
-}
-
-@Composable
-private fun ChallengeIcon(onClick: () -> Unit) {
-    Icon(
-        name = R.drawable.swords_icon,
-    )
-}
-
-@Composable
-private fun BingoTicketIcon(onClick: () -> Unit) {
-    Icon(
-        name = R.drawable.bingo_ticket,
-    )
-}
-
-@Composable
 private fun MainSnackbarHost(
     hostState: SnackbarHostState,
     successMessage: String?,
@@ -232,37 +163,326 @@ private fun MainSnackbarHost(
 @Composable
 private fun MainBody(
     paddingValues: PaddingValues,
-    modifier: Modifier = Modifier,
     uiState: MainUiState,
+    upcomingGames: List<Game>,
+    onTicketClick: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
-    Box(
+    LazyColumn(
         modifier = modifier
             .fillMaxSize()
-            .padding(paddingValues),
-        contentAlignment = Alignment.Center
+            .padding(paddingValues)
+            .padding(horizontal = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        WelcomeMessage(uiState = uiState)
+        item {
+            Spacer(modifier = Modifier.height(8.dp))
+        }
+        
+        // Hero Banner with Animated Puck
+        item {
+            HeroBanner(uiState = uiState)
+        }
+        
+        // Quick Action: Create Ticket Button (if no tickets)
+        if (uiState.userTickets.isEmpty() && !uiState.isLoadingTickets) {
+            item {
+                CreateFirstTicketCard(onClick = onTicketClick)
+            }
+        }
+        
+        // Upcoming/Live Games Section
+        item {
+            Text(
+                text = "Live & Upcoming Games",
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(top = 8.dp)
+            )
+        }
+        
+        items(upcomingGames) { game ->
+            GameCard(game = game)
+        }
+        
+        item {
+            Spacer(modifier = Modifier.height(16.dp))
+        }
     }
 }
 
 @Composable
-private fun WelcomeMessage(
-    modifier: Modifier = Modifier,
-    uiState: MainUiState, // Add this parameter
-
+private fun HeroBanner(
+    uiState: MainUiState,
+    modifier: Modifier = Modifier
 ) {
-    val fontSizes = LocalFontSizes.current
-
-    val welcomeText = uiState.user?.let {
-        stringResource(R.string.put_your_knowledge_to_the_test) + ", " + uiState.user.name
-    } ?: stringResource(R.string.welcome)
-
-    Text(
-        text = welcomeText,
-        style = MaterialTheme.typography.bodyLarge,
-        fontSize = fontSizes.extraLarge3,
-        lineHeight = 40.sp,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-        modifier = modifier.padding(10.dp)
+    val userName = uiState.user?.name ?: "Guest"
+    val gradient = Brush.horizontalGradient(
+        colors = listOf(
+            Color(0xFF0F172A),
+            Color(0xFF1E40AF),
+            Color(0xFF0B8BD9)
+        )
     )
+
+    Card(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(180.dp),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.Transparent),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+    ) {
+        Box(
+            modifier = Modifier
+                .background(gradient)
+                .fillMaxSize()
+        ) {
+            // Animated Puck on the left
+            AnimatedPuck(
+                modifier = Modifier
+                    .align(Alignment.CenterStart)
+                    .padding(start = 24.dp)
+            )
+
+            // Welcome Text in the center
+            Column(
+                modifier = Modifier
+                    .align(Alignment.Center)
+                    .padding(horizontal = 100.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = stringResource(R.string.app_name),
+                    color = Color.White,
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = "Welcome back, $userName!",
+                    color = Color(0xFFCCF2FF),
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Medium
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = "Let's predict some hockey!",
+                    color = Color(0xFFE0F2FE),
+                    fontSize = 14.sp
+                )
+            }
+        }
+    }
 }
+
+@Composable
+private fun AnimatedPuck(modifier: Modifier = Modifier) {
+    val transition = rememberInfiniteTransition(label = "puck rotation")
+    val rotation by transition.animateFloat(
+        initialValue = 0f,
+        targetValue = 360f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 2500, easing = LinearEasing)
+        ),
+        label = "rotation"
+    )
+
+    Canvas(modifier = modifier.size(70.dp)) {
+        rotate(rotation) {
+            // Outer black circle (puck)
+            drawCircle(
+                color = Color.Black,
+                radius = size.minDimension / 2
+            )
+            // Inner gray circle (puck detail)
+            drawCircle(
+                color = Color.DarkGray,
+                radius = size.minDimension / 2.6f,
+                center = Offset(size.width * 0.35f, size.height * 0.35f)
+            )
+        }
+    }
+}
+
+@Composable
+private fun CreateFirstTicketCard(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.primaryContainer
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(20.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Icon(
+                imageVector = Icons.Default.Add,
+                contentDescription = null,
+                modifier = Modifier.size(48.dp),
+                tint = MaterialTheme.colorScheme.primary
+            )
+            Spacer(modifier = Modifier.height(12.dp))
+            Text(
+                text = "Create Your First Bingo Ticket",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onPrimaryContainer
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = "Start predicting game events and compete with friends!",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            Button(
+                onClick = onClick,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Add,
+                    contentDescription = null,
+                    modifier = Modifier.size(20.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("Create Ticket")
+            }
+        }
+    }
+}
+
+@Composable
+private fun GameCard(
+    game: Game,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(12.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+        ) {
+            // Game State Badge
+            GameStateBadge(gameState = game.gameState)
+            
+            Spacer(modifier = Modifier.height(12.dp))
+            
+            // Team Matchup
+            TeamMatchup(
+                awayTeamLogoUrl = game.awayTeam.logo,
+                awayTeamAbbrev = game.awayTeam.abbrev,
+                homeTeamLogoUrl = game.homeTeam.logo,
+                homeTeamAbbrev = game.homeTeam.abbrev,
+                modifier = Modifier.fillMaxWidth(),
+                logoSize = 48.dp,
+                showAbbrevs = true,
+                abbrevFontSize = 14.sp,
+                abbrevColor = MaterialTheme.colorScheme.onSurface,
+                vsText = "@"
+            )
+            
+            Spacer(modifier = Modifier.height(12.dp))
+            
+            // Game Time
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    name = R.drawable.calendar_clock_icon,
+                )
+                Spacer(modifier = Modifier.width(6.dp))
+                Text(
+                    text = formatGameTime(game.startTimeUTC),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            
+            // Venue
+            Text(
+                text = game.venue.default,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 4.dp),
+                fontWeight = FontWeight.Normal,
+                textAlign = TextAlign.Center
+            )
+
+        }
+    }
+}
+
+@Composable
+private fun GameStateBadge(
+    gameState: String,
+    modifier: Modifier = Modifier
+) {
+    val (backgroundColor, textColor, displayText) = when (gameState.uppercase()) {
+        "LIVE", "CRIT" -> Triple(
+            MaterialTheme.colorScheme.error,
+            MaterialTheme.colorScheme.onError,
+            "🔴 LIVE"
+        )
+        "FUT" -> Triple(
+            MaterialTheme.colorScheme.primaryContainer,
+            MaterialTheme.colorScheme.onPrimaryContainer,
+            "Upcoming"
+        )
+        "FINAL", "OFF" -> Triple(
+            MaterialTheme.colorScheme.surfaceVariant,
+            MaterialTheme.colorScheme.onSurfaceVariant,
+            "Final"
+        )
+        else -> Triple(
+            MaterialTheme.colorScheme.secondaryContainer,
+            MaterialTheme.colorScheme.onSecondaryContainer,
+            gameState
+        )
+    }
+
+    Surface(
+        modifier = modifier,
+        shape = RoundedCornerShape(8.dp),
+        color = backgroundColor
+    ) {
+        Text(
+            text = displayText,
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+            style = MaterialTheme.typography.labelMedium,
+            fontWeight = FontWeight.Bold,
+            color = textColor
+        )
+    }
+}
+
+// Helper function to format game time
+private fun formatGameTime(startTimeUTC: String): String {
+    return try {
+        val inputFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.getDefault())
+        inputFormat.timeZone = TimeZone.getTimeZone("UTC")
+        val date = inputFormat.parse(startTimeUTC)
+        
+        val outputFormat = SimpleDateFormat("MMM dd, h:mm a", Locale.getDefault())
+        date?.let { outputFormat.format(it) } ?: startTimeUTC
+    } catch (e: Exception) {
+        startTimeUTC
+    }
+}
+
