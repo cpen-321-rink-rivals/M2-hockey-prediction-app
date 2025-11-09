@@ -1,6 +1,5 @@
 package com.cpen321.usermanagement.data.repository
 
-import com.cpen321.usermanagement.data.local.preferences.EventCondition
 import com.cpen321.usermanagement.data.remote.dto.BingoTicket
 import com.cpen321.usermanagement.data.remote.dto.Game
 
@@ -11,7 +10,7 @@ interface TicketsRepository {
         userId: String,
         name: String,
         game: Game,
-        events: List<EventCondition>
+        events: List<String>
     ): Result<BingoTicket>
     suspend fun deleteTicket(ticketId: String): Result<Unit>
     suspend fun updateCrossedOff(

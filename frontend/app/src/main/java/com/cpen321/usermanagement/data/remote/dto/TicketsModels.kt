@@ -1,14 +1,12 @@
 package com.cpen321.usermanagement.data.remote.dto
 
-import com.cpen321.usermanagement.data.local.preferences.EventCondition
-
 // Represents one bingo ticket
 data class BingoTicket(
     val _id: String,
     val userId: String,
     val name: String,
     val game: Game,
-    val events: List<EventCondition>,
+    val events: List<String>,
     val crossedOff: List<Boolean> = List(9) { false }
 )
 
