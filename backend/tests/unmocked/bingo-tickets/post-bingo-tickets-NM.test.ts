@@ -19,6 +19,16 @@ import path from 'path';
 // Load test environment variables
 dotenv.config({ path: path.resolve(__dirname, '../../../.env.test') });
 
+// Helper to create an EventCondition-like object (matches new Ticket schema)
+const makeEvent = (i: number) => ({
+  id: `event-${i}`,
+  category: 'TEAM',
+  subject: 'GOAL',
+  comparison: 'GREATER_OR_EQUAL',
+  threshold: 1,
+  teamAbbrev: 'TOR',
+});
+
 // Create Express app for testing (same setup as index.ts)
 const app = express();
 app.use(express.json());
@@ -74,17 +84,7 @@ describe('Unmocked POST /api/tickets', () => {
           abbrev: 'MTL',
         },
       },
-      events: [
-        'Goal scored',
-        'Penalty called',
-        'Powerplay goal',
-        'Goalie save',
-        'Fight',
-        'Hat trick',
-        'Overtime',
-        'Shutout',
-        'Game winner',
-      ],
+      events: Array.from({ length: 9 }, (_, i) => makeEvent(i + 1)),
     };
 
     // Act: Make POST request to /api/tickets with auth token
@@ -109,11 +109,12 @@ describe('Unmocked POST /api/tickets', () => {
       .findById(response.body._id)
       .exec();
 
-    expect(insertedTicket).not.toBeNull();
-    expect(insertedTicket!.userId.toString()).toBe(validBingoTicket.userId);
-    expect(insertedTicket!.name).toBe(validBingoTicket.name);
-    expect(insertedTicket!.events).toEqual(validBingoTicket.events);
-    expect(insertedTicket!.crossedOff).toEqual(Array(9).fill(false));
+  expect(insertedTicket).not.toBeNull();
+  expect(insertedTicket!.userId.toString()).toBe(validBingoTicket.userId);
+  expect(insertedTicket!.name).toBe(validBingoTicket.name);
+  // insertedTicket.events are Mongoose subdocuments; stringify to compare plain objects
+  expect(JSON.parse(JSON.stringify(insertedTicket!.events))).toEqual(validBingoTicket.events);
+  expect(insertedTicket!.crossedOff).toEqual(Array(9).fill(false));
 
     // Cleanup: Delete the created ticket
     await mongoose.model('Ticket').findByIdAndDelete(response.body._id);

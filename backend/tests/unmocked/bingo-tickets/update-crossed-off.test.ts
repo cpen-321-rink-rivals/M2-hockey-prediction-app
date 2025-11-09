@@ -20,6 +20,16 @@ import path from 'path';
 // Load test environment variables
 dotenv.config({ path: path.resolve(__dirname, '../../../.env.test') });
 
+// Helper to create an EventCondition-like object (matches new Ticket schema)
+const makeEvent = (i: number) => ({
+  id: `event-${i}`,
+  category: 'TEAM',
+  subject: 'GOAL',
+  comparison: 'GREATER_OR_EQUAL',
+  threshold: 1,
+  teamAbbrev: 'TOR',
+});
+
 // Create Express app for testing (same setup as index.ts)
 const app = express();
 app.use(express.json());
@@ -57,7 +67,7 @@ describe('Unmocked PUT /api/tickets/crossedOff/:id', () => {
         homeTeam: { abbrev: 'SEA' },
         awayTeam: { abbrev: 'VGK' },
       },
-      events: Array.from({ length: 9 }, (_, i) => `Event ${i + 1}`),
+      events: Array.from({ length: 9 }, (_, i) => makeEvent(i + 1)),
     });
     testTicketId = ticket._id.toString();
   }, 30000); // 30 second timeout for setup
