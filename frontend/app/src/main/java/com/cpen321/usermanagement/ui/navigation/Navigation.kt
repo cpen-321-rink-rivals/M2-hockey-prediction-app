@@ -1,6 +1,7 @@
 package com.cpen321.usermanagement.ui.navigation
 
 import android.util.Log
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -101,6 +102,9 @@ fun AppNavigation(
             }
         }
     ) { innerPadding ->
+        // Only apply the bottom portion of the Scaffold's innerPadding to the NavHost.
+        // This preserves correct spacing for the bottom navigation while avoiding
+        // adding extra top padding for screens that render their own TopAppBar.
         AppNavHost(
             navController = navController,
             authViewModel = authViewModel,
@@ -109,7 +113,9 @@ fun AppNavigation(
             ticketsViewModel = ticketsViewModel,
             challengesViewModel = challengesViewModel,
             navigationStateManager = navigationStateManager,
-            modifier = Modifier.padding(innerPadding)
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(bottom = innerPadding.calculateBottomPadding())
         )
     }
 }

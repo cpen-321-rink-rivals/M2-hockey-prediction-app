@@ -6,7 +6,12 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Build
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -51,26 +56,54 @@ fun CreateBingoTicketScreen(
         ticketsViewModel.loadUpcomingGames()
     }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Create Bingo Ticket") },
-                navigationIcon = {
-                    IconButton(onClick = onBackClick) {
-                        Icon(name = R.drawable.ic_arrow_back)
-                    }
+    // Mirror the CreateChallenge screen layout: TopAppBar with top-right Create action and
+    // scrollable content made of selection cards + bingo grid. Keep UI behavior.
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
+    ) {
+        TopAppBar(
+            title = {
+                Text(text = "Create Bingo Ticket", fontWeight = FontWeight.Bold)
+            },
+            navigationIcon = {
+                IconButton(onClick = onBackClick) {
+                    Icon(name = R.drawable.ic_arrow_back)
                 }
+            },
+            actions = {
+                TextButton(
+                    onClick = {
+                        if (userId.isNotBlank() && selectedGame != null) {
+                            ticketsViewModel.createTicket(
+                                userId = userId,
+                                name = ticketName,
+                                game = selectedGame!!,
+                                events = selectedEvents
+                            )
+                            onTicketCreated()
+                        }
+                    },
+                    enabled = !uiState.isCreating && userId.isNotBlank() && ticketName.isNotBlank() && selectedEvents.none { it.isBlank() }
+                ) {
+                    Text("Create")
+                }
+            },
+            colors = TopAppBarDefaults.topAppBarColors(
+                containerColor = MaterialTheme.colorScheme.primaryContainer
             )
-        }
-    ) { paddingValues ->
+        )
+
+        // Scrollable content
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues)
+                .verticalScroll(rememberScrollState())
                 .padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            // 🆕 Step 0: Enter Ticket Name
+            // Ticket name
             OutlinedTextField(
                 value = ticketName,
                 onValueChange = { ticketName = it },
@@ -78,11 +111,7 @@ fun CreateBingoTicketScreen(
                 modifier = Modifier.fillMaxWidth()
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Step 1: Select Game
-            Text("Select an upcoming game:", style = MaterialTheme.typography.titleMedium)
-            Spacer(modifier = Modifier.height(8.dp))
+            // Game dropdown and loading handling
             if (uiState.isLoadingGames) {
                 CircularProgressIndicator()
             } else if (uiState.availableGames.isEmpty()) {
@@ -101,13 +130,9 @@ fun CreateBingoTicketScreen(
                 )
             }
 
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            // Step 2: Bingo Grid
+            // Bingo grid
             if (selectedGame != null) {
                 Text("Fill your bingo ticket:", style = MaterialTheme.typography.titleMedium)
-                Spacer(modifier = Modifier.height(8.dp))
                 BingoGrid(
                     selectedEvents = selectedEvents,
                     onSquareClick = { index -> showEventPickerForIndex = index },
@@ -115,23 +140,6 @@ fun CreateBingoTicketScreen(
                         selectedEvents = selectedEvents.toMutableList().also { it[index] = "" }
                     }
                 )
-
-                Spacer(modifier = Modifier.height(24.dp))
-                Button(
-                    onClick = {
-                        if (userId.isNotBlank()) {
-                            ticketsViewModel.createTicket(
-                                userId = userId,
-                                name = ticketName,
-                                game = selectedGame!!,
-                                events = selectedEvents
-                            )
-                        }
-                    },
-                    enabled = !uiState.isCreating && userId.isNotBlank() && ticketName.isNotBlank() && selectedEvents.none { it.isBlank() },
-                ) {
-                    Text("Save Bingo Ticket")
-                }
             }
         }
 
