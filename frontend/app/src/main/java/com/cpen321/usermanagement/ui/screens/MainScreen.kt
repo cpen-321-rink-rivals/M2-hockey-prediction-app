@@ -81,8 +81,7 @@ private fun MainContent(
     Scaffold(
         modifier = modifier,
         topBar = {
-            MainTopBar(onProfileClick = onProfileClick, onTicketClick = onTicketClick, onFriendsClick = onFriendsClick, onChallengeClick = onChallengeClick)
-            
+            MainTopBar()
         },
         snackbarHost = {
             MainSnackbarHost(
@@ -102,24 +101,12 @@ private fun MainContent(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun MainTopBar(
-    onProfileClick: () -> Unit,
-    onTicketClick: () -> Unit,
-    onFriendsClick: () -> Unit,
-    onChallengeClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     TopAppBar(
         modifier = modifier,
         title = {
             AppTitle()
-        },
-        actions = {
-            BingoTicketActionButton(onClick = onTicketClick)
-            ChallengeActionButton(onClick = onChallengeClick)
-
-            FriendsActionButton(onClick = onFriendsClick)
-
-            ProfileActionButton(onClick = onProfileClick)
         },
         colors = TopAppBarDefaults.topAppBarColors(
             containerColor = MaterialTheme.colorScheme.surface,

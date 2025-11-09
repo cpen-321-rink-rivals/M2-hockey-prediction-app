@@ -42,6 +42,8 @@ class NavigationStateManager @Inject constructor() {
     val navigationEvent: StateFlow<NavigationEvent> = _navigationEvent.asStateFlow()
 
     private val _navigationState = MutableStateFlow(NavigationState())
+    // Public read-only view of navigation state for UI to observe current route, auth etc.
+    val navigationState: StateFlow<NavigationState> = _navigationState.asStateFlow()
 
     /**
      * Updates the authentication state and triggers appropriate navigation

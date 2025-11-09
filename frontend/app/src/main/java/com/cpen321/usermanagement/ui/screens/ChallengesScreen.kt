@@ -200,11 +200,6 @@ fun ChallengesTopBar(
                 fontWeight = FontWeight.Medium
             )
         },
-        navigationIcon = {
-            IconButton(onClick = onBackClick) {
-                Icon(name = R.drawable.ic_arrow_back)
-            }
-        },
         colors = TopAppBarDefaults.topAppBarColors(
             containerColor = MaterialTheme.colorScheme.surface,
             titleContentColor = MaterialTheme.colorScheme.onSurface
