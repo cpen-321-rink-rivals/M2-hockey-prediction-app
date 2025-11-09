@@ -12,6 +12,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -19,6 +21,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.cpen321.usermanagement.R
+import com.cpen321.usermanagement.data.local.preferences.EventCondition
+import com.cpen321.usermanagement.data.local.preferences.NhlDataManager
 import com.cpen321.usermanagement.data.remote.dto.BingoTicket
 import com.cpen321.usermanagement.data.remote.dto.TicketsUiState
 import com.cpen321.usermanagement.ui.viewmodels.AuthViewModel
@@ -162,22 +166,6 @@ fun TicketsList(
             modifier = modifier.padding(horizontal = 16.dp, vertical = 8.dp),
             contentPadding = PaddingValues(bottom = 100.dp)
         ) {
-            stickyHeader {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(MaterialTheme.colorScheme.surfaceVariant)
-                        .padding(vertical = 12.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = "Click a ticket to fill in squares!",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
-            }
-
             items(
                 count = allTickets.size,
                 key = { index -> allTickets[index]._id }
@@ -187,8 +175,7 @@ fun TicketsList(
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(vertical = 8.dp)
-                        .clickable { ticketsViewModel.selectTicket(ticket._id) },
+                        .padding(vertical = 8.dp),
                     shape = RoundedCornerShape(16.dp),
                     elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
@@ -208,7 +195,7 @@ fun TicketsList(
                         Spacer(modifier = Modifier.height(12.dp))
 
                         // Show 3x3 grid of events
-                        BingoGridPreview(events = ticket.events, crossedOff = ticket.crossedOff)
+                        BingoGridPreview(events = ticket.events, crossedOff = ticket.crossedOff, nhlDataManager = ticketsViewModel.nhlDataManager)
 
                         Spacer(modifier = Modifier.height(12.dp))
 
@@ -235,8 +222,9 @@ private fun AddTicketButton(
 
 @Composable
 fun BingoGridPreview(
-    events: List<String>,
-    crossedOff: List<Boolean>? = null
+    events: List<EventCondition>,
+    crossedOff: List<Boolean>? = null,
+    nhlDataManager: NhlDataManager
 ) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         for (row in 0 until 3) {
@@ -244,6 +232,15 @@ fun BingoGridPreview(
                 for (col in 0 until 3) {
                     val index = row * 3 + col
                     val isCrossed = crossedOff?.getOrNull(index) ?: false
+                    val event = events.getOrNull(index)
+
+                    // Use a remembered coroutine scope to call suspend formatter
+                    val label = remember(event) { mutableStateOf("") }
+                    LaunchedEffect(event) {
+                        if (event != null) {
+                            label.value = nhlDataManager.formatEventLabel(event)
+                        }
+                    }
 
                     Box(
                         modifier = Modifier
@@ -260,7 +257,7 @@ fun BingoGridPreview(
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            text = events.getOrNull(index) ?: "",
+                            text = label.value,
                             style = MaterialTheme.typography.bodySmall,
                             modifier = Modifier.padding(6.dp),
                             color = if (isCrossed)

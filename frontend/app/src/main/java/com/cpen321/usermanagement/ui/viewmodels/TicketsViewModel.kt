@@ -1,8 +1,11 @@
 package com.cpen321.usermanagement.ui.viewmodels
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.cpen321.usermanagement.data.local.preferences.EventCondition
 import com.cpen321.usermanagement.data.local.preferences.NhlDataManager
+import com.cpen321.usermanagement.data.remote.dto.BingoTicket
 import com.cpen321.usermanagement.data.remote.dto.Game
 import com.cpen321.usermanagement.data.remote.dto.TicketsUiState
 import com.cpen321.usermanagement.data.repository.TicketsRepository
@@ -17,7 +20,7 @@ import javax.inject.Inject
 class TicketsViewModel @Inject constructor(
     private val repository: TicketsRepository,
     private val navigationStateManager: NavigationStateManager,
-    private val nhlDataManager: NhlDataManager
+    val nhlDataManager: NhlDataManager
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(TicketsUiState())
@@ -27,18 +30,37 @@ class TicketsViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoadingTickets = true)
             val result = repository.getTickets(userId)
+            val tickets = result.getOrDefault(emptyList())
+
+            // Immediately populate UI state with fetched tickets so subsequent
+            // updateTicketFromBoxscore calls can find them in the UI state.
             _uiState.value = _uiState.value.copy(
                 isLoadingTickets = false,
-                allTickets = result.getOrDefault(emptyList())
+                allTickets = tickets
+            )
+
+            // For every ticket, asynchronously refresh its crossedOff state
+            tickets.forEach { ticket ->
+                updateTicketFromBoxscore(ticket._id)
+            }
+
+            // get the new updated tickets and append them to the UI state
+            val updatedResult = repository.getTickets(userId)
+            val updatedTickets = updatedResult.getOrDefault(emptyList())
+
+            _uiState.value = _uiState.value.copy(
+                isLoadingTickets = false,
+                allTickets = updatedTickets
             )
         }
     }
 
-    fun createTicket(userId: String, name: String, game: Game, events: List<String>) {
+    fun createTicket(userId: String, name: String, game: Game, events: List<EventCondition>) {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isCreating = true)
 
             val result = repository.createTicket(userId, name, game, events)
+
             result.onSuccess { newTicket ->
                 _uiState.value = _uiState.value.copy(
                     allTickets = _uiState.value.allTickets + newTicket,
@@ -93,11 +115,11 @@ class TicketsViewModel @Inject constructor(
         }
     }
 
-    fun getEventsForGame(gameId: Long, onEventsLoaded: (List<String>) -> Unit) {
+    fun getEventsForGame(gameId: Long, onEventsLoaded: (List<EventCondition>) -> Unit) {
         viewModelScope.launch {
             try {
                 val events = nhlDataManager.getEventsForGame(gameId)
-                onEventsLoaded(events.map { it.labelTemplates.firstOrNull() ?: "" })
+                onEventsLoaded(events)
             } catch (e: Exception) {
                 onEventsLoaded(emptyList())
             }
@@ -126,12 +148,57 @@ class TicketsViewModel @Inject constructor(
             currentTickets[ticketIndex] = ticket.copy(crossedOff = safeCrossed)
             _uiState.value = _uiState.value.copy(allTickets = currentTickets)
 
-            // Sync to backend (optional but recommended)
+            // Sync to backend
             repository.updateCrossedOff(ticketId, safeCrossed)
         }
     }
 
     fun selectTicket(ticketId: String) {
         navigationStateManager.navigateToTicketDetail(ticketId)
+    }
+
+    fun updateTicketFromBoxscore(ticketId: String) {
+        viewModelScope.launch {
+            Log.d("TicketsViewModel", "Starting update for ticketId: $ticketId")
+            val currentTickets = _uiState.value.allTickets.toMutableList()
+            val index = currentTickets.indexOfFirst { it._id == ticketId }
+            if (index == -1) {
+                Log.w("TicketsViewModel", "Ticket with id $ticketId not found in current UI state.")
+                return@launch
+            }
+
+            val ticket = currentTickets[index]
+            Log.d("TicketsViewModel", "Found ticket: ${ticket.name} for game ${ticket.game.id}")
+
+            val boxscoreResult = nhlDataManager.getBoxscore(ticket.game.id)
+            if (boxscoreResult.isFailure) {
+                Log.e("TicketsViewModel", "Failed to get boxscore for game ${ticket.game.id}: ${boxscoreResult.exceptionOrNull()?.message}")
+                return@launch
+            }
+
+            val boxscore = boxscoreResult.getOrNull()
+            if (boxscore == null) {
+                Log.w("TicketsViewModel", "Boxscore is null for game ${ticket.game.id}. It might not have started.")
+                return@launch
+            }
+
+            Log.d("TicketsViewModel", "Successfully fetched boxscore for game ${ticket.game.id}.")
+
+            // Use the centralized logic from NhlDataManager
+            val newCrossedOff = ticket.events.map { event ->
+                val isFulfilled = nhlDataManager.isFulfilled(event, boxscore)
+                Log.d("TicketsViewModel", "Checking event: $event -> Fulfilled: $isFulfilled")
+                isFulfilled
+            }
+
+            val updatedTicket = ticket.copy(crossedOff = newCrossedOff)
+            currentTickets[index] = updatedTicket
+
+            _uiState.value = _uiState.value.copy(allTickets = currentTickets)
+
+            // Sync changes to backend
+            repository.updateCrossedOff(ticketId, newCrossedOff)
+            Log.i("TicketsViewModel", "Update complete for ticketId: $ticketId. New crossedOff state: $newCrossedOff")
+        }
     }
 }

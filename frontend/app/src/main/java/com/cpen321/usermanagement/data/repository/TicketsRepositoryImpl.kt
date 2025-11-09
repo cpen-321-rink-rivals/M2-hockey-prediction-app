@@ -1,5 +1,6 @@
 package com.cpen321.usermanagement.data.repository
 
+import com.cpen321.usermanagement.data.local.preferences.EventCondition
 import com.cpen321.usermanagement.data.remote.api.TicketsInterface
 import com.cpen321.usermanagement.data.remote.dto.BingoTicket
 import com.cpen321.usermanagement.data.remote.dto.Game
@@ -37,7 +38,7 @@ class TicketsRepositoryImpl @Inject constructor(
         userId: String,
         name: String,
         game: Game,
-        events: List<String>
+        events: List<EventCondition>
     ): Result<BingoTicket> = try {
         val response = api.createTicket(
             BingoTicket(_id = "", userId = userId, name = name, game = game, events = events)

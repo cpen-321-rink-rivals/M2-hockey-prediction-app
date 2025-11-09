@@ -306,7 +306,8 @@ private fun AppNavHost(
                 ticketsViewModel = ticketsViewModel,
                 onBackClick = { navigationStateManager.navigateBack() },
                 authViewModel = authViewModel,
-                onTicketCreated = { navigationStateManager.navigateToTickets() }
+                onTicketCreated = { navigationStateManager.navigateToTickets() },
+                nhlDataManager = ticketsViewModel.nhlDataManager
             )
         }
 
@@ -356,7 +357,8 @@ private fun AppNavHost(
                     challengesViewModel = challengesViewModel,
                     socketManager = mainViewModel.socketManager,
                     socketEventListener = mainViewModel.socketEventListener,
-                    onBackClick = { navigationStateManager.navigateBack() }
+                    onBackClick = { navigationStateManager.navigateBack() },
+                    nhlDataManager = challengesViewModel.nhlDataManager
                 )
             } else {
                 Log.e("AppNavigation", "Challenge ID is null, navigating back.")
