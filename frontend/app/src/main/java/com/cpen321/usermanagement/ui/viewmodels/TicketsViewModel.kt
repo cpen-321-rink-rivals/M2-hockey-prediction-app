@@ -1,5 +1,6 @@
 package com.cpen321.usermanagement.ui.viewmodels
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.cpen321.usermanagement.data.local.preferences.EventCondition
@@ -140,20 +141,36 @@ class TicketsViewModel @Inject constructor(
 
     fun updateTicketFromBoxscore(ticketId: String) {
         viewModelScope.launch {
+            Log.d("TicketsViewModel", "Starting update for ticketId: $ticketId")
             val currentTickets = _uiState.value.allTickets.toMutableList()
             val index = currentTickets.indexOfFirst { it._id == ticketId }
-            if (index == -1) return@launch
+            if (index == -1) {
+                Log.w("TicketsViewModel", "Ticket with id $ticketId not found in current UI state.")
+                return@launch
+            }
 
             val ticket = currentTickets[index]
+            Log.d("TicketsViewModel", "Found ticket: ${ticket.name} for game ${ticket.game.id}")
 
             val boxscoreResult = nhlDataManager.getBoxscore(ticket.game.id)
-            if (boxscoreResult.isFailure) return@launch
+            if (boxscoreResult.isFailure) {
+                Log.e("TicketsViewModel", "Failed to get boxscore for game ${ticket.game.id}: ${boxscoreResult.exceptionOrNull()?.message}")
+                return@launch
+            }
 
-            val boxscore = boxscoreResult.getOrNull() ?: return@launch
+            val boxscore = boxscoreResult.getOrNull()
+            if (boxscore == null) {
+                Log.w("TicketsViewModel", "Boxscore is null for game ${ticket.game.id}. It might not have started.")
+                return@launch
+            }
+
+            Log.d("TicketsViewModel", "Successfully fetched boxscore for game ${ticket.game.id}.")
 
             // Use the centralized logic from NhlDataManager
             val newCrossedOff = ticket.events.map { event ->
-                nhlDataManager.isFulfilled(event, boxscore)
+                val isFulfilled = nhlDataManager.isFulfilled(event, boxscore)
+                Log.d("TicketsViewModel", "Checking event: $event -> Fulfilled: $isFulfilled")
+                isFulfilled
             }
 
             val updatedTicket = ticket.copy(crossedOff = newCrossedOff)
@@ -163,6 +180,7 @@ class TicketsViewModel @Inject constructor(
 
             // Sync changes to backend
             repository.updateCrossedOff(ticketId, newCrossedOff)
+            Log.i("TicketsViewModel", "Update complete for ticketId: $ticketId. New crossedOff state: $newCrossedOff")
         }
     }
 }

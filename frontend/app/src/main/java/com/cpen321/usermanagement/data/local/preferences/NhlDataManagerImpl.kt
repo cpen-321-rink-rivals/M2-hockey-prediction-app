@@ -1,22 +1,22 @@
+
 package com.cpen321.usermanagement.data.local.preferences
 
 import android.util.Log
 import com.cpen321.usermanagement.data.remote.dto.Boxscore
 import com.cpen321.usermanagement.data.remote.dto.Game
 import com.cpen321.usermanagement.data.remote.dto.GameDay
+import com.cpen321.usermanagement.data.remote.dto.GoalieStats
+import com.cpen321.usermanagement.data.remote.dto.PlayerInfo
+import com.cpen321.usermanagement.data.remote.dto.PlayerStats
 import com.cpen321.usermanagement.data.repository.NHLRepository
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.async
-import kotlinx.coroutines.coroutineScope
-import com.cpen321.usermanagement.data.remote.dto.PlayerInfo
-import com.cpen321.usermanagement.data.remote.dto.PlayerStats
-import com.cpen321.usermanagement.data.remote.dto.GoalieStats
-import com.cpen321.usermanagement.data.remote.dto.TeamInfo
-import kotlin.random.Random
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlin.random.Random
 
 /**
  * UI state for NHL data management
@@ -33,14 +33,13 @@ enum class ComparisonType { GREATER_THAN, LESS_THAN }
 data class EventCondition(
     val id: String,
     val category: EventCategory,
-    val subject: String,         // e.g. "goals", "assists", "penaltyMinutes"
+    val subject: String,
     val comparison: ComparisonType,
     val threshold: Int,
-    val teamAbbrev: String? = null,  // e.g. "VAN" or "BOS"
-    val playerId: Long? = null,       // optional for player-specific events
-    val playerName: String? = null,  // cached for label generation
+    val playerId: Long? = null,
+    val playerName: String? = null,
+    val teamAbbrev: String? = null,
 )
-
 
 /**
  * Shared manager for NHL schedule data across the app
@@ -56,57 +55,6 @@ class NhlDataManagerImpl @Inject constructor(
 
     private val _uiState = MutableStateFlow(NhlDataState())
     override val uiState: StateFlow<NhlDataState> = _uiState.asStateFlow()
-
-    private val eventPool = listOf(
-        // -------- FORWARDS --------
-        EventCondition("F1", EventCategory.FORWARD, "player.goals", ComparisonType.GREATER_THAN, 2,
-            "{player} scores {threshold}+ goals"
-        ),
-        EventCondition("F2", EventCategory.FORWARD, "player.assists", ComparisonType.GREATER_THAN, 2,
-            "{player} gets {threshold}+ assists"
-        ),
-        EventCondition("F3", EventCategory.FORWARD, "player.hits", ComparisonType.GREATER_THAN, 3,
-            "{player} delivers {threshold}+ hits"
-        ),
-        EventCondition("F4", EventCategory.FORWARD, "player.sog", ComparisonType.GREATER_THAN, 4,
-            "{player} shoots {threshold}+ times"
-        ),
-        EventCondition("F5", EventCategory.FORWARD, "player.toi", ComparisonType.GREATER_THAN, 20,
-            "{player} logs over {threshold} minutes of ice time"
-        ),
-
-        // -------- DEFENSE --------
-        EventCondition("D1", EventCategory.DEFENSE, "player.blockedShots", ComparisonType.GREATER_THAN, 2,
-            "{player} blocks {threshold}+ shots"
-        ),
-        EventCondition("D2", EventCategory.DEFENSE, "player.hits", ComparisonType.GREATER_THAN, 3,
-            "{player} dishes out {threshold}+ hits"
-        ),
-        EventCondition("D3", EventCategory.DEFENSE, "player.assists", ComparisonType.GREATER_THAN, 1,
-            "{player} assists {threshold}+ times"
-        ),
-        EventCondition("D4", EventCategory.DEFENSE, "player.toi", ComparisonType.GREATER_THAN, 22,
-            "{player} gets {threshold}+ minutes of ice time"
-        ),
-
-        // -------- GOALIES --------
-        EventCondition("G1", EventCategory.GOALIE, "player.saves", ComparisonType.GREATER_THAN, 30,
-            "{player} makes {threshold}+ saves"
-        ),
-
-        // -------- TEAM --------
-        EventCondition("T1", EventCategory.TEAM, "team.goals", ComparisonType.GREATER_THAN, 3,
-            "{team} scores {threshold}+ goals"
-        ),
-        EventCondition("T2", EventCategory.TEAM, "team.sog", ComparisonType.GREATER_THAN, 30,
-            "{team} registers {threshold}+ shots on goal"
-        ),
-
-        // -------- PENALTY --------
-        EventCondition("P1", EventCategory.PENALTY, "team.penaltyMinutes", ComparisonType.GREATER_THAN, 10,
-            "{team} takes over {threshold} penalty minutes"
-        )
-    )
 
     /**
      * Load current NHL schedule
@@ -267,41 +215,66 @@ class NhlDataManagerImpl @Inject constructor(
      * Handles player/goalie/team categories and subjects.
      */
     override suspend fun isFulfilled(event: EventCondition, boxscore: Boxscore): Boolean {
-        // Allow subjects that are either "goals" or "player.goals" etc.
-        val normalizedSubject = event.subject.removePrefix("player.").removePrefix("team.").removePrefix("goalie.")
-
-        // Try to fetch value according to category and provided ids/names
+        // Get the stat value based on the event category and subject
         val value = when (event.category) {
-            EventCategory.FORWARD, EventCategory.DEFENSE -> {
-                // Player stat (for skaters)
-                getValueForField(boxscore, event.copy(subject = normalizedSubject, playerName = event.playerName, playerId = event.playerId, teamAbbrev = event.teamAbbrev))
-            }
-
+            EventCategory.FORWARD,
+            EventCategory.DEFENSE,
             EventCategory.GOALIE -> {
-                // Goalie stat (saves, goalsAgainst, toi, etc.)
-                getValueForField(boxscore, event.copy(subject = normalizedSubject, playerName = event.playerName, playerId = event.playerId, teamAbbrev = event.teamAbbrev))
+                // Player-level stat
+                getValueForField(
+                    boxscore,
+                    event.copy(
+                        subject = event.subject,
+                        playerName = event.playerName,
+                        playerId = event.playerId,
+                        teamAbbrev = event.teamAbbrev
+                    )
+                )
             }
 
-            EventCategory.TEAM, EventCategory.PENALTY -> {
+            EventCategory.TEAM,
+            EventCategory.PENALTY -> {
                 // Team-level stat
-                getValueForField(boxscore, event.copy(subject = normalizedSubject))
+                getValueForField(
+                    boxscore,
+                    event.copy(subject = event.subject)
+                )
             }
         }
 
-        // If value missing, treat as not fulfilled
-        if (value == null) return false
+        // Log debug info to help verify what's happening
+        Log.d(
+            "BingoCheck",
+            "Checking event: ${event.subject}, " +
+                    "player=${event.playerName ?: "N/A"}, " +
+                    "team=${event.teamAbbrev ?: "N/A"}, " +
+                    "value=$value, " +
+                    "threshold=${event.threshold}, " +
+                    "comparison=${event.comparison}"
+        )
 
-        return compareStat(value, event.threshold, event.comparison)
+        // If value is missing, it's not fulfilled
+        if (value == null) {
+            Log.d("BingoCheck", "❌ Value not found for ${event.subject}")
+            return false
+        }
+
+        // Compare the stat against the threshold
+        val result = compareStat(value, event.threshold, event.comparison)
+
+        Log.d("BingoCheck", "✅ Comparison result for ${event.subject} = $result")
+
+        return result
     }
 
     override fun formatEventLabel(event: EventCondition): String {
         val subject = when {
-            event.playerName != null -> event.playerName
-            event.teamAbbrev != null -> event.teamAbbrev
+            !event.playerName.isNullOrEmpty() -> event.playerName
+            !event.teamAbbrev.isNullOrEmpty() -> event.teamAbbrev
             else -> "Player"
         }
 
-        val statName = when (event.subject) {
+        val statName = when (event.subject ?: "") {
             "player.goals" -> "scores"
             "player.assists" -> "assists"
             "player.hits" -> "makes hits"
@@ -311,12 +284,13 @@ class NhlDataManagerImpl @Inject constructor(
             "team.goals" -> "scores goals"
             "team.penalties" -> "takes penalties"
             "team.shots" -> "takes shots"
-            else -> event.subject.replaceFirstChar { it.uppercase() } // fallback
+            else -> event.subject ?: "unknown stat"
         }
 
         val comparison = when (event.comparison) {
             ComparisonType.GREATER_THAN -> "${event.threshold}+"
             ComparisonType.LESS_THAN -> "< ${event.threshold}"
+            else -> event.threshold.toString()
         }
 
         return "$subject $statName ($comparison)"
@@ -335,13 +309,14 @@ class NhlDataManagerImpl @Inject constructor(
             val teamAbbrev = eventCondition.teamAbbrev ?: return null
             val isHome = boxscore.homeTeam.abbrev == teamAbbrev
             val teamInfo = if (isHome) boxscore.homeTeam else boxscore.awayTeam
-            val teamPlayers = if (isHome) boxscore.playerByGameStats.homeTeam else boxscore.playerByGameStats.awayTeam
 
             return when (subject) {
                 "goals" -> teamInfo.score
                 "sog" -> teamInfo.sog
                 // No direct team PIM field: sum player pims
                 "penaltyMinutes", "pim", "penalties" -> {
+                    val stats = boxscore.playerByGameStats ?: return null
+                    val teamPlayers = if (isHome) stats.homeTeam else stats.awayTeam
                     val allPlayers = teamPlayers.forwards + teamPlayers.defense
                     allPlayers.sumOf { it.pim ?: 0 }
                 }
@@ -420,8 +395,9 @@ class NhlDataManagerImpl @Inject constructor(
      * Helper: find skater by numeric player id in both teams
      */
     private fun getSkaterById(boxscore: Boxscore, id: Long): PlayerStats? {
-        return (boxscore.playerByGameStats.homeTeam.forwards + boxscore.playerByGameStats.homeTeam.defense +
-                boxscore.playerByGameStats.awayTeam.forwards + boxscore.playerByGameStats.awayTeam.defense)
+        val stats = boxscore.playerByGameStats ?: return null
+        return (stats.homeTeam.forwards + stats.homeTeam.defense +
+                stats.awayTeam.forwards + stats.awayTeam.defense)
             .firstOrNull { it.playerId == id }
     }
 
@@ -429,7 +405,8 @@ class NhlDataManagerImpl @Inject constructor(
      * Helper: find goalie by numeric player id in both teams
      */
     private fun getGoalieById(boxscore: Boxscore, id: Long): GoalieStats? {
-        return (boxscore.playerByGameStats.homeTeam.goalies + boxscore.playerByGameStats.awayTeam.goalies)
+        val stats = boxscore.playerByGameStats ?: return null
+        return (stats.homeTeam.goalies + stats.awayTeam.goalies)
             .firstOrNull { it.playerId == id }
     }
 
@@ -437,10 +414,11 @@ class NhlDataManagerImpl @Inject constructor(
      * Find a skater by display name (case-insensitive). Uses PlayerStats.name.default
      */
     private fun findPlayerByName(boxscore: Boxscore, name: String): PlayerStats? {
-        val allPlayers = boxscore.playerByGameStats.awayTeam.forwards +
-                boxscore.playerByGameStats.awayTeam.defense +
-                boxscore.playerByGameStats.homeTeam.forwards +
-                boxscore.playerByGameStats.homeTeam.defense
+        val stats = boxscore.playerByGameStats ?: return null
+        val allPlayers = stats.awayTeam.forwards +
+                stats.awayTeam.defense +
+                stats.homeTeam.forwards +
+                stats.homeTeam.defense
 
         return allPlayers.firstOrNull { it.name.default.equals(name, ignoreCase = true) }
     }
@@ -449,8 +427,9 @@ class NhlDataManagerImpl @Inject constructor(
      * Find a goalie by display name (case-insensitive). Uses GoalieStats.name.default
      */
     private fun findGoalieByName(boxscore: Boxscore, name: String): GoalieStats? {
-        val allGoalies = boxscore.playerByGameStats.awayTeam.goalies +
-                boxscore.playerByGameStats.homeTeam.goalies
+        val stats = boxscore.playerByGameStats ?: return null
+        val allGoalies = stats.awayTeam.goalies +
+                stats.homeTeam.goalies
 
         return allGoalies.firstOrNull { it.name.default.equals(name, ignoreCase = true) }
     }
@@ -485,7 +464,7 @@ class NhlDataManagerImpl @Inject constructor(
      */
     private fun compareStat(value: Int, threshold: Int, comparison: ComparisonType): Boolean {
         return when (comparison) {
-            ComparisonType.GREATER_THAN -> value > threshold
+            ComparisonType.GREATER_THAN -> value >= threshold
             ComparisonType.LESS_THAN -> value < threshold
         }
     }

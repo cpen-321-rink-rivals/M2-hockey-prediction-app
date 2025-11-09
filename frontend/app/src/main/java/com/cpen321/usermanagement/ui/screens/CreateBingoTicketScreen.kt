@@ -17,14 +17,7 @@ import androidx.compose.ui.unit.dp
 import com.cpen321.usermanagement.R
 import com.cpen321.usermanagement.data.local.preferences.EventCondition
 import com.cpen321.usermanagement.data.local.preferences.NhlDataManager
-import com.cpen321.usermanagement.data.remote.dto.BingoTicket
 import com.cpen321.usermanagement.data.remote.dto.Game
-import com.cpen321.usermanagement.data.remote.dto.Name
-import com.cpen321.usermanagement.data.remote.dto.PeriodDescriptor
-import com.cpen321.usermanagement.data.remote.dto.Team
-import com.cpen321.usermanagement.data.remote.dto.TvBroadcast
-import com.cpen321.usermanagement.data.remote.dto.Venue
-import com.cpen321.usermanagement.ui.viewmodels.AuthViewModel
 import com.cpen321.usermanagement.ui.viewmodels.AuthViewModelContract
 import com.cpen321.usermanagement.ui.viewmodels.TicketsViewModel
 
