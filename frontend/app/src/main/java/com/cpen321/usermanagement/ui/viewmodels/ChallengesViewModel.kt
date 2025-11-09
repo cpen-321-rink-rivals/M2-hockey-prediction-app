@@ -61,7 +61,7 @@ class ChallengesViewModel @Inject constructor(
     private val profileRepository: ProfileRepository,
     private val friendsRepository: FriendsRepository,
     private val ticketsRepository: TicketsRepository,
-    private val nhlDataManager: NhlDataManager
+    val nhlDataManager: NhlDataManager
 ) : ViewModel() {
     companion object {
         private const val TAG = "ChallengesViewModel"
