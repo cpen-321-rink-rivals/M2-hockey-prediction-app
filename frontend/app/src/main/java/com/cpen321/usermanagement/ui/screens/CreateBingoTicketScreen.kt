@@ -75,12 +75,12 @@ fun CreateBingoTicketScreen(
                                 userId = userId,
                                 name = ticketName,
                                 game = selectedGame!!,
-                                events = selectedEvents
+                                events = selectedEvents.filterNotNull()
                             )
                             onTicketCreated()
                         }
                     },
-                    enabled = !uiState.isCreating && userId.isNotBlank() && ticketName.isNotBlank() && selectedEvents.none { it.isBlank() }
+                    enabled = !uiState.isCreating && userId.isNotBlank() && ticketName.isNotBlank() && selectedEvents.none { it == null }
                 ) {
                     Text("Create")
                 }
