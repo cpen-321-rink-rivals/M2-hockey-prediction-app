@@ -84,7 +84,7 @@ Commit SHA: `4f6e4315d515830b5ddeb2493602aaf335bedd2f`
 
 ### 4.1. Location in Git of Front-end Test Suite:
 
-`frontend/src/androidTest/java/com/studygroupfinder/`
+`frontend/app/src/androidTest/java/com/cpen321/usermanagement`
 
 ### 4.2. Tests
 
