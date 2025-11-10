@@ -26,6 +26,23 @@ const TicketSchema = new Schema({
     default: Array(9).fill(false),
     validate: (v: boolean[]) => v.length === 9,
   },
+  score: {
+    type: {
+      noCrossedOff: { type: Number, default: 0 },
+      noRows: { type: Number, default: 0 },
+      noColumns: { type: Number, default: 0 },
+      noCrosses: { type: Number, default: 0 },
+      total: { type: Number, default: 0 },
+    },
+    required: false,
+    default: {
+      noCrossedOff: 0,
+      noRows: 0,
+      noColumns: 0,
+      noCrosses: 0,
+      total: 0,
+    },
+  },
   createdAt: { type: Date, default: Date.now },
 });
 

@@ -91,9 +91,17 @@ describe('Mocked PUT /api/tickets/crossedOff/:id', () => {
 
     // Assert: controller should return 500 on DB error
     expect(res.status).toBe(500);
+    // New behavior: controller computes score and updates crossedOff + score in one call
+    const expectedScore = {
+      noCrossedOff: crossedOff.filter(Boolean).length,
+      noRows: 0,
+      noColumns: 0,
+      noCrosses: 2,
+      total: crossedOff.filter(Boolean).length + 2 * 3,
+    };
     expect(Ticket.findByIdAndUpdate).toHaveBeenCalledWith(
       testTicketId,
-      { crossedOff },
+      { crossedOff, score: expectedScore },
       { new: true }
     );
     expect(res.body).toHaveProperty('error');

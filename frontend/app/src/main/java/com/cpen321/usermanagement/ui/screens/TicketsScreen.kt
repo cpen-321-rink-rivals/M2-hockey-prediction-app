@@ -201,6 +201,15 @@ fun TicketsList(
 
                         Spacer(modifier = Modifier.height(12.dp))
 
+                        Text(
+                            text = "Score: " +
+                                    "fields(${ticket.score?.noCrossedOff})" +
+                                    " + rows(${ticket.score?.noRows}) * 3" +
+                                    " + col(${ticket.score?.noColumns}) * 3" +
+                                    " + cross(${ticket.score?.noCrosses}) * 3" +
+                                    " = ${ticket.score?.total ?: "N/A"}",
+                            style = MaterialTheme.typography.bodyMedium
+                        )
                         TextButton(onClick = { ticketsViewModel.deleteTicket(ticket._id) }) {
                             Text("Delete")
                         }

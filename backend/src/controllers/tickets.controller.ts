@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { Ticket } from '../models/tickets.model';
 import { TicketType } from '../types/tickets.types';
+import { computeTicketScore } from '../utils/score.util';
 
 export const createBingoTicket = async (req: Request, res: Response) => {
   try {
@@ -10,7 +11,25 @@ export const createBingoTicket = async (req: Request, res: Response) => {
       return res.status(400).json({ message: 'Invalid bingo ticket data' });
     }
 
-    const newTicket = await Ticket.create({ userId, name, game, events });
+    // default crossedOff if not provided
+    const crossedOff =
+      (req.body as any).crossedOff &&
+      Array.isArray((req.body as any).crossedOff)
+        ? (req.body as any).crossedOff
+        : Array(9).fill(false);
+
+    const score = computeTicketScore(crossedOff);
+
+    // create ticket with crossedOff and score in a single call
+    const newTicket = await Ticket.create({
+      userId,
+      name,
+      game,
+      events,
+      crossedOff,
+      score,
+    });
+
     res.status(201).json(newTicket);
   } catch (error) {
     console.error('Error creating bingo ticket:', error);
@@ -62,11 +81,16 @@ export const updateCrossedOff = async (req: Request, res: Response) => {
     const crossedOff = Array.isArray(req.body) ? req.body : req.body.crossedOff;
 
     if (!Array.isArray(crossedOff)) {
-      return res.status(400).json({ message: "Invalid crossedOff format" });
+      return res.status(400).json({ message: 'Invalid crossedOff format' });
     }
 
-    const updated = await Ticket.findByIdAndUpdate(id, { crossedOff }, { new: true });
-    if (!updated) return res.status(404).json({ message: "Ticket not found" });
+    const score = computeTicketScore(crossedOff);
+    const updated = await Ticket.findByIdAndUpdate(
+      id,
+      { crossedOff, score },
+      { new: true }
+    );
+    if (!updated) return res.status(404).json({ message: 'Ticket not found' });
 
     res.json(updated);
   } catch (err) {
