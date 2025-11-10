@@ -17,6 +17,8 @@
 | 26. Oct         | 3.7 Non. Func. Requirement 1 | Due to downsizing of the project, we have changes the non-functional req. to only involve the update of game status instead of all game events.                                                                                                                                                                                                                                                                                                                                                         |
 | 26. Oct.        | 4.7                          | Added description of testing of NF req. 1 & 2                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
 | 4. Nov          | 4.1                          | Removed unused method from component interface, getPollingInterval                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| 9. Nov          | 3.1, 3.4                     | Tickets can now update based on the real game data. This is now reflected   |
+| 9. Nov          | 3.1, 3.4, 3.5                | Updated challenge requirements to reflect what is in our app   |
 
 ---
 
@@ -34,14 +36,14 @@ Our app is a social points game based on real life ice hockey games. The purpose
 
 **2. Manage friends:** A user can send friend requests to other users. Other users may accept or decline friend requests. If a user accepts a friend request, the user will become a friend and appear in the users friend list. Users can also delete friends.
 
-**3. Manage bingo tickets:** Users can create bingo tickets for upcoming hockey games. One game can be chosen for one ticket but multiple tickets may be made for one game. The user can fill their bingo ticket by selecting 9 events from a list and placing them in a 3x3 grid. When the bingo ticket is complete, the user can save it and view it in a tickets list. As the real life hockey game starts, the ticket is assigned points based on a bingo point system.
+**3. Manage bingo tickets:** Users can create bingo tickets for upcoming hockey games. One game can be chosen for one ticket but multiple tickets may be made for one game. The user can fill their bingo ticket by selecting 9 events from a list and placing them in a 3x3 grid. When the bingo ticket is complete, the user can save it and view it in a tickets list. As the real life hockey game starts, the squares are filled in when the events are met (eg. VAN scores 3+ times).
 
 **4. Manage challenges:** Users can create challenges if they have a bingo ticket. The challenge will have a unique game related to it based on the bingo ticket it has been created from, this will be the “Challenge game”.
 One ticket may be used for one challenge but multiple challenges may use the same ticket.
-The user who created the challenge will become the challenge owner and can invite other players from their friends list. The challenged users can choose to accept the invitation by selecting or creating their own bingo ticket if this ticket is also based on the “Challenge game”. Users can also decline the invitation and may leave challenges they accepted before.
+The user who created the challenge will become the challenge owner and can invite other players from their friends list. The challenged users can choose to accept the invitation by selecting their own bingo ticket if this ticket is also based on the “Challenge game”. Users can also decline the invitation and may leave challenges they accepted before.
 
-**5. View challenges:** Users are able to see their challenges in 3 categories, live, upcoming and finished filtering on the time related to the “Challenge game”.
-Users can view a specific challenge and see the score of the real life game as well as a points table of the challengers.
+**5. View challenges:** Users are able to see their challenges in 5 categories: pending, active, live, finished, and cancelled, filtering on the time related to the “Challenge game”.
+Users can view a specific challenge and see the state of all bingo tickets involved in the challenge.
 
 ### **3.2. Use Case Diagram**
 
@@ -80,7 +82,7 @@ Users can view a specific challenge and see the score of the real life game as w
 - Use cases for feature 4: [Manage challenges]
 
 1. **[Send challenge]**: The user can use a bingo ticket to challenge one or several friends to create their own bingo ticket on the specific match and see who gets the highest score.
-2. **[Accept challenge]**: The user can receive invites and accept them by creating a bingo ticket for the specific match they have been invited to.
+2. **[Accept challenge]**: The user can receive invites and accept them by selecting a bingo ticket for the specific match they have been invited to.
 3. **[Decline challenge]**: The user can decline any incoming challenge.
 4. **[Close challenge]**: The challenge owner can close a challenge whereby the challenge will disappear for all members of the challenge.
 5. **[Leave challenge]**: The challenge member can leave a challenge if the game has not begun.
@@ -89,8 +91,8 @@ Users can view a specific challenge and see the score of the real life game as w
 
 1. **[View challenge details]**: All users can see current participants and their bingo tickets.
 2. **[View active challenges]**: All users can view a list of challenges they are hosting or participating in.
-3. **[View challenge rankings]**: All users can view challenge rankings as bingo tickets update automatically when users colour in squares.
-4. **[View results]**: All users can view the final scores of a challenge after the game.
+3. **[View challenge status]**: All users can view challenge status as bingo tickets update when opening a challenge.
+4. **[View results]**: All users can view the final results of a challenge after the game.
 
 ### **3.5. Formal Use Case Specifications (5 Most Major Use Cases)**
 
@@ -158,7 +160,7 @@ Users can view a specific challenge and see the score of the real life game as w
 
 #### Use Case 3: [Accept Challenge]
 
-**Description**: A user is prompted with an invitation to join a group challenge. They can accept by selecting or creating a bingo ticket for the specified game.
+**Description**: A user is prompted with an invitation to join a group challenge. They can accept by selecting or a bingo ticket for the specified game.
 
 **Primary actor(s)**: User
 
@@ -166,12 +168,8 @@ Users can view a specific challenge and see the score of the real life game as w
 
 1. The user views the pending challenge invitation.
 2. The user chooses to accept the invitation.
-3. The user either selects an existing bingo ticket for the specified game or creates a new one.
+3. The user selects an existing bingo ticket for the specified game.
 4. The system adds the user to the challenge and confirms acceptance.
-
-**Alternate Triggers**
-3.1 The user chooses to create a new ticket.
-— Continue at “Creating a bingo ticket” use case.
 
 **Failure scenario(s)**:
 
