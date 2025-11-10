@@ -120,23 +120,37 @@ fun BingoTicketCard(
     ticket: BingoTicket,
     nhlDataManager: NhlDataManager,
     onDelete: (() -> Unit)? = null,
+    onClick: (() -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
     val score = ticket.score?.let { BingoScore(it.noCrossedOff, it.noRows, it.noColumns, it.noCrosses, it.total) }
 
     Card(
-        modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+        modifier = modifier
+            .fillMaxWidth()
+            .let { if (onClick != null) it.clickable { onClick() } else it },
+        shape = RoundedCornerShape(12.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
     ) {
-        Column(modifier = Modifier.padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(ticket.name, style = MaterialTheme.typography.titleMedium, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold)
-            Spacer(modifier = Modifier.height(12.dp))
+        Column(modifier = Modifier.padding(12.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
+                Text(ticket.name, style = MaterialTheme.typography.titleMedium, fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold)
+                Surface(shape = RoundedCornerShape(8.dp), color = MaterialTheme.colorScheme.primaryContainer) {
+                    Text(text = "${score?.total ?: "N/A"}", modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp), style = MaterialTheme.typography.bodyMedium)
+                }
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
             BingoGrid(events = ticket.events, crossedOff = ticket.crossedOff, nhlDataManager = nhlDataManager)
-            Spacer(modifier = Modifier.height(12.dp))
-            Text(text = "Score: ${score?.total ?: "N/A"}")
-            if (onDelete != null) {
-                TextButton(onClick = { onDelete() }) { Text("Delete") }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Row(horizontalArrangement = Arrangement.End, modifier = Modifier.fillMaxWidth()) {
+                if (onDelete != null) {
+                    TextButton(onClick = { onDelete() }) { Text("Delete") }
+                }
             }
         }
     }
@@ -146,7 +160,6 @@ fun BingoTicketCard(
 fun BingoTicketDetailInteractive(
     ticket: BingoTicket,
     nhlDataManager: NhlDataManager,
-    onApply: ((List<Boolean>) -> Unit)? = null
 ) {
     var crossed by remember { mutableStateOf(ticket.crossedOff.toMutableList()) }
     val score = computeBingoScore(crossed)
@@ -167,7 +180,6 @@ fun BingoTicketDetailInteractive(
 
         Spacer(modifier = Modifier.height(12.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            Button(onClick = { onApply?.invoke(crossed) }) { Text("Apply") }
             Button(onClick = { crossed = ticket.crossedOff.toMutableList() }) { Text("Reset") }
         }
     }

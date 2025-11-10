@@ -174,22 +174,14 @@ fun TicketsList(
             ) { index ->
                 val ticket = allTickets[index]
 
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 8.dp),
-                    shape = RoundedCornerShape(16.dp),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
-                ) {
-                    // Use reusable ticket card (shows grid and total score)
-                    com.cpen321.usermanagement.ui.components.BingoTicketCard(
-                        ticket = ticket,
-                        nhlDataManager = ticketsViewModel.nhlDataManager,
-                        onDelete = { ticketsViewModel.deleteTicket(ticket._id) },
-                        modifier = Modifier.padding(16.dp)
-                    )
-                }
+                // Use reusable ticket card (shows grid and total score)
+                com.cpen321.usermanagement.ui.components.BingoTicketCard(
+                    ticket = ticket,
+                    nhlDataManager = ticketsViewModel.nhlDataManager,
+                    onDelete = { ticketsViewModel.deleteTicket(ticket._id) },
+                    onClick = { ticketsViewModel.selectTicket(ticket._id) },
+                    modifier = Modifier.padding(16.dp)
+                )
             }
         }
     }

@@ -31,6 +31,7 @@ import com.cpen321.usermanagement.data.remote.dto.Challenge
 import com.cpen321.usermanagement.data.remote.dto.ChallengeStatus
 import com.cpen321.usermanagement.data.remote.dto.Game
 import com.cpen321.usermanagement.data.remote.dto.User
+import com.cpen321.usermanagement.ui.components.BingoTicketCard
 import com.cpen321.usermanagement.ui.components.TeamMatchup
 import com.cpen321.usermanagement.ui.viewmodels.ChallengesViewModel
 import com.cpen321.usermanagement.ui.viewmodels.Friend
@@ -833,8 +834,12 @@ private fun MemberRowWithTicket(
 
             // Show bingo ticket grid if available
             if (ticket != null) {
-                Divider()
-                BingoGridPreview(events = ticket.events, crossedOff = ticket.crossedOff, nhlDataManager = nhlDataManager)
+
+                BingoTicketCard(
+                    ticket = ticket,
+                    nhlDataManager = nhlDataManager,
+                    modifier = Modifier.padding(16.dp)
+                )
             }
         }
     }
