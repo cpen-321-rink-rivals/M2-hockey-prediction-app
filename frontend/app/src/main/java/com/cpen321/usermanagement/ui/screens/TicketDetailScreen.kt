@@ -65,7 +65,11 @@ fun TicketDetailScreen(
                 .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            BingoGridInteractive(ticket = ticket, viewModel = viewModel)
+            com.cpen321.usermanagement.ui.components.BingoTicketDetailInteractive(
+                ticket = ticket,
+                nhlDataManager = viewModel.nhlDataManager,
+                onApply = { crossed -> viewModel.updateCrossedOff(ticket._id, crossed) }
+            )
         }
     }
 }

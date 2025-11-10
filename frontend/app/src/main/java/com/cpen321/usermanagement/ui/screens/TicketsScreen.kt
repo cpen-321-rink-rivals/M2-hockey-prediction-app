@@ -182,38 +182,13 @@ fun TicketsList(
                     elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
                 ) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Text(
-                            text = ticket.name,
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold
-                        )
-
-                        Spacer(modifier = Modifier.height(12.dp))
-
-                        // Show 3x3 grid of events
-                        BingoGridPreview(events = ticket.events, crossedOff = ticket.crossedOff, nhlDataManager = ticketsViewModel.nhlDataManager)
-
-                        Spacer(modifier = Modifier.height(12.dp))
-
-                        Text(
-                            text = "Score: " +
-                                    "fields(${ticket.score?.noCrossedOff})" +
-                                    " + rows(${ticket.score?.noRows}) * 3" +
-                                    " + col(${ticket.score?.noColumns}) * 3" +
-                                    " + cross(${ticket.score?.noCrosses}) * 3" +
-                                    " = ${ticket.score?.total ?: "N/A"}",
-                            style = MaterialTheme.typography.bodyMedium
-                        )
-                        TextButton(onClick = { ticketsViewModel.deleteTicket(ticket._id) }) {
-                            Text("Delete")
-                        }
-                    }
+                    // Use reusable ticket card (shows grid and total score)
+                    com.cpen321.usermanagement.ui.components.BingoTicketCard(
+                        ticket = ticket,
+                        nhlDataManager = ticketsViewModel.nhlDataManager,
+                        onDelete = { ticketsViewModel.deleteTicket(ticket._id) },
+                        modifier = Modifier.padding(16.dp)
+                    )
                 }
             }
         }
