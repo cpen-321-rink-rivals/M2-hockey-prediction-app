@@ -14,7 +14,7 @@ import mongoose from 'mongoose';
 import jwt from 'jsonwebtoken';
 import { userModel } from '../../../src/models/user.model';
 import { Ticket } from '../../../src/models/tickets.model';
-import { TicketType } from '../../../src/types/tickets.types';
+import { EventCondition, TicketType } from '../../../src/types/tickets.types';
 import path from 'path';
 
 // Load test environment variables
@@ -70,11 +70,26 @@ describe('Mocked POST /api/tickets', () => {
       throw new Error('Forced DB error');
     });
 
+    const events = Array.from({ length: 9 }, (_, i) => ({
+      id: `e${i}`,
+      category: 'FORWARD' as any,
+      subject: 'goals',
+      comparison: 'GREATER_THAN' as any,
+      threshold: 1,
+    }));
+
     const validTicket: TicketType = {
       userId: testUserId,
       name: 'Mock Ticket',
       game: { id: 1, homeTeam: { abbrev: 'HT' }, awayTeam: { abbrev: 'AT' } },
-      events: Array.from({ length: 9 }, (_, i) => `e${i}`),
+      events: events as EventCondition[],
+      score: {
+        noCrossedOff: 0,
+        noRows: 0,
+        noColumns: 0,
+        noCrosses: 0,
+        total: 0,
+      },
     };
 
     // Act
@@ -85,7 +100,10 @@ describe('Mocked POST /api/tickets', () => {
 
     // Assert: controller should return 500 on DB error
     expect(res.status).toBe(500);
-    expect(Ticket.create).toHaveBeenCalledWith(validTicket);
+    const expectedCreateArg = {
+      ...validTicket,
+    };
+    expect(Ticket.create).toHaveBeenCalledWith(expectedCreateArg);
     expect(Ticket.create).toHaveBeenCalledTimes(1);
     expect(res.body).toHaveProperty('message', 'Server error');
   });

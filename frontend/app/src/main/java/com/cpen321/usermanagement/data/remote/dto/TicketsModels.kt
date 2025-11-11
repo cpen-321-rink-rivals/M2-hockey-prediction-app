@@ -9,7 +9,16 @@ data class BingoTicket(
     val name: String,
     val game: Game,
     val events: List<EventCondition>,
-    val crossedOff: List<Boolean> = List(9) { false }
+    val crossedOff: List<Boolean> = List(9) { false },
+    val score: BingoTicketScore? = null
+)
+
+data class BingoTicketScore(
+    val noCrossedOff: Int = 0,
+    val noRows: Int = 0,
+    val noColumns: Int = 0,
+    val noCrosses: Int = 0,
+    val total: Int = 0
 )
 
 // UI state for the TicketsScreen and CreateBingoTicketScreen

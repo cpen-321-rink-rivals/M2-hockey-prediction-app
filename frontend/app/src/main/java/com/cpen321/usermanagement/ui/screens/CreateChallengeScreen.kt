@@ -568,7 +568,8 @@ private fun TicketPickerDialog(
                     LazyColumn(
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        items(tickets.orEmpty()) { ticket ->
+                        val sorted = tickets.orEmpty().sortedByDescending { it.score?.total ?: 0 }
+                        items(sorted) { ticket ->
                             TicketItem(
                                 ticket = ticket,
                                 isSelected = ticket._id == selectedTicket?._id,

@@ -15,19 +15,20 @@ import mongoose from 'mongoose';
 import jwt from 'jsonwebtoken';
 import { userModel } from '../../../src/models/user.model';
 import path from 'path';
+import { EventCondition } from '../../../src/types/tickets.types';
 
 // Load test environment variables
 dotenv.config({ path: path.resolve(__dirname, '../../../.env.test') });
 
 // Helper to create an EventCondition-like object (matches new Ticket schema)
-const makeEvent = (i: number) => ({
-  id: `event-${i}`,
-  category: 'TEAM',
-  subject: 'GOAL',
-  comparison: 'GREATER_OR_EQUAL',
-  threshold: 1,
-  teamAbbrev: 'TOR',
-});
+const makeEvent = (i: number) =>
+  ({
+    id: `e${i}`,
+    category: 'FORWARD' as any,
+    subject: 'goals',
+    comparison: 'GREATER_THAN' as any,
+    threshold: 1,
+  }) as EventCondition;
 
 // Create Express app for testing (same setup as index.ts)
 const app = express();
@@ -85,6 +86,13 @@ describe('Unmocked POST /api/tickets', () => {
         },
       },
       events: Array.from({ length: 9 }, (_, i) => makeEvent(i + 1)),
+      score: {
+        noCrossedOff: 0,
+        noRows: 0,
+        noColumns: 0,
+        noCrosses: 0,
+        total: 0,
+      },
     };
 
     // Act: Make POST request to /api/tickets with auth token
@@ -109,12 +117,14 @@ describe('Unmocked POST /api/tickets', () => {
       .findById(response.body._id)
       .exec();
 
-  expect(insertedTicket).not.toBeNull();
-  expect(insertedTicket!.userId.toString()).toBe(validBingoTicket.userId);
-  expect(insertedTicket!.name).toBe(validBingoTicket.name);
-  // insertedTicket.events are Mongoose subdocuments; stringify to compare plain objects
-  expect(JSON.parse(JSON.stringify(insertedTicket!.events))).toEqual(validBingoTicket.events);
-  expect(insertedTicket!.crossedOff).toEqual(Array(9).fill(false));
+    expect(insertedTicket).not.toBeNull();
+    expect(insertedTicket!.userId.toString()).toBe(validBingoTicket.userId);
+    expect(insertedTicket!.name).toBe(validBingoTicket.name);
+    // insertedTicket.events are Mongoose subdocuments; stringify to compare plain objects
+    expect(JSON.parse(JSON.stringify(insertedTicket!.events))).toEqual(
+      validBingoTicket.events
+    );
+    expect(insertedTicket!.crossedOff).toEqual(Array(9).fill(false));
 
     // Cleanup: Delete the created ticket
     await mongoose.model('Ticket').findByIdAndDelete(response.body._id);
