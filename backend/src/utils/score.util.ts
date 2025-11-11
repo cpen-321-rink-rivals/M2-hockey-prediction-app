@@ -13,38 +13,59 @@ export type BingoTicketScore = {
  * 3 4 5
  * 6 7 8
  */
-export function computeTicketScore(crossedOff: boolean[]): BingoTicketScore {
-  // Defensive normalization: ensure we have a true boolean array of length 9.
-  // This avoids treating arbitrary objects as arrays or truthy values which
-  // could be flagged by security scanners as an object-injection sink.
+
+/**
+ * Normalize input to a strict boolean array of length 9.
+ */
+function normalizeCrossedOff(input: unknown): boolean[] {
   const arr: boolean[] = new Array(9).fill(false);
-  if (Array.isArray(crossedOff)) {
-    for (let i = 0; i < 9; i++) {
-      // coerce each entry to a strict boolean (false for undefined/null/non-truthy)
-      arr[i] = !!crossedOff[i];
-    }
+  if (!Array.isArray(input)) return arr;
+  for (let i = 0; i < 9; i++) {
+    arr[i] = !!(input as any)[i];
   }
+  return arr;
+}
 
-  const noCrossedOff = arr.reduce((sum, v) => sum + (v ? 1 : 0), 0);
-
-  let noRows = 0;
-  let noColumns = 0;
-  let noCrosses = 0;
-
-  // rows
+/**
+ * Count fully crossed rows (3 rows).
+ */
+function countRows(arr: boolean[]): number {
+  let count = 0;
   for (let r = 0; r < 3; r++) {
     const start = r * 3;
-    if (arr[start] && arr[start + 1] && arr[start + 2]) noRows++;
+    if (arr[start] && arr[start + 1] && arr[start + 2]) count++;
   }
+  return count;
+}
 
-  // columns
+/**
+ * Count fully crossed columns (3 columns).
+ */
+function countColumns(arr: boolean[]): number {
+  let count = 0;
   for (let c = 0; c < 3; c++) {
-    if (arr[c] && arr[c + 3] && arr[c + 6]) noColumns++;
+    if (arr[c] && arr[c + 3] && arr[c + 6]) count++;
   }
+  return count;
+}
 
-  // diagonals
-  if (arr[0] && arr[4] && arr[8]) noCrosses++;
-  if (arr[2] && arr[4] && arr[6]) noCrosses++;
+/**
+ * Count crossed diagonals (2 possible).
+ */
+function countDiagonals(arr: boolean[]): number {
+  let count = 0;
+  if (arr[0] && arr[4] && arr[8]) count++;
+  if (arr[2] && arr[4] && arr[6]) count++;
+  return count;
+}
+
+export function computeTicketScore(crossedOff: boolean[]): BingoTicketScore {
+  const arr = normalizeCrossedOff(crossedOff);
+
+  const noCrossedOff = arr.reduce((sum, v) => sum + (v ? 1 : 0), 0);
+  const noRows = countRows(arr);
+  const noColumns = countColumns(arr);
+  const noCrosses = countDiagonals(arr);
 
   // scoring rules
   const perSquare = noCrossedOff * 1;
