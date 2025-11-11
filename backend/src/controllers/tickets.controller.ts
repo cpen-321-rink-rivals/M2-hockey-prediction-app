@@ -5,14 +5,7 @@ import { computeTicketScore } from '../utils/score.util';
 
 export const createBingoTicket = async (req: Request, res: Response) => {
   try {
-    const { userId, name, game, events } = req.body as TicketType;
-
-    if (!isValidTicketBody(req.body)) {
-      return res.status(400).json({ message: 'Invalid bingo ticket data' });
-    }
-
-    const crossedOff = getCrossedOff(req.body);
-    const score = computeTicketScore(crossedOff);
+    const { userId, name, game, events, score } = req.body as TicketType;
 
     // create ticket with crossedOff and score in a single call
     const newTicket = await Ticket.create({
@@ -20,7 +13,6 @@ export const createBingoTicket = async (req: Request, res: Response) => {
       name,
       game,
       events,
-      crossedOff,
       score,
     });
 
@@ -30,19 +22,6 @@ export const createBingoTicket = async (req: Request, res: Response) => {
     res.status(500).json({ message: 'Server error' });
   }
 };
-
-function isValidTicketBody(body: any): boolean {
-  if (!body) return false;
-  const { userId, name, game, events } = body as TicketType;
-  return (
-    !!userId && !!name && !!game && Array.isArray(events) && events.length === 9
-  );
-}
-
-function getCrossedOff(body: any): boolean[] {
-  const co = (body as any).crossedOff;
-  return Array.isArray(co) ? co : Array(9).fill(false);
-}
 
 export const getUserTickets = async (req: Request, res: Response) => {
   try {

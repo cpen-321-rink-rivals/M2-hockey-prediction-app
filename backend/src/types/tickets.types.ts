@@ -110,7 +110,7 @@ export interface ITicket extends Document {
   game: Game;
   events: EventCondition[];
   crossedOff: boolean[];
-  score?: BingoTicketScore;
+  score: BingoTicketScore;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -142,6 +142,13 @@ export const createTicketSchema = z.object({
       })
     )
     .length(9, 'Exactly 9 events required'),
+  score: z.object({
+    noCrossedOff: z.number().min(0),
+    noRows: z.number().min(0),
+    noColumns: z.number().min(0),
+    noCrosses: z.number().min(0),
+    total: z.number().min(0),
+  }),
 });
 
 export type CreateTicketBody = z.infer<typeof createTicketSchema>;

@@ -14,7 +14,7 @@ import mongoose from 'mongoose';
 import jwt from 'jsonwebtoken';
 import { userModel } from '../../../src/models/user.model';
 import { Ticket } from '../../../src/models/tickets.model';
-import { TicketType } from '../../../src/types/tickets.types';
+import { EventCondition, TicketType } from '../../../src/types/tickets.types';
 import path from 'path';
 
 // Load test environment variables
@@ -82,7 +82,14 @@ describe('Mocked POST /api/tickets', () => {
       userId: testUserId,
       name: 'Mock Ticket',
       game: { id: 1, homeTeam: { abbrev: 'HT' }, awayTeam: { abbrev: 'AT' } },
-      events: events as any,
+      events: events as EventCondition[],
+      score: {
+        noCrossedOff: 0,
+        noRows: 0,
+        noColumns: 0,
+        noCrosses: 0,
+        total: 0,
+      },
     };
 
     // Act
@@ -93,17 +100,8 @@ describe('Mocked POST /api/tickets', () => {
 
     // Assert: controller should return 500 on DB error
     expect(res.status).toBe(500);
-    // New behavior: controller should include crossedOff (default false array) and score when creating
     const expectedCreateArg = {
       ...validTicket,
-      crossedOff: Array(9).fill(false),
-      score: {
-        noCrossedOff: 0,
-        noRows: 0,
-        noColumns: 0,
-        noCrosses: 0,
-        total: 0,
-      },
     };
     expect(Ticket.create).toHaveBeenCalledWith(expectedCreateArg);
     expect(Ticket.create).toHaveBeenCalledTimes(1);
