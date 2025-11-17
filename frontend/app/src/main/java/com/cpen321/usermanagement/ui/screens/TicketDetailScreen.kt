@@ -65,46 +65,10 @@ fun TicketDetailScreen(
                 .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            BingoGridInteractive(ticket = ticket, viewModel = viewModel)
-        }
-    }
-}
-
-@Composable
-fun BingoGridInteractive(ticket: BingoTicket, viewModel: TicketsViewModel) {
-    val nhlDataManager = viewModel.nhlDataManager
-
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        for (row in 0 until 3) {
-            Row(horizontalArrangement = Arrangement.Center) {
-                for (col in 0 until 3) {
-                    val index = row * 3 + col
-                    val isCrossed = ticket.crossedOff.getOrNull(index) ?: false
-                    val event = ticket.events.getOrNull(index)
-
-                    // Remember formatted label
-                    val label = remember(event) { mutableStateOf("") }
-                    LaunchedEffect(event) {
-                        if (event != null) {
-                            label.value = nhlDataManager.formatEventLabel(event)
-                        }
-                    }
-
-                    Box(
-                        modifier = Modifier
-                            .padding(4.dp)
-                            .size(100.dp)
-                            .border(2.dp, Color.Gray, RoundedCornerShape(8.dp))
-                            .background(if (isCrossed) Color.Green.copy(alpha = 0.4f) else Color.White),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = label.value,
-                            style = MaterialTheme.typography.bodyMedium
-                        )
-                    }
-                }
-            }
+            com.cpen321.usermanagement.ui.components.BingoTicketDetailInteractive(
+                ticket = ticket,
+                nhlDataManager = viewModel.nhlDataManager,
+            )
         }
     }
 }

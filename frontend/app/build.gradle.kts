@@ -81,6 +81,7 @@ dependencies {
     
     // Image loading
     implementation(libs.coil.compose)
+    implementation(libs.coil.svg)
     
     // Camera and Image handling
     implementation(libs.androidx.activity.ktx)

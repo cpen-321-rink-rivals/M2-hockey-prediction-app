@@ -81,26 +81,26 @@ export type PeriodDescriptor = {
 
 // --- EventCondition matching frontend ---
 export enum EventCategory {
-  FORWARD = "FORWARD",
-  DEFENSE = "DEFENSE",
-  GOALIE = "GOALIE",
+  FORWARD = 'FORWARD',
+  DEFENSE = 'DEFENSE',
+  GOALIE = 'GOALIE',
 }
 
 export enum ComparisonType {
-  GREATER_THAN = "GREATER_THAN",
-  LESS_THAN = "LESS_THAN",
-  EQUAL = "EQUAL",
+  GREATER_THAN = 'GREATER_THAN',
+  LESS_THAN = 'LESS_THAN',
+  EQUAL = 'EQUAL',
 }
 
 export type EventCondition = {
   id: string;
   category: EventCategory;
-  subject: string;           // e.g. "goals", "assists", "penaltyMinutes"
+  subject: string; // e.g. "goals", "assists", "penaltyMinutes"
   comparison: ComparisonType;
   threshold: number;
-  teamAbbrev?: string;       // e.g. "VAN" or "BOS"
-  playerId?: number;         // optional for player-specific events
-  playerName?: string;       // cached for label generation
+  teamAbbrev?: string; // e.g. "VAN" or "BOS"
+  playerId?: number; // optional for player-specific events
+  playerName?: string; // cached for label generation
 };
 
 // Interface used internally by Mongoose
@@ -109,6 +109,8 @@ export interface ITicket extends Document {
   name: string;
   game: Game;
   events: EventCondition[];
+  crossedOff: boolean[];
+  score: BingoTicketScore;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -119,22 +121,51 @@ export const createTicketSchema = z.object({
   name: z.string().min(1, 'Name required'),
   game: z.object({
     id: z.number(),
-    homeTeam: z.object({ abbrev: z.string().min(1, 'Home team abbrev required') }),
-    awayTeam: z.object({ abbrev: z.string().min(1, 'Away team abbrev required') }),
+    homeTeam: z.object({
+      abbrev: z.string().min(1, 'Home team abbrev required'),
+    }),
+    awayTeam: z.object({
+      abbrev: z.string().min(1, 'Away team abbrev required'),
+    }),
   }),
-  events: z.array(
-    z.object({
-      id: z.string(),
-      category: z.nativeEnum(EventCategory),
-      subject: z.string(),
-      comparison: z.nativeEnum(ComparisonType),
-      threshold: z.number(),
-      teamAbbrev: z.string().optional(),
-      playerId: z.number().optional(),
-      playerName: z.string().optional(),
+  events: z
+    .array(
+      z.object({
+        id: z.string(),
+        category: z.nativeEnum(EventCategory),
+        subject: z.string(),
+        comparison: z.nativeEnum(ComparisonType),
+        threshold: z.number(),
+        teamAbbrev: z.string().optional(),
+        playerId: z.number().optional(),
+        playerName: z.string().optional(),
+      })
+    )
+    .length(9, 'Exactly 9 events required'),
+  // score is optional on create; backend will compute defaults if omitted
+  score: z
+    .object({
+      noCrossedOff: z.number().min(0),
+      noRows: z.number().min(0),
+      noColumns: z.number().min(0),
+      noCrosses: z.number().min(0),
+      total: z.number().min(0),
     })
-  ).length(9, 'Exactly 9 events required'),
+    .optional(),
 });
 
 export type CreateTicketBody = z.infer<typeof createTicketSchema>;
 export type TicketType = CreateTicketBody;
+
+export type BingoTicketScore = {
+  noCrossedOff: number;
+  noRows: number;
+  noColumns: number;
+  noCrosses: number;
+  total: number;
+};
+
+export type TicketResponse = TicketType & {
+  crossedOff: boolean[];
+  score?: BingoTicketScore;
+};
