@@ -84,6 +84,8 @@ export enum EventCategory {
   FORWARD = 'FORWARD',
   DEFENSE = 'DEFENSE',
   GOALIE = 'GOALIE',
+  TEAM = 'TEAM',
+  PENALTY = 'PENALTY',
 }
 
 export enum ComparisonType {
