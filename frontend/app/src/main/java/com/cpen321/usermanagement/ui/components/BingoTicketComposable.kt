@@ -9,7 +9,9 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -37,10 +39,10 @@ fun computeBingoScore(crossedOff: List<Boolean>): BingoScore {
 
     for (r in 0 until 3) {
         val start = r * 3
-        if (arr[start] && arr[start+1] && arr[start+2]) noRows++
+        if (arr[start] && arr[start + 1] && arr[start + 2]) noRows++
     }
     for (c in 0 until 3) {
-        if (arr[c] && arr[c+3] && arr[c+6]) noColumns++
+        if (arr[c] && arr[c + 3] && arr[c + 6]) noColumns++
     }
     if (arr[0] && arr[4] && arr[8]) noCrosses++
     if (arr[2] && arr[4] && arr[6]) noCrosses++
@@ -93,6 +95,7 @@ fun BingoGrid(
                             .aspectRatio(1f)
                             .padding(4.dp)
                             .border(1.dp, Color.Gray, RoundedCornerShape(8.dp))
+                            .alpha(0.82f)
                             .background(
                                 if (isCrossed) Color.Green.copy(alpha = 0.4f) else MaterialTheme.colorScheme.surfaceVariant,
                                 RoundedCornerShape(8.dp)
@@ -128,6 +131,30 @@ fun BingoTicketCard(
 ) {
     val score = ticket.score?.let { BingoScore(it.noCrossedOff, it.noRows, it.noColumns, it.noCrosses, it.total) }
 
+    // Resolve team logos preferring schedule-backed logos (matches BingoGrid behavior)
+    val awayAbbrev = ticket.game.awayTeam.abbrev ?: ""
+    val homeAbbrev = ticket.game.homeTeam.abbrev ?: ""
+
+    val awayLogoUrl = remember(awayAbbrev) {
+        ticket.game.awayTeam.logo.takeUnless { it.isNullOrBlank() }
+            ?: nhlDataManager.uiState.value.gameSchedule
+                ?.flatMap { it.games }
+                ?.flatMap { listOf(it.homeTeam, it.awayTeam) }
+                ?.find { it.abbrev == awayAbbrev }
+                ?.logo
+            ?: ""
+    }
+
+    val homeLogoUrl = remember(homeAbbrev) {
+        ticket.game.homeTeam.logo.takeUnless { it.isNullOrBlank() }
+            ?: nhlDataManager.uiState.value.gameSchedule
+                ?.flatMap { it.games }
+                ?.flatMap { listOf(it.homeTeam, it.awayTeam) }
+                ?.find { it.abbrev == homeAbbrev }
+                ?.logo
+            ?: ""
+    }
+
     Card(
         modifier = modifier
             .fillMaxWidth()
@@ -136,23 +163,54 @@ fun BingoTicketCard(
         elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
     ) {
-        Column(modifier = Modifier.padding(12.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
-                Text(ticket.name, style = MaterialTheme.typography.titleMedium, fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold)
-                Surface(shape = RoundedCornerShape(8.dp), color = MaterialTheme.colorScheme.primaryContainer) {
-                    Text(text = "${score?.total ?: "N/A"}", modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp), style = MaterialTheme.typography.bodyMedium)
-                }
+        Box(modifier = Modifier.fillMaxWidth()) {
+            if (awayLogoUrl.isNotBlank()) {
+                TeamLogo(
+                    logoUrl = awayLogoUrl,
+                    teamAbbrev = awayAbbrev,
+                    modifier = Modifier
+                        .align(Alignment.CenterStart)
+                        .offset(x = (-40).dp)
+                        .size(320.dp)
+                        .alpha(0.22f),
+                    size = 320.dp,
+                    showAbbrev = false
+                )
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
+            if (homeLogoUrl.isNotBlank()) {
+                TeamLogo(
+                    logoUrl = homeLogoUrl,
+                    teamAbbrev = homeAbbrev,
+                    modifier = Modifier
+                        .align(Alignment.CenterEnd)
+                        .offset(x = 40.dp)
+                        .size(320.dp)
+                        .alpha(0.22f),
+                    size = 320.dp,
+                    showAbbrev = false
+                )
+            }
 
-            BingoGrid(events = ticket.events, crossedOff = ticket.crossedOff, nhlDataManager = nhlDataManager)
+            Column(modifier = Modifier.padding(12.dp)) {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
+                    Text(ticket.name, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                    Surface(shape = RoundedCornerShape(8.dp), color = MaterialTheme.colorScheme.primaryContainer) {
+                        Text(text = "${score?.total ?: "N/A"}", modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp), style = MaterialTheme.typography.bodyMedium)
+                    }
+                }
 
-            Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(8.dp))
 
-            Row(horizontalArrangement = Arrangement.End, modifier = Modifier.fillMaxWidth()) {
-                if (onDelete != null) {
-                    TextButton(onClick = { onDelete() }) { Text("Delete") }
+                // Bingo grid only (matchup removed as requested)
+                BingoGrid(events = ticket.events, crossedOff = ticket.crossedOff, nhlDataManager = nhlDataManager)
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Row(horizontalArrangement = Arrangement.End, modifier = Modifier.fillMaxWidth()) {
+                    if (onDelete != null) {
+                        TextButton(onClick = { onDelete() }) { Text("Delete") }
+                    }
                 }
             }
         }
