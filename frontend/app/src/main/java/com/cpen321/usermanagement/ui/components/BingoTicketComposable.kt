@@ -172,7 +172,7 @@ fun BingoTicketCard(
                         .align(Alignment.CenterStart)
                         .offset(x = (-40).dp)
                         .size(320.dp)
-                        .alpha(0.22f),
+                        .alpha(0.32f),
                     size = 320.dp,
                     showAbbrev = false
                 )
@@ -186,7 +186,7 @@ fun BingoTicketCard(
                         .align(Alignment.CenterEnd)
                         .offset(x = 40.dp)
                         .size(320.dp)
-                        .alpha(0.22f),
+                        .alpha(0.32f),
                     size = 320.dp,
                     showAbbrev = false
                 )

@@ -63,8 +63,9 @@ fun GameCard(
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Score row (shows when boxscore available)
-            if (boxscore != null) {
+            // Score row (shows when boxscore available and game is not upcoming
+
+            if (boxscore != null && game.gameState != "FUT" && game.gameState != "PRE") {
                 Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center) {
                     Text(
                         text = "${boxscore.awayTeam.score} - ${boxscore.homeTeam.score}",
