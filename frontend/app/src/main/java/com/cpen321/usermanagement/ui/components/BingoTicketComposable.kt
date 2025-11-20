@@ -61,9 +61,11 @@ fun BingoGrid(
     cellSize: Dp = 80.dp,
     onToggle: ((index: Int, newValue: Boolean) -> Unit)? = null
 ) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+    // Make the grid fill available width and distribute the three cells per row evenly.
+    // Use weight + aspectRatio on each cell so they remain square and adapt to screen width.
+    Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
         for (row in 0 until 3) {
-            Row(horizontalArrangement = Arrangement.Center) {
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 for (col in 0 until 3) {
                     val index = row * 3 + col
                     val isCrossed = crossedOff.getOrNull(index) ?: false
@@ -87,8 +89,9 @@ fun BingoGrid(
 
                     Box(
                         modifier = Modifier
+                            .weight(1f)
+                            .aspectRatio(1f)
                             .padding(4.dp)
-                            .size(cellSize)
                             .border(1.dp, Color.Gray, RoundedCornerShape(8.dp))
                             .background(
                                 if (isCrossed) Color.Green.copy(alpha = 0.4f) else MaterialTheme.colorScheme.surfaceVariant,

@@ -149,6 +149,8 @@ private fun handleNavigationEvent(
             navController.navigate(NavRoutes.MAIN) {
                 popUpTo(0) { inclusive = true }
             }
+            // Refresh main profile/tickets so UI reflects recent changes (e.g. newly created tickets)
+            mainViewModel.loadProfile()
             navigationStateManager.clearNavigationEvent()
         }
 
@@ -157,6 +159,8 @@ private fun handleNavigationEvent(
             navController.navigate(NavRoutes.MAIN) {
                 popUpTo(0) { inclusive = true }
             }
+            // Ensure main view reloads profile/tickets after navigating back
+            mainViewModel.loadProfile()
             navigationStateManager.clearNavigationEvent()
         }
 

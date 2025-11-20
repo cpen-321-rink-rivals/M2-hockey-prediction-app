@@ -34,6 +34,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.cpen321.usermanagement.R
 import com.cpen321.usermanagement.data.remote.dto.Game
+import com.cpen321.usermanagement.data.local.preferences.NhlDataManager
+import com.cpen321.usermanagement.ui.components.BingoTicketCard
 import com.cpen321.usermanagement.ui.components.MessageSnackbar
 import com.cpen321.usermanagement.ui.components.MessageSnackbarState
 import com.cpen321.usermanagement.ui.components.TeamMatchup
@@ -74,7 +76,8 @@ fun MainScreen(
         onFriendsClick = onFriendsClick,
         onChallengeClick = onChallengeClick,
         onSuccessMessageShown = mainViewModel::clearSuccessMessage,
-        upcomingGames = nhlDataState.gameSchedule?.flatMap { it.games }?.take(5) ?: emptyList()
+        upcomingGames = nhlDataState.gameSchedule?.flatMap { it.games }?.take(5) ?: emptyList(),
+        nhlDataManager = mainViewModel.nhlDataManager
     )
 }
 
@@ -88,6 +91,7 @@ private fun MainContent(
     onChallengeClick: () -> Unit,
     onSuccessMessageShown: () -> Unit,
     upcomingGames: List<Game>,
+    nhlDataManager: NhlDataManager,
     modifier: Modifier = Modifier
 ) {
     Scaffold(
@@ -104,11 +108,12 @@ private fun MainContent(
         }
     ) { paddingValues ->
         MainBody(
-            paddingValues = paddingValues,
-            uiState = uiState,
-            upcomingGames = upcomingGames,
-            onTicketClick = onTicketClick
-        )
+                paddingValues = paddingValues,
+                uiState = uiState,
+                upcomingGames = upcomingGames,
+                onTicketClick = onTicketClick,
+                nhlDataManager = nhlDataManager
+            )
     }
 }
 
@@ -166,6 +171,7 @@ private fun MainBody(
     uiState: MainUiState,
     upcomingGames: List<Game>,
     onTicketClick: () -> Unit,
+    nhlDataManager: NhlDataManager,
     modifier: Modifier = Modifier
 ) {
     LazyColumn(
@@ -176,16 +182,38 @@ private fun MainBody(
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         item {
-            Spacer(modifier = Modifier.height(8.dp))
-        }
-        
-        // Hero Banner with Animated Puck
-        item {
             HeroBanner(uiState = uiState)
         }
         
-        // Quick Action: Create Ticket Button (if no tickets)
-        if (uiState.userTickets.isEmpty() && !uiState.isLoadingTickets) {
+        // If user has created tickets, show a list of their live tickets.
+        // Otherwise show the prominent "Create Your First Bingo Ticket" card.
+        if (!uiState.userTickets.isNullOrEmpty()) {
+            val liveTickets = uiState.userTickets
+                .filter {
+                    val state = it.game.gameState ?: ""
+                    val u = state.uppercase()
+                    u == "LIVE" || u == "CRIT" || u == "FUT"
+                }
+
+
+            if (liveTickets.isNotEmpty()) {
+                item {
+                    Text(
+                        text = "Your Live and Upcoming Tickets",
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(top = 8.dp)
+                    )
+                }
+                items(liveTickets) { ticket ->
+                    BingoTicketCard(
+                        ticket = ticket,
+                        nhlDataManager = nhlDataManager,
+                        modifier = Modifier.padding(vertical = 8.dp)
+                    )
+                }
+            }
+        } else if (uiState.userTickets.isEmpty() && !uiState.isLoadingTickets) {
             item {
                 CreateFirstTicketCard(onClick = onTicketClick)
             }
