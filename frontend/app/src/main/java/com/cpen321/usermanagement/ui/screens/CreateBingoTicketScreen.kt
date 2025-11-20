@@ -35,7 +35,8 @@ fun CreateBingoTicketScreen(
     authViewModel: AuthViewModelContract,
     nhlDataManager: NhlDataManager,
     onBackClick: () -> Unit,
-    onTicketCreated: () -> Unit
+    onTicketCreated: () -> Unit,
+    initialGameId: String? = null // optional preselected game id passed from navigation
 ) {
     val uiState by ticketsViewModel.uiState.collectAsState()
     val authState by authViewModel.uiState.collectAsState()
@@ -51,6 +52,22 @@ fun CreateBingoTicketScreen(
 
     LaunchedEffect(Unit) {
         ticketsViewModel.loadUpcomingGames()
+    }
+
+    // If an initialGameId was provided via navigation, select that game once games are loaded.
+    LaunchedEffect(uiState.availableGames, initialGameId) {
+        if (initialGameId != null && selectedGame == null) {
+            val match = uiState.availableGames.firstOrNull { it.id.toString() == initialGameId }
+            if (match != null) {
+                selectedGame = match
+                // load events for the selected game
+                ticketsViewModel.getEventsForGame(match.id) { events ->
+                    // populate available events and clear any previously selected events
+                    availableEvents = events
+                    selectedEvents = List(9) { null }
+                }
+            }
+        }
     }
 
     // Mirror the CreateChallenge screen layout: TopAppBar with top-right Create action and
