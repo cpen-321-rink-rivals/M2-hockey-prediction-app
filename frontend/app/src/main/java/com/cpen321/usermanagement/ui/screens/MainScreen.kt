@@ -230,7 +230,11 @@ private fun MainBody(
         }
         
         items(upcomingGames) { game ->
-            GameCard(game = game)
+            com.cpen321.usermanagement.ui.components.GameCard(
+                game = game,
+                nhlDataManager = nhlDataManager,
+                modifier = Modifier.padding(vertical = 8.dp)
+            )
         }
         
         item {
@@ -384,75 +388,6 @@ private fun CreateFirstTicketCard(
                 Spacer(modifier = Modifier.width(8.dp))
                 Text("Create Ticket")
             }
-        }
-    }
-}
-
-@Composable
-private fun GameCard(
-    game: Game,
-    modifier: Modifier = Modifier
-) {
-    Card(
-        modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(12.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp)
-        ) {
-            // Game State Badge
-            GameStateBadge(gameState = game.gameState)
-            
-            Spacer(modifier = Modifier.height(12.dp))
-            
-            // Team Matchup
-            TeamMatchup(
-                awayTeamLogoUrl = game.awayTeam.logo,
-                awayTeamAbbrev = game.awayTeam.abbrev,
-                homeTeamLogoUrl = game.homeTeam.logo,
-                homeTeamAbbrev = game.homeTeam.abbrev,
-                modifier = Modifier.fillMaxWidth(),
-                logoSize = 48.dp,
-                showAbbrevs = true,
-                abbrevFontSize = 14.sp,
-                abbrevColor = MaterialTheme.colorScheme.onSurface,
-                vsText = "@"
-            )
-            
-            Spacer(modifier = Modifier.height(12.dp))
-            
-            // Game Time
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(
-                    name = R.drawable.calendar_clock_icon,
-                )
-                Spacer(modifier = Modifier.width(6.dp))
-                Text(
-                    text = formatGameTime(game.startTimeUTC),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-            
-            // Venue
-            Text(
-                text = game.venue.default,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 4.dp),
-                fontWeight = FontWeight.Normal,
-                textAlign = TextAlign.Center
-            )
-
         }
     }
 }

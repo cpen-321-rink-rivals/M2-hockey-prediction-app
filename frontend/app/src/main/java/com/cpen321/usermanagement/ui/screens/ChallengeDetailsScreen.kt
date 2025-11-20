@@ -33,6 +33,7 @@ import com.cpen321.usermanagement.data.remote.dto.Game
 import com.cpen321.usermanagement.data.remote.dto.User
 import com.cpen321.usermanagement.ui.components.BingoTicketCard
 import com.cpen321.usermanagement.ui.components.TeamMatchup
+import com.cpen321.usermanagement.ui.components.GameCard
 import com.cpen321.usermanagement.ui.viewmodels.ChallengesViewModel
 import com.cpen321.usermanagement.ui.viewmodels.Friend
 import java.text.SimpleDateFormat
@@ -90,7 +91,7 @@ fun ChallengeDetailsScreen(
     val challenge = uiState.selectedChallenge
     val userId = uiState.user?._id
     val allFriends = uiState.allFriends
-    val upcomingGames = uiState.availableGames // Get games list
+    // upcomingGames moved to be resolved by nhlDataManager when needed
     val allTickets = uiState.challengeTickets // This now includes all loaded tickets
 
     if (challenge != null && challenge.id == challengeId) {
@@ -98,7 +99,7 @@ fun ChallengeDetailsScreen(
         val isInvitee = challenge.invitedUserIds.contains(userId)
         val canLeave = !isOwner && challenge.memberIds.contains(userId)
 
-        ChallengeDetailsContent(
+            ChallengeDetailsContent(
             challenge = challenge,
             user = uiState.user,
             isOwner = isOwner,
@@ -134,7 +135,6 @@ fun ChallengeDetailsScreen(
                 challengesViewModel.declineInvitation(challenge.id)
                 onBackClick()
             },
-            upcomingGames = upcomingGames,
             allTickets = allTickets,
             nhlDataManager = nhlDataManager,
             onCreateTicketClick = { onCreateTicketClick(challenge.gameId) }
@@ -164,7 +164,6 @@ private fun ChallengeDetailsContent(
     onLeaveChallenge: () -> Unit,
     onDeclineInvitation: () -> Unit,
     onCreateTicketClick: () -> Unit,
-    upcomingGames: List<Game>?,
     allTickets: List<BingoTicket>?,
     nhlDataManager: NhlDataManager
 ) {
@@ -172,6 +171,7 @@ private fun ChallengeDetailsContent(
     var title by remember { mutableStateOf(challenge.title) }
     var description by remember { mutableStateOf(challenge.description) }
     var maxMembers by remember { mutableStateOf(challenge.maxMembers.toString()) }
+    val game = challenge.gameId.toLongOrNull()?.let { nhlDataManager.getGameById(it) }
 
     val canEdit = isOwner && (challenge.status == ChallengeStatus.PENDING || challenge.status == ChallengeStatus.ACTIVE)
 
@@ -259,10 +259,13 @@ private fun ChallengeDetailsContent(
                 )
 
                 // Game Information Card
-                GameInfoCard(
-                    challenge = challenge,
-                    upcomingGames = upcomingGames
-                )
+                if (game != null) {
+                    GameCard(
+                        game = game,
+                        nhlDataManager = nhlDataManager,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
 
                 // Members Section - Clear and Organized
                 MembersSection(
@@ -413,101 +416,6 @@ private fun ChallengeTitleSection(
 }
 
 @Composable
-private fun GameInfoCard(
-    challenge: Challenge,
-    upcomingGames: List<Game>?
-) {
-    // Find the game that matches the challenge's gameId
-    val game = upcomingGames?.firstOrNull { it.id.toString() == challenge.gameId }
-
-    Card(
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                Icon(
-                    painter = painterResource(id = R.drawable.hockey_outlined_icon),
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary
-                )
-                Text(
-                    text = "Game Information",
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold
-                )
-            }
-
-            Divider()
-
-            if (game != null) {
-                // Show game matchup with logos
-                TeamMatchup(
-                    awayTeamLogoUrl = game.awayTeam.logo,
-                    awayTeamAbbrev = game.awayTeam.abbrev,
-                    homeTeamLogoUrl = game.homeTeam.logo,
-                    homeTeamAbbrev = game.homeTeam.abbrev,
-                    modifier = Modifier.fillMaxWidth(),
-                    logoSize = 48.dp,
-                    showAbbrevs = true,
-                    abbrevFontSize = 14.sp,
-                    abbrevColor = MaterialTheme.colorScheme.onSurface,
-                    vsText = "@"
-                )
-
-                Spacer(modifier = Modifier.height(12.dp))
-
-                // Show game time
-                Text(
-                    text = formatGameTime(game.startTimeUTC),
-                    style = MaterialTheme.typography.bodyLarge,
-                    modifier = Modifier.fillMaxWidth(),
-                    textAlign = TextAlign.Center,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-
-                // Show venue
-                Text(
-                    text = game.venue.default,
-                    style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier.fillMaxWidth(),
-                    textAlign = TextAlign.Center,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            } else {
-                // Fallback if game data not loaded
-                InfoRow(
-                    icon = R.drawable.hockey_outlined_icon,
-                    label = "Game ID",
-                    value = challenge.gameId
-                )
-            }
-        }
-    }
-}
-
-// Helper function to format game time
-private fun formatGameTime(startTimeUTC: String): String {
-    return try {
-        val inputFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.getDefault())
-        inputFormat.timeZone = TimeZone.getTimeZone("UTC")
-        val date = inputFormat.parse(startTimeUTC)
-        
-        val outputFormat = SimpleDateFormat("EEE, MMM dd 'at' h:mm a", Locale.getDefault())
-        date?.let { outputFormat.format(it) } ?: startTimeUTC
-    } catch (e: Exception) {
-        startTimeUTC
-    }
-}
-
-@Composable
 private fun MembersSection(
     challenge: Challenge,
     allFriends: List<Friend>?,
@@ -581,8 +489,8 @@ private fun MembersSection(
                 ) {
                     challenge.memberIds.forEach { memberId ->
                         val memberName = when (memberId) {
-                            challenge.ownerId -> "${allFriends.find { it.id == memberId }?.name ?: user?.name ?: memberId}"
-                            user?._id -> "${user.name}"
+                            challenge.ownerId -> allFriends.find { it.id == memberId }?.name ?: user?.name ?: memberId
+                            user?._id -> user.name
                             else -> allFriends.find { it.id == memberId }?.name ?: memberId
                         }
 
@@ -681,49 +589,6 @@ private fun InvitedUsersSection(
 }
 
 @Composable
-private fun MemberRow(
-    name: String,
-    isOwner: Boolean
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 4.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        Surface(
-            shape = CircleShape,
-            color = if (isOwner) 
-                MaterialTheme.colorScheme.primaryContainer 
-            else 
-                MaterialTheme.colorScheme.surfaceVariant,
-            modifier = Modifier.size(40.dp)
-        ) {
-            Box(
-                contentAlignment = Alignment.Center,
-                modifier = Modifier.fillMaxSize()
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Person,
-                    contentDescription = null,
-                    tint = if (isOwner) 
-                        MaterialTheme.colorScheme.onPrimaryContainer 
-                    else 
-                        MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-        }
-
-        Text(
-            text = name,
-            style = MaterialTheme.typography.bodyLarge,
-            fontWeight = if (isOwner) FontWeight.Bold else FontWeight.Normal
-        )
-    }
-}
-
-@Composable
 private fun MemberRowWithTicket(
     name: String,
     isOwner: Boolean,
@@ -732,13 +597,12 @@ private fun MemberRowWithTicket(
     hasTicketId: Boolean,
     nhlDataManager: NhlDataManager
 ) {
+
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
-            containerColor = if (isYou) 
-                MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
-            else 
-                MaterialTheme.colorScheme.surface
+            containerColor = MaterialTheme.colorScheme.surfaceDim,
+            contentColor = MaterialTheme.colorScheme.onSurface
         )
     ) {
         Column(
@@ -849,6 +713,8 @@ private fun MemberRowWithTicket(
     }
 }
 
+
+
 @Composable
 private fun InvitedUserRow(name: String) {
     Row(
@@ -880,39 +746,6 @@ private fun InvitedUserRow(name: String) {
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
-    }
-}
-
-@Composable
-private fun InfoRow(
-    icon: Int,
-    label: String,
-    value: String
-) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        Icon(
-            painter = painterResource(id = icon),
-            contentDescription = null,
-            modifier = Modifier.size(24.dp)
-        )
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = label,
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            Text(
-                text = value,
-                style = MaterialTheme.typography.bodyLarge,
-                fontWeight = FontWeight.Medium,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis
-            )
-        }
     }
 }
 
