@@ -51,6 +51,8 @@ object NavRoutes {
     const val TICKET_DETAIL_ARG = "ticketId"
     const val TICKET_DETAIL_ROUTE = "$TICKET_DETAIL/{$TICKET_DETAIL_ARG}"
     const val CREATE_TICKET = "create_ticket"
+    const val CREATE_TICKET_ARG = "gameId"
+    const val CREATE_TICKET_WITH_ARG = "$CREATE_TICKET/{$CREATE_TICKET_ARG}"
     const val FRIENDS = "friends"
     const val CHALLENGES = "challenges"
 
@@ -311,6 +313,22 @@ private fun AppNavHost(
             )
         }
 
+        // Create ticket with a preselected game (gameId passed as path arg)
+        composable(
+            route = NavRoutes.CREATE_TICKET_WITH_ARG,
+            arguments = listOf(navArgument(NavRoutes.CREATE_TICKET_ARG) { type = NavType.StringType })
+        ) { backStackEntry ->
+            val gameId = backStackEntry.arguments?.getString(NavRoutes.CREATE_TICKET_ARG)
+            CreateBingoTicketScreen(
+                ticketsViewModel = ticketsViewModel,
+                onBackClick = { navigationStateManager.navigateBack() },
+                authViewModel = authViewModel,
+                onTicketCreated = { navigationStateManager.navigateToTickets() },
+                nhlDataManager = ticketsViewModel.nhlDataManager,
+                initialGameId = gameId
+            )
+        }
+
         composable(
             route = NavRoutes.TICKET_DETAIL_ROUTE,
             arguments = listOf(navArgument(NavRoutes.TICKET_DETAIL_ARG) { type = NavType.StringType })
@@ -358,6 +376,10 @@ private fun AppNavHost(
                     socketManager = mainViewModel.socketManager,
                     socketEventListener = mainViewModel.socketEventListener,
                     onBackClick = { navigationStateManager.navigateBack() },
+                    onCreateTicketClick = { gameId ->
+                        // Navigate to the create ticket screen with the challenge's game preselected
+                        navController.navigate("${NavRoutes.CREATE_TICKET}/$gameId")
+                    },
                     nhlDataManager = challengesViewModel.nhlDataManager
                 )
             } else {

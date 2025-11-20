@@ -46,6 +46,7 @@ fun ChallengeDetailsScreen(
     socketManager: SocketManager,
     socketEventListener: SocketEventListener,
     nhlDataManager: NhlDataManager,
+        onCreateTicketClick: (String) -> Unit,
     onBackClick: () -> Unit
 ) {
     val uiState by challengesViewModel.uiState.collectAsState()
@@ -135,7 +136,8 @@ fun ChallengeDetailsScreen(
             },
             upcomingGames = upcomingGames,
             allTickets = allTickets,
-            nhlDataManager = nhlDataManager
+            nhlDataManager = nhlDataManager,
+            onCreateTicketClick = { onCreateTicketClick(challenge.gameId) }
         )
     } else {
         Log.e("ChallengeDetailsScreen", "Challenge not found")
@@ -161,6 +163,7 @@ private fun ChallengeDetailsContent(
     onJoinChallenge: () -> Unit,
     onLeaveChallenge: () -> Unit,
     onDeclineInvitation: () -> Unit,
+    onCreateTicketClick: () -> Unit,
     upcomingGames: List<Game>?,
     allTickets: List<BingoTicket>?,
     nhlDataManager: NhlDataManager
@@ -308,6 +311,7 @@ private fun ChallengeDetailsContent(
                     onTicketSelected = onTicketSelected,
                     onJoinClick = onJoinChallenge,
                     onDeclineClick = onDeclineInvitation,
+                    onCreateTicketClick = onCreateTicketClick,
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
                         .padding(16.dp)
@@ -969,6 +973,7 @@ private fun JoinChallengeCard(
     selectedTicket: BingoTicket?,
     onTicketSelected: (BingoTicket) -> Unit,
     onJoinClick: () -> Unit,
+    onCreateTicketClick: () -> Unit,
     onDeclineClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -992,33 +997,43 @@ private fun JoinChallengeCard(
                 color = MaterialTheme.colorScheme.onSurface
             )
 
-            ExposedDropdownMenuBox(
-                expanded = isDropdownExpanded,
-                onExpandedChange = { isDropdownExpanded = !isDropdownExpanded }
-            ) {
-                OutlinedTextField(
-                    value = selectedTicket?.name ?: "Select a ticket to use",
-                    onValueChange = {},
-                    readOnly = true,
-                    label = { Text("Your Bingo Ticket") },
-                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = isDropdownExpanded) },
-                    colors = ExposedDropdownMenuDefaults.textFieldColors(),
-                    modifier = Modifier
-                        .menuAnchor()
-                        .fillMaxWidth()
-                )
-
-                ExposedDropdownMenu(
-                    expanded = isDropdownExpanded,
-                    onDismissRequest = { isDropdownExpanded = false }
+            if (availableTickets.isEmpty()) {
+                Button(
+                    onClick = {
+                        isDropdownExpanded = false
+                        onCreateTicketClick()
+                    },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primaryContainer,
+                        contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                    ),
+                    modifier = Modifier.fillMaxWidth()
                 ) {
-                    if (availableTickets.isEmpty()) {
-                        DropdownMenuItem(
-                            text = { Text("No tickets available for this game") },
-                            onClick = { },
-                            enabled = false
-                        )
-                    } else {
+                    Text("Create Bingo Ticket for this game!")
+
+                }
+            } else {
+                ExposedDropdownMenuBox(
+                    expanded = isDropdownExpanded,
+                    onExpandedChange = { isDropdownExpanded = !isDropdownExpanded }
+                ) {
+                    OutlinedTextField(
+                        value = selectedTicket?.name ?: "Select a ticket to use",
+                        onValueChange = {},
+                        readOnly = true,
+                        label = { Text("Your Bingo Ticket") },
+                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = isDropdownExpanded) },
+                        colors = ExposedDropdownMenuDefaults.textFieldColors(),
+                        modifier = Modifier
+                            .menuAnchor()
+                            .fillMaxWidth()
+                    )
+
+
+                    ExposedDropdownMenu(
+                        expanded = isDropdownExpanded,
+                        onDismissRequest = { isDropdownExpanded = false }
+                    ) {
                         availableTickets.forEach { ticket ->
                             DropdownMenuItem(
                                 text = { Text(ticket.name) },
