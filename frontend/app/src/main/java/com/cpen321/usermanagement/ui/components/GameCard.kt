@@ -112,27 +112,51 @@ private fun SmallGameStateBadge(
     gameState: String,
     modifier: Modifier = Modifier
 ) {
-    val (backgroundColor, textColor, displayText) = when (gameState.uppercase()) {
-        "LIVE", "CRIT" -> Triple(
-            MaterialTheme.colorScheme.error,
-            MaterialTheme.colorScheme.onError,
-            "🔴 LIVE"
-        )
-        "FUT" -> Triple(
-            MaterialTheme.colorScheme.primaryContainer,
-            MaterialTheme.colorScheme.onPrimaryContainer,
-            "Upcoming"
-        )
-        "FINAL", "OFF" -> Triple(
-            MaterialTheme.colorScheme.surfaceVariant,
-            MaterialTheme.colorScheme.onSurfaceVariant,
-            "Final"
-        )
-        else -> Triple(
-            MaterialTheme.colorScheme.secondaryContainer,
-            MaterialTheme.colorScheme.onSecondaryContainer,
-            gameState
-        )
+    // 1. Read all composable theme colors OUTSIDE the remember block.
+    val errorContainerColor = MaterialTheme.colorScheme.errorContainer
+    val onErrorContainerColor = MaterialTheme.colorScheme.onErrorContainer
+    val primaryContainerColor = MaterialTheme.colorScheme.primaryContainer
+    val onPrimaryContainerColor = MaterialTheme.colorScheme.onPrimaryContainer
+    val secondaryContainerColor = MaterialTheme.colorScheme.secondaryContainer
+    val onSecondaryContainerColor = MaterialTheme.colorScheme.onSecondaryContainer
+    val surfaceColor = MaterialTheme.colorScheme.surface
+    val onSurfaceVariantColor = MaterialTheme.colorScheme.onSurfaceVariant
+
+    // 2. Perform the non-composable `when` logic inside remember,
+    //    using the local variables you just created.
+    val (backgroundColor, textColor, displayText) = remember(gameState) {
+        when (gameState.uppercase()) {
+            "LIVE" -> Triple(
+                errorContainerColor,
+                onErrorContainerColor,
+                "Live"
+            )
+            "CRIT" -> Triple(
+                Color(0xFFFFA000), // Orange
+                Color.White,       // Using white for better contrast on orange
+                "Critical"
+            )
+            "PRE" -> Triple(
+                Color(0xFFC8E6C9), // Light Green
+                Color(0xFF1B5E20), // Dark Green
+                "Pre-Game"
+            )
+            "FUT" -> Triple(
+                primaryContainerColor, // purple
+                onPrimaryContainerColor,
+                "Upcoming"
+            )
+            "FINAL", "OFF" -> Triple(
+                secondaryContainerColor,
+                onSecondaryContainerColor,
+                "Final"
+            )
+            else -> Triple(
+                surfaceColor,
+                onSurfaceVariantColor,
+                gameState
+            )
+        }
     }
 
     Surface(

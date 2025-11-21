@@ -1,12 +1,19 @@
 package com.cpen321.usermanagement.ui.screens
 
 import Icon
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.forEach
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.ExpandLess
+import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -15,6 +22,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -27,6 +35,7 @@ import com.cpen321.usermanagement.data.local.preferences.EventCondition
 import com.cpen321.usermanagement.data.local.preferences.NhlDataManager
 import com.cpen321.usermanagement.data.remote.dto.BingoTicket
 import com.cpen321.usermanagement.data.remote.dto.TicketsUiState
+import com.cpen321.usermanagement.ui.components.BingoTicketCard
 import com.cpen321.usermanagement.ui.components.TeamLogo
 import com.cpen321.usermanagement.ui.viewmodels.AuthViewModel
 import com.cpen321.usermanagement.ui.viewmodels.AuthViewModelContract
@@ -125,6 +134,7 @@ fun TicketsTopBar(
     )
 }
 
+
 @Composable
 private fun TicketsBody(
     paddingValues: PaddingValues,
@@ -135,35 +145,62 @@ private fun TicketsBody(
     modifier: Modifier = Modifier,
     snackbarHostState: SnackbarHostState
 ) {
+
+    // For each ticket, find its full game data from the NhlDataManager.
+    // This creates a new list of tickets where the `game` object is guaranteed to be non-null.
+    val enrichedTickets = remember(allTickets, ticketsViewModel.nhlDataManager.getGamesForTickets()) {
+        allTickets.mapNotNull { ticket ->
+            // Look up the game using the gameId stored on the ticket
+            ticketsViewModel.nhlDataManager.getGameById(ticket.game.id)?.let { game ->
+                // Create a new BingoTicket instance with the full game data
+                ticket.copy(game = game)
+            }
+        }
+    }
+
     Box(
         modifier = modifier
             .fillMaxSize()
-            .padding(paddingValues)
+            .padding(paddingValues),
+        contentAlignment = Alignment.Center
     ) {
         when {
             isLoading -> {
-                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+                CircularProgressIndicator()
+            }
+            allTickets.isEmpty() -> {
+                EmptyState(
+                    modifier = Modifier.align(Alignment.Center),
+                    message = "You have no bingo tickets.",
+                    actionText = "Create one now"
+                ) {
+                    onCreateTicketClick()
+                }
             }
             else -> {
+                // The LazyColumn is now inside the body, just like in ChallengesScreen
                 TicketsList(
                     modifier = Modifier.fillMaxSize(),
-                    allTickets = allTickets,
+                    allTickets = enrichedTickets,
                     ticketsViewModel = ticketsViewModel,
                     snackbarHostState = snackbarHostState
                 )
-                AddTicketButton(
-                    onClick = onCreateTicketClick,
-                    modifier = Modifier
-                        .align(Alignment.BottomCenter)
-                        .padding(bottom = 32.dp)
-                        .width(200.dp)
-                        .height(60.dp)
-                )
             }
+        }
+        // The button is placed in the Box to overlay the list
+        if (!isLoading) {
+            AddTicketButton(
+                onClick = onCreateTicketClick,
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(bottom = 24.dp)
+            )
         }
     }
 }
 
+
+// Replace the OLD TicketsList with this one
 @Composable
 fun TicketsList(
     modifier: Modifier = Modifier,
@@ -171,136 +208,189 @@ fun TicketsList(
     ticketsViewModel: TicketsViewModel,
     snackbarHostState: SnackbarHostState
 ) {
-    val scope = rememberCoroutineScope()
-    if (allTickets.isEmpty()) {
-        Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            Text("No bingo tickets yet.")
-        }
-    } else {
-        LazyColumn(
-            modifier = modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-            contentPadding = PaddingValues(bottom = 100.dp)
-        ) {
-            items(
-                count = allTickets.size,
-                key = { index -> allTickets[index]._id }
-            ) { index ->
-                val ticket = allTickets[index]
+    // print all ticket game states
+    println("All tickets: $allTickets")
+    println("Ticket game states: ${allTickets.map { it.game.gameState }}")
 
+    val gameStateOrder = listOf("CRIT", "LIVE", "PRE", "FUT", "FINAL")
 
+    val groupedTickets = allTickets.groupBy { it.game.gameState }
 
-                // Use reusable ticket card (shows grid and total score)
-                com.cpen321.usermanagement.ui.components.BingoTicketCard(
-                    ticket = ticket,
-                    nhlDataManager = ticketsViewModel.nhlDataManager,
-                    onDelete = { ticketsViewModel.checkIfTicketIsUsed(ticket) { isUsed ->
-                            if (isUsed) {
-                                scope.launch {
-                                    snackbarHostState.showSnackbar(
-                                        message = "This ticket is used in a challenge and cannot be deleted.",
-                                        duration = SnackbarDuration.Short
-                                    )
-                                }
-                            } else {
-                                ticketsViewModel.deleteTicket(ticket._id)
-                            }
-                        }
-                    },
-                    onClick = { ticketsViewModel.selectTicket(ticket._id) },
-                    modifier = Modifier.padding(16.dp)
-                )
-            }
-        }
-    }
-}
-
-
-@Composable
-private fun AddTicketButton(
-    onClick: () -> Unit,
-    modifier: Modifier
-) {
-    Button(onClick = onClick, modifier = modifier) {
-        Text("New Bingo Ticket")
-    }
-}
-
-@Composable
-fun BingoGridPreview(
-    events: List<EventCondition>,
-    crossedOff: List<Boolean>? = null,
-    nhlDataManager: NhlDataManager
-) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        for (row in 0 until 3) {
-            Row(horizontalArrangement = Arrangement.Center) {
-                for (col in 0 until 3) {
-                    val index = row * 3 + col
-                    val isCrossed = crossedOff?.getOrNull(index) ?: false
-                    val event = events.getOrNull(index)
-
-                    // Use a remembered coroutine scope to call suspend formatter
-                    val label = remember(event) { mutableStateOf("") }
-                    LaunchedEffect(event) {
-                        if (event != null) {
-                            label.value = nhlDataManager.formatEventLabel(event)
-                        }
-                    }
-
-                    // Get team logo if this is a team-specific event
-                    val teamAbbrev = event?.teamAbbrev
-                    val logoUrl = remember(teamAbbrev) {
-                        teamAbbrev?.let { abbrev ->
-                            nhlDataManager.uiState.value.gameSchedule
-                                ?.flatMap { it.games }
-                                ?.flatMap { listOf(it.homeTeam, it.awayTeam) }
-                                ?.find { it.abbrev == abbrev }
-                                ?.logo
-                        }
-                    }
-
-                    Box(
-                        modifier = Modifier
-                            .padding(4.dp)
-                            .size(80.dp)
-                            .border(1.dp, Color.Gray, RoundedCornerShape(8.dp))
-                            .background(
-                                if (isCrossed)
-                                    Color.Green.copy(alpha = 0.4f)
-                                else
-                                    MaterialTheme.colorScheme.surfaceVariant,
-                                RoundedCornerShape(8.dp)
-                            ),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        if (!logoUrl.isNullOrBlank()) {
-                            // Show logo with label for team events
-                            TeamLogo(
-                                logoUrl = logoUrl,
-                                teamAbbrev = label.value,
-                                size = 32.dp,
-                                showAbbrev = true,
-                                abbrevFontSize = 9.sp,
-                                abbrevColor = if (isCrossed)
-                                    MaterialTheme.colorScheme.primary
-                                else
-                                    MaterialTheme.colorScheme.onSurface
-                            )
-                        } else {
-                            // Show text only for non-team events
-                            Text(
-                                text = label.value,
-                                style = MaterialTheme.typography.bodySmall,
-                                modifier = Modifier.padding(6.dp),
-                                color = if (isCrossed)
-                                    MaterialTheme.colorScheme.primary
-                                else
-                                    MaterialTheme.colorScheme.onSurface
-                            )
-                        }
-                    }
+    LazyColumn(
+        modifier = modifier
+            .fillMaxSize()
+            .padding(horizontal = 16.dp),
+        contentPadding = PaddingValues(top = 8.dp, bottom = 100.dp), // Space for FAB
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        // This is the correct pattern from ChallengesScreen
+        gameStateOrder.forEach { gameState ->
+            val ticketsInState = groupedTickets[gameState].orEmpty()
+            if (ticketsInState.isNotEmpty()) {
+                item {
+                    CollapsibleTicketsSection(
+                        gameState = gameState,
+                        tickets = ticketsInState,
+                        ticketsViewModel = ticketsViewModel,
+                        snackbarHostState = snackbarHostState
+                    )
                 }
             }
         }
+    }
+}
+
+// Create this NEW self-contained composable, replacing the old CollapsibleSectionHeader
+@Composable
+private fun CollapsibleTicketsSection(
+    gameState: String,
+    tickets: List<BingoTicket>,
+    ticketsViewModel: TicketsViewModel,snackbarHostState: SnackbarHostState
+) {
+    // State is managed internally, just like in ChallengesScreen
+    var isExpanded by remember { mutableStateOf(gameState.uppercase() == "LIVE") }
+    val scope = rememberCoroutineScope()
+
+    // 1. More descriptive names for the UI
+    val sectionTitle = when (gameState.uppercase()) {
+        "LIVE" -> "Live"
+        "CRIT" -> "Critical"
+        "PRE" -> "Pre-Game"
+        "FUT" -> "Upcoming"
+        "FINAL" -> "Final"
+        else -> gameState
+    }
+
+    // 2. Clearer color scheme
+    val statusColor = when (gameState.uppercase()) {
+        "LIVE" -> MaterialTheme.colorScheme.errorContainer
+        "CRIT" -> Color(0xFFFFA000)  // Orange
+        "PRE" -> Color(0xFFC8E6C9) // Light Green
+        "FUT" -> MaterialTheme.colorScheme.primaryContainer // purple
+        "FINAL" -> MaterialTheme.colorScheme.secondaryContainer
+        else -> MaterialTheme.colorScheme.surface
+    }
+
+    // Text color that works well
+    val onStatusColor = when (gameState.uppercase()) {
+        "LIVE" -> MaterialTheme.colorScheme.onErrorContainer
+        "PRE" -> Color(0xFF1B5E20) // Dark Green
+        "FUT" -> MaterialTheme.colorScheme.onPrimaryContainer
+        "FINAL" -> MaterialTheme.colorScheme.onSecondaryContainer
+        else -> MaterialTheme.colorScheme.onSurfaceVariant
+    }
+
+
+
+    // The entire section is a single Column
+    Column {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable { isExpanded = !isExpanded }
+                .padding(vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Surface(
+                shape = RoundedCornerShape(16.dp),
+                color = statusColor,
+            ) {
+                Text(
+                    text = sectionTitle, // Use the new descriptive title
+                    style = MaterialTheme.typography.labelLarge,
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
+                    color = onStatusColor,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+            Icon(
+                imageVector = if (isExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+                contentDescription = if (isExpanded) "Collapse" else "Expand"
+            )
+        }
+
+        // AnimatedVisibility controls the list of tickets
+        AnimatedVisibility(visible = isExpanded) {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                tickets.forEach { ticket ->
+                    // Your BingoTicketCard composable goes here
+                    BingoTicketCard(
+                        ticket = ticket,
+                        nhlDataManager = ticketsViewModel.nhlDataManager,
+                        onClick = { ticketsViewModel.selectTicket(ticket._id) },
+                        onDelete = {
+                            ticketsViewModel.checkIfTicketIsUsed(ticket) { isUsed ->
+                                if (isUsed) {
+                                    scope.launch {
+                                        snackbarHostState.showSnackbar(
+                                            message = "This ticket is in an active challenge and cannot be deleted.",
+                                            duration = SnackbarDuration.Short
+                                        )
+                                    }
+                                } else {
+                                    ticketsViewModel.deleteTicket(ticket._id)
+                                }
+                            }
+                        }
+                    )
+                }
+            }
+        }
+    }
+}
+
+
+@Composable
+private fun EmptyState(
+    modifier: Modifier = Modifier,
+    message: String,
+    actionText: String,
+    onActionClick: () -> Unit
+) {
+    Column(
+        modifier = modifier.padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Text(
+            text = message,
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        Button(onClick = onActionClick) {
+            Text(text = actionText)
+        }
+    }
+}
+
+@Composable
+private fun AddTicketButton(
+    onClick: () -> Unit,    modifier: Modifier
+) {
+    Button(
+        onClick = onClick,
+        modifier = modifier
+            .height(56.dp), // Set a fixed height for a larger touch target
+        elevation = ButtonDefaults.buttonElevation(defaultElevation = 4.dp),
+        contentPadding = PaddingValues(
+            start = 24.dp,
+            top = 16.dp,
+            end = 24.dp,
+            bottom = 16.dp
+        ) // Increase padding around the content
+    ) {
+        Icon(
+            imageVector = Icons.Default.Add,
+            contentDescription = null,
+            modifier = Modifier.size(ButtonDefaults.IconSize)
+        )
+        Spacer(modifier = Modifier.size(ButtonDefaults.IconSpacing))
+        Text(
+            text = "New Bingo Ticket",
+            fontSize = 16.sp, // Increase the font size
+            fontWeight = FontWeight.Medium
+        )
     }
 }
