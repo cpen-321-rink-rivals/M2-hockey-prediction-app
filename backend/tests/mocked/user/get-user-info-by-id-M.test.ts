@@ -14,7 +14,6 @@ import router from '../../../src/routes/routes';
 import mongoose from 'mongoose';
 import jwt from 'jsonwebtoken';
 import { userModel } from '../../../src/models/user.model';
-import { friendModel } from '../../../src/models/friends.model';
 import path from 'path';
 
 // Load test environment variables
@@ -25,10 +24,11 @@ const app = express();
 app.use(express.json());
 app.use('/api', router);
 
-// Interface GET /api/friends/list
-describe('Mocked GET /api/friends/list', () => {
+// Interface GET /api/user/:id
+describe('Mocked GET /api/user/:id', () => {
   let authToken: string;
   let testUserId: string;
+  let targetUserId: string;
 
   beforeAll(() => {
     // Clear mock call history before the test suite (ensure a clean start)
@@ -38,19 +38,21 @@ describe('Mocked GET /api/friends/list', () => {
     jest.spyOn(console, 'error').mockImplementation(() => {});
 
     testUserId = new mongoose.Types.ObjectId().toString();
+    targetUserId = new mongoose.Types.ObjectId().toString();
 
     authToken = jwt.sign(
       { id: testUserId },
       process.env.JWT_SECRET || 'test-secret'
     );
 
-    // Mock userModel.findById
+    // Mock userModel.findById for auth middleware
     jest.spyOn(userModel, 'findById').mockImplementation(async (id: any) => {
       return {
         _id: id,
         googleId: 'mock-google-id',
         email: 'mock@example.com',
         name: 'Mock User',
+        friendCode: 'MOCK123456',
       } as any;
     });
   });
@@ -65,42 +67,57 @@ describe('Mocked GET /api/friends/list', () => {
     jest.restoreAllMocks();
   });
 
-  // Mocked behavior: Database error when fetching friends
-  // Input: Authenticated user
+  // Mocked behavior: Database error when fetching user info
+  // Input: Valid user ID, database connection fails
   // Expected behavior: Returns 500 error
   // Expected output: 500 status
   // Note: This tests error handling that can't be provoked in unmocked tests
   test('Returns 500 when database error occurs', async () => {
-    // Mock friendModel.getFriends to throw error
     jest
-      .spyOn(friendModel, 'getFriends')
+      .spyOn(userModel, 'findUserInfoById')
       .mockRejectedValueOnce(new Error('Database connection failed'));
 
     const response = await request(app)
-      .get('/api/friends/list')
+      .get(`/api/user/${targetUserId}`)
       .set('Authorization', `Bearer ${authToken}`);
 
     expect(response.status).toBe(500);
-    expect(friendModel.getFriends).toHaveBeenCalledTimes(1);
-    expect(friendModel.getFriends).toHaveBeenCalledWith(testUserId);
+    expect(userModel.findUserInfoById).toHaveBeenCalledTimes(1);
+    expect(userModel.findUserInfoById).toHaveBeenCalledWith(targetUserId);
   });
 
-  // Mocked behavior: Database timeout when fetching friends
-  // Input: Authenticated user
+  // Mocked behavior: Database timeout when fetching user info
+  // Input: Valid user ID, database operation times out
   // Expected behavior: Returns 500 error
   // Expected output: 500 status
   test('Returns 500 when database timeout occurs', async () => {
-    // Mock friendModel.getFriends to throw timeout error
     jest
-      .spyOn(friendModel, 'getFriends')
+      .spyOn(userModel, 'findUserInfoById')
       .mockRejectedValueOnce(new Error('Query timeout'));
 
     const response = await request(app)
-      .get('/api/friends/list')
+      .get(`/api/user/${targetUserId}`)
       .set('Authorization', `Bearer ${authToken}`);
 
     expect(response.status).toBe(500);
-    expect(friendModel.getFriends).toHaveBeenCalledTimes(1);
-    expect(friendModel.getFriends).toHaveBeenCalledWith(testUserId);
+    expect(userModel.findUserInfoById).toHaveBeenCalledTimes(1);
+    expect(userModel.findUserInfoById).toHaveBeenCalledWith(targetUserId);
+  });
+
+  // Mocked behavior: Network interruption when fetching user info
+  // Input: Valid user ID, network fails during query
+  // Expected behavior: Returns 500 error
+  // Expected output: 500 status
+  test('Returns 500 when network interruption occurs', async () => {
+    jest
+      .spyOn(userModel, 'findUserInfoById')
+      .mockRejectedValueOnce(new Error('Network error'));
+
+    const response = await request(app)
+      .get(`/api/user/${targetUserId}`)
+      .set('Authorization', `Bearer ${authToken}`);
+
+    expect(response.status).toBe(500);
+    expect(userModel.findUserInfoById).toHaveBeenCalledTimes(1);
   });
 });
