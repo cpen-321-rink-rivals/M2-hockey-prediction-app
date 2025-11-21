@@ -179,15 +179,15 @@ fun BingoGrid(
 fun BingoTicketCard(
     ticket: BingoTicket,
     nhlDataManager: NhlDataManager,
+    modifier: Modifier = Modifier,
     onDelete: (() -> Unit)? = null,
     onClick: (() -> Unit)? = null,
-    modifier: Modifier = Modifier
 ) {
     val score = ticket.score?.let { BingoScore(it.noCrossedOff, it.noRows, it.noColumns, it.noCrosses, it.total) }
 
     // Resolve team logos, falling back to the schedule data if the ticket's game object doesn't have them.
-    val awayAbbrev = ticket.game.awayTeam.abbrev ?: ""
-    val homeAbbrev = ticket.game.homeTeam.abbrev ?: ""
+    val awayAbbrev = ticket.game.awayTeam.abbrev
+    val homeAbbrev = ticket.game.homeTeam.abbrev
 
     val awayLogoUrl = remember(awayAbbrev) {
         ticket.game.awayTeam.logo.takeUnless { it.isNullOrBlank() }

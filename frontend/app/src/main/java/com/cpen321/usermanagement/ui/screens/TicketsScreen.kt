@@ -14,6 +14,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -29,7 +30,9 @@ import com.cpen321.usermanagement.data.remote.dto.TicketsUiState
 import com.cpen321.usermanagement.ui.components.TeamLogo
 import com.cpen321.usermanagement.ui.viewmodels.AuthViewModel
 import com.cpen321.usermanagement.ui.viewmodels.AuthViewModelContract
+import com.cpen321.usermanagement.ui.viewmodels.ChallengesViewModel
 import com.cpen321.usermanagement.ui.viewmodels.TicketsViewModel
+import kotlinx.coroutines.launch
 
 data class TicketsScreenActions(
     val onBackClick: () -> Unit,
@@ -52,6 +55,8 @@ fun TicketsScreen(
     val authState by authViewModel.uiState.collectAsState()
     val userId = authState.user?._id ?: ""
 
+    val snackbarHostState = remember { SnackbarHostState() }
+
     // Side effects: clear messages and load tickets
     LaunchedEffect(userId) {
         if (userId.isNotBlank()) {
@@ -67,7 +72,8 @@ fun TicketsScreen(
         callbacks = TicketsScreenCallbacks(
             onBackClick = actions.onBackClick,
             onCreateTicketClick = actions.onCreateTicketClick
-        )
+        ),
+        snackbarHostState = snackbarHostState
     )
 }
 
@@ -76,20 +82,23 @@ private fun TicketsContent(
     modifier: Modifier = Modifier,
     uiState: TicketsUiState,
     ticketsViewModel: TicketsViewModel,
-    callbacks: TicketsScreenCallbacks
+    callbacks: TicketsScreenCallbacks,
+    snackbarHostState: SnackbarHostState
 ) {
     Scaffold(
         modifier = modifier,
         topBar = {
             TicketsTopBar(onBackClick = { callbacks.onBackClick() })
-        }
+        },
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
     ) { paddingValues ->
         TicketsBody(
             paddingValues = paddingValues,
             allTickets = uiState.allTickets,
             isLoading = uiState.isLoadingTickets,
             ticketsViewModel = ticketsViewModel,
-            onCreateTicketClick = callbacks.onCreateTicketClick
+            onCreateTicketClick = callbacks.onCreateTicketClick,
+            snackbarHostState = snackbarHostState
         )
     }
 }
@@ -123,7 +132,8 @@ private fun TicketsBody(
     isLoading: Boolean,
     ticketsViewModel: TicketsViewModel,
     onCreateTicketClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    snackbarHostState: SnackbarHostState
 ) {
     Box(
         modifier = modifier
@@ -138,7 +148,8 @@ private fun TicketsBody(
                 TicketsList(
                     modifier = Modifier.fillMaxSize(),
                     allTickets = allTickets,
-                    ticketsViewModel = ticketsViewModel
+                    ticketsViewModel = ticketsViewModel,
+                    snackbarHostState = snackbarHostState
                 )
                 AddTicketButton(
                     onClick = onCreateTicketClick,
@@ -157,8 +168,10 @@ private fun TicketsBody(
 fun TicketsList(
     modifier: Modifier = Modifier,
     allTickets: List<BingoTicket> = emptyList(),
-    ticketsViewModel: TicketsViewModel
+    ticketsViewModel: TicketsViewModel,
+    snackbarHostState: SnackbarHostState
 ) {
+    val scope = rememberCoroutineScope()
     if (allTickets.isEmpty()) {
         Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             Text("No bingo tickets yet.")
@@ -174,11 +187,25 @@ fun TicketsList(
             ) { index ->
                 val ticket = allTickets[index]
 
+
+
                 // Use reusable ticket card (shows grid and total score)
                 com.cpen321.usermanagement.ui.components.BingoTicketCard(
                     ticket = ticket,
                     nhlDataManager = ticketsViewModel.nhlDataManager,
-                    onDelete = { ticketsViewModel.deleteTicket(ticket._id) },
+                    onDelete = { ticketsViewModel.checkIfTicketIsUsed(ticket) { isUsed ->
+                            if (isUsed) {
+                                scope.launch {
+                                    snackbarHostState.showSnackbar(
+                                        message = "This ticket is used in a challenge and cannot be deleted.",
+                                        duration = SnackbarDuration.Short
+                                    )
+                                }
+                            } else {
+                                ticketsViewModel.deleteTicket(ticket._id)
+                            }
+                        }
+                    },
                     onClick = { ticketsViewModel.selectTicket(ticket._id) },
                     modifier = Modifier.padding(16.dp)
                 )
