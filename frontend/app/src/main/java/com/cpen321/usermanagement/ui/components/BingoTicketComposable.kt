@@ -21,6 +21,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
+import com.cpen321.usermanagement.R
 import com.cpen321.usermanagement.data.local.preferences.EventCondition
 import com.cpen321.usermanagement.data.local.preferences.NhlDataManager
 import com.cpen321.usermanagement.data.remote.dto.BingoTicket
@@ -259,7 +261,7 @@ fun BingoTicketCard(
                         color = MaterialTheme.colorScheme.primaryContainer
                     ) {
                         Text(
-                            text = "${score?.total ?: "N/A"}",
+                            text = "${score?.total ?: stringResource(R.string.n_a)}",
                             modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
                             style = MaterialTheme.typography.bodyMedium,
                             fontWeight = FontWeight.Bold
@@ -284,7 +286,7 @@ fun BingoTicketCard(
                         IconButton(onClick = onDelete) {
                             Icon(
                                 imageVector = Icons.Default.Delete,
-                                contentDescription = "Delete Ticket",
+                                contentDescription = stringResource(R.string.delete_ticket),
                                 tint = MaterialTheme.colorScheme.error
                             )
                         }
@@ -339,11 +341,11 @@ fun BingoTicketDetailInteractive(
         Spacer(modifier = Modifier.height(12.dp))
 
         // Live score breakdown section
-        Text("Breakdown:", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)
-        Text("Fields crossed: ${score.noCrossedOff}")
-        Text("Rows: ${score.noRows} (x3 each)\nColumns: ${score.noColumns} (x3 each)\nDiagonals: ${score.noCrosses} (x3 each)")
-        Text("Bonus (bingo): ${if (score.noCrossedOff == 9) 10 else 0}")
-        Text("Total: ${score.total}", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+        Text(stringResource(R.string.breakdown), fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)
+        Text(stringResource(R.string.fields_crossed, score.noCrossedOff))
+        Text(stringResource(R.string.rows_columns_diagonals, score.noRows, score.noColumns, score.noCrosses))
+        Text(stringResource(R.string.bonus_bingo, if (score.noCrossedOff == 9) 10 else 0))
+        Text(stringResource(R.string.total, score.total), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
 
         Spacer(modifier = Modifier.height(12.dp))
 
@@ -354,7 +356,7 @@ fun BingoTicketDetailInteractive(
                 // The button is disabled if there are no changes to reset
                 enabled = crossed != ticket.crossedOff
             ) {
-                Text("Reset")
+                Text(stringResource(R.string.reset))
             }
         }
     }

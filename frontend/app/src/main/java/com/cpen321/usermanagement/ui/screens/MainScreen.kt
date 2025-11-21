@@ -199,7 +199,7 @@ private fun MainBody(
             if (liveTickets.isNotEmpty()) {
                 item {
                     Text(
-                        text = "Your Live and Upcoming Tickets",
+                        text = stringResource(R.string.your_live_upcoming_tickets),
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier.padding(top = 8.dp)
@@ -222,7 +222,7 @@ private fun MainBody(
         // Upcoming/Live Games Section
         item {
             Text(
-                text = "Live & Upcoming Games",
+                text = stringResource(R.string.live_upcoming_games),
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.padding(top = 8.dp)
@@ -292,14 +292,14 @@ private fun HeroBanner(
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    text = "Welcome back, $userName!",
+                    text = stringResource(R.string.welcome_back, userName),
                     color = Color(0xFFCCF2FF),
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Medium
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    text = "Let's predict some hockey!",
+                    text = stringResource(R.string.predict_hockey),
                     color = Color(0xFFE0F2FE),
                     fontSize = 14.sp
                 )
@@ -364,14 +364,14 @@ private fun CreateFirstTicketCard(
             )
             Spacer(modifier = Modifier.height(12.dp))
             Text(
-                text = "Create Your First Bingo Ticket",
+                text = stringResource(R.string.create_first_ticket),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onPrimaryContainer
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = "Start predicting game events and compete with friends!",
+                text = stringResource(R.string.start_predicting),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
             )
@@ -386,7 +386,7 @@ private fun CreateFirstTicketCard(
                     modifier = Modifier.size(20.dp)
                 )
                 Spacer(modifier = Modifier.width(8.dp))
-                Text("Create Ticket")
+                Text(stringResource(R.string.create_ticket))
             }
         }
     }

@@ -171,8 +171,8 @@ private fun TicketsBody(
             allTickets.isEmpty() -> {
                 EmptyState(
                     modifier = Modifier.align(Alignment.Center),
-                    message = "You have no bingo tickets.",
-                    actionText = "Create one now"
+                    message = stringResource(R.string.you_have_no_tickets),
+                    actionText = stringResource(R.string.create_one_now)
                 ) {
                     onCreateTicketClick()
                 }
@@ -253,11 +253,11 @@ private fun CollapsibleTicketsSection(
 
     // 1. More descriptive names for the UI
     val sectionTitle = when (gameState.uppercase()) {
-        "LIVE" -> "Live"
-        "CRIT" -> "Critical"
-        "PRE" -> "Pre-Game"
-        "FUT" -> "Upcoming"
-        "FINAL" -> "Final"
+        "LIVE" -> stringResource(R.string.live)
+        "CRIT" -> stringResource(R.string.critical)
+        "PRE" -> stringResource(R.string.pre_game)
+        "FUT" -> stringResource(R.string.upcoming)
+        "FINAL" -> stringResource(R.string.game_final)
         else -> gameState
     }
 

@@ -10,6 +10,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
+import com.cpen321.usermanagement.R
 import com.cpen321.usermanagement.data.local.preferences.NhlDataManager
 import com.cpen321.usermanagement.data.remote.dto.Boxscore
 import com.cpen321.usermanagement.data.remote.dto.Game
@@ -78,7 +80,7 @@ fun GameCard(
 
                 // Quick stats (shots on goal)
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
-                    Text(text = "SOG ${boxscore.awayTeam.sog} - ${boxscore.homeTeam.sog}", style = MaterialTheme.typography.bodySmall)
+                    Text(text = stringResource(R.string.sog_format, boxscore.awayTeam.sog, boxscore.homeTeam.sog), style = MaterialTheme.typography.bodySmall)
                 }
 
                 Spacer(modifier = Modifier.height(8.dp))

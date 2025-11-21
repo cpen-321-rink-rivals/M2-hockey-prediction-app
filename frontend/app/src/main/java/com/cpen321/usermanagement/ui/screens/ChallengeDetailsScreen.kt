@@ -17,6 +17,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -180,7 +181,7 @@ private fun ChallengeDetailsContent(
             TopAppBar(
                 title = {
                     Text(
-                        text = "Challenge Details",
+                        text = stringResource(R.string.challenge_details),
                         fontWeight = FontWeight.Bold
                     )
                 },
@@ -188,7 +189,7 @@ private fun ChallengeDetailsContent(
                     IconButton(onClick = onBackClick) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back"
+                            contentDescription = stringResource(R.string.back)
                         )
                     }
                 },
@@ -204,7 +205,7 @@ private fun ChallengeDetailsContent(
                                     maxMembers = challenge.maxMembers.toString()
                                 }
                             ) {
-                                Text("Cancel")
+                                Text(stringResource(R.string.cancel))
                             }
                             Button(
                                 onClick = {
@@ -217,13 +218,13 @@ private fun ChallengeDetailsContent(
                                     isEditing = false
                                 }
                             ) {
-                                Text("Save")
+                                Text(stringResource(R.string.save))
                             }
                         } else {
                             IconButton(onClick = { isEditing = true }) {
                                 Icon(
                                     imageVector = Icons.Default.Edit,
-                                    contentDescription = "Edit"
+                                    contentDescription = stringResource(R.string.edit)
                                 )
                             }
                         }
@@ -378,7 +379,7 @@ private fun ChallengeTitleSection(
                 OutlinedTextField(
                     value = title,
                     onValueChange = onTitleChange,
-                    label = { Text("Challenge Title") },
+                    label = { Text(stringResource(R.string.challenge_title)) },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true,
                     textStyle = MaterialTheme.typography.headlineMedium.copy(
@@ -399,7 +400,7 @@ private fun ChallengeTitleSection(
                 OutlinedTextField(
                     value = description,
                     onValueChange = onDescriptionChange,
-                    label = { Text("Description") },
+                    label = { Text(stringResource(R.string.description)) },
                     modifier = Modifier.fillMaxWidth(),
                     minLines = 3,
                     maxLines = 5
@@ -450,7 +451,7 @@ private fun MembersSection(
                         tint = MaterialTheme.colorScheme.primary
                     )
                     Text(
-                        text = "Members",
+                        text = stringResource(R.string.members_label),
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold
                     )
@@ -475,7 +476,7 @@ private fun MembersSection(
                 OutlinedTextField(
                     value = maxMembers,
                     onValueChange = onMaxMembersChange,
-                    label = { Text("Max Members") },
+                    label = { Text(stringResource(R.string.max_members)) },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true
                 )
@@ -511,7 +512,7 @@ private fun MembersSection(
                 }
             } else {
                 Text(
-                    text = "No members yet",
+                    text = stringResource(R.string.no_members),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(vertical = 8.dp)
@@ -553,7 +554,7 @@ private fun InvitedUsersSection(
                         tint = MaterialTheme.colorScheme.secondary
                     )
                     Text(
-                        text = "Pending Invitations",
+                        text = stringResource(R.string.pending_invitations),
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold
                     )
@@ -656,7 +657,7 @@ private fun MemberRowWithTicket(
                                 color = MaterialTheme.colorScheme.primary
                             ) {
                                 Text(
-                                    text = "Owner",
+                                    text = stringResource(R.string.owner),
                                     modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
                                     style = MaterialTheme.typography.labelSmall,
                                     color = MaterialTheme.colorScheme.onPrimary
@@ -669,7 +670,7 @@ private fun MemberRowWithTicket(
                                 color = MaterialTheme.colorScheme.secondary
                             ) {
                                 Text(
-                                    text = "You",
+                                    text = stringResource(R.string.you),
                                     modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
                                     style = MaterialTheme.typography.labelSmall,
                                     color = MaterialTheme.colorScheme.onSecondary
@@ -686,13 +687,13 @@ private fun MemberRowWithTicket(
                         )
                     } else if (hasTicketId) {
                         Text(
-                            text = "Ticket selected ✓",
+                            text = stringResource(R.string.ticket_selected),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.tertiary
                         )
                     } else {
                         Text(
-                            text = "No ticket selected",
+                            text = stringResource(R.string.no_ticket_selected),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.error
                         )
@@ -759,8 +760,8 @@ private fun DeleteChallengeButton(
     if (showDialog) {
         AlertDialog(
             onDismissRequest = { showDialog = false },
-            title = { Text("Delete Challenge") },
-            text = { Text("Are you sure you want to permanently delete this challenge? This action cannot be undone.") },
+            title = { Text(stringResource(R.string.delete_challenge_confirm_title)) },
+            text = { Text(stringResource(R.string.delete_challenge_confirm_message)) },
             confirmButton = {
                 Button(
                     onClick = {
@@ -771,12 +772,12 @@ private fun DeleteChallengeButton(
                         containerColor = MaterialTheme.colorScheme.error
                     )
                 ) {
-                    Text("Delete")
+                    Text(stringResource(R.string.delete))
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showDialog = false }) {
-                    Text("Cancel")
+                    Text(stringResource(R.string.cancel))
                 }
             }
         )
@@ -795,7 +796,7 @@ private fun DeleteChallengeButton(
             contentDescription = null
         )
         Spacer(modifier = Modifier.width(8.dp))
-        Text("Delete Challenge")
+        Text(stringResource(R.string.delete_challenge))
     }
 }
 
@@ -824,7 +825,7 @@ private fun JoinChallengeCard(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Text(
-                text = "You're Invited!",
+                text = stringResource(R.string.youre_invited),
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface
@@ -842,7 +843,7 @@ private fun JoinChallengeCard(
                     ),
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text("Create Bingo Ticket for this game!")
+                    Text(stringResource(R.string.create_bingo_ticket_for_game))
 
                 }
             } else {
@@ -851,10 +852,10 @@ private fun JoinChallengeCard(
                     onExpandedChange = { isDropdownExpanded = !isDropdownExpanded }
                 ) {
                     OutlinedTextField(
-                        value = selectedTicket?.name ?: "Select a ticket to use",
+                        value = selectedTicket?.name ?: stringResource(R.string.select_ticket_to_use),
                         onValueChange = {},
                         readOnly = true,
-                        label = { Text("Your Bingo Ticket") },
+                        label = { Text(stringResource(R.string.your_bingo_ticket)) },
                         trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = isDropdownExpanded) },
                         colors = ExposedDropdownMenuDefaults.textFieldColors(),
                         modifier = Modifier
@@ -891,7 +892,7 @@ private fun JoinChallengeCard(
                         contentColor = MaterialTheme.colorScheme.error
                     )
                 ) {
-                    Text("Decline")
+                    Text(stringResource(R.string.decline))
                 }
 
                 Button(
@@ -904,7 +905,7 @@ private fun JoinChallengeCard(
                         contentDescription = null
                     )
                     Spacer(modifier = Modifier.width(4.dp))
-                    Text("Accept")
+                    Text(stringResource(R.string.accept))
                 }
             }
         }
@@ -921,8 +922,8 @@ private fun LeaveChallengeButton(
     if (showDialog) {
         AlertDialog(
             onDismissRequest = { showDialog = false },
-            title = { Text("Leave Challenge") },
-            text = { Text("Are you sure you want to leave this challenge?") },
+            title = { Text(stringResource(R.string.leave_challenge_confirm_title)) },
+            text = { Text(stringResource(R.string.leave_challenge_confirm_message)) },
             confirmButton = {
                 Button(
                     onClick = {
@@ -933,12 +934,12 @@ private fun LeaveChallengeButton(
                         containerColor = MaterialTheme.colorScheme.error
                     )
                 ) {
-                    Text("Leave")
+                    Text(stringResource(R.string.leave))
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showDialog = false }) {
-                    Text("Cancel")
+                    Text(stringResource(R.string.cancel))
                 }
             }
         )
@@ -957,6 +958,6 @@ private fun LeaveChallengeButton(
             contentDescription = null
         )
         Spacer(modifier = Modifier.width(8.dp))
-        Text("Leave Challenge")
+        Text(stringResource(R.string.leave_challenge))
     }
 }
