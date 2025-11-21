@@ -154,4 +154,45 @@ describe('Mocked PUT /api/user/profile', () => {
     expect(response.status).toBe(500);
     expect(userModel.update).toHaveBeenCalledTimes(1);
   });
+
+  // Mocked behavior: Non-Error exception thrown
+  // Input: Valid update data, non-Error exception thrown
+  // Expected behavior: Passes to error handler
+  // Expected output: 500 status (from error handler)
+  // Note: Tests the else branch when error is not instanceof Error
+  test('Handles non-Error exceptions', async () => {
+    jest
+      .spyOn(userModel, 'update')
+      .mockRejectedValueOnce('String error' as any);
+
+    const response = await request(app)
+      .put('/api/user/profile')
+      .set('Authorization', `Bearer ${authToken}`)
+      .send({ name: 'Updated Name' });
+
+    expect(response.status).toBe(500);
+    expect(userModel.update).toHaveBeenCalledTimes(1);
+  });
+
+  // Mocked behavior: Error with empty message
+  // Input: Valid update data, Error with empty message thrown
+  // Expected behavior: Returns 500 with fallback message
+  // Expected output: 500 status with default error message
+  // Note: Tests the || fallback in error.message || 'default'
+  test('Returns default message when error message is empty', async () => {
+    const emptyMessageError = new Error('');
+    jest.spyOn(userModel, 'update').mockRejectedValueOnce(emptyMessageError);
+
+    const response = await request(app)
+      .put('/api/user/profile')
+      .set('Authorization', `Bearer ${authToken}`)
+      .send({ name: 'Updated Name' });
+
+    expect(response.status).toBe(500);
+    expect(response.body).toHaveProperty(
+      'message',
+      'Failed to update user info'
+    );
+    expect(userModel.update).toHaveBeenCalledTimes(1);
+  });
 });

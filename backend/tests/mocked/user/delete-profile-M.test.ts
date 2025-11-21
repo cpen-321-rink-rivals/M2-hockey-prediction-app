@@ -190,4 +190,42 @@ describe('Mocked DELETE /api/user/profile', () => {
     expect(MediaService.deleteAllUserImages).toHaveBeenCalledTimes(1);
     expect(userModel.delete).toHaveBeenCalledTimes(1);
   });
+
+  // Mocked behavior: Non-Error exception thrown
+  // Input: Authenticated user, non-Error exception thrown
+  // Expected behavior: Passes to error handler
+  // Expected output: 500 status (from error handler)
+  // Note: Tests the else branch when error is not instanceof Error
+  test('Handles non-Error exceptions', async () => {
+    jest
+      .spyOn(MediaService, 'deleteAllUserImages')
+      .mockRejectedValueOnce('String error' as any);
+
+    const response = await request(app)
+      .delete('/api/user/profile')
+      .set('Authorization', `Bearer ${authToken}`);
+
+    expect(response.status).toBe(500);
+    expect(MediaService.deleteAllUserImages).toHaveBeenCalledTimes(1);
+  });
+
+  // Mocked behavior: Error with empty message
+  // Input: Authenticated user, Error with empty message thrown
+  // Expected behavior: Returns 500 with fallback message
+  // Expected output: 500 status with default error message
+  // Note: Tests the || fallback in error.message || 'default'
+  test('Returns default message when error message is empty', async () => {
+    const emptyMessageError = new Error('');
+    jest
+      .spyOn(MediaService, 'deleteAllUserImages')
+      .mockRejectedValueOnce(emptyMessageError);
+
+    const response = await request(app)
+      .delete('/api/user/profile')
+      .set('Authorization', `Bearer ${authToken}`);
+
+    expect(response.status).toBe(500);
+    expect(response.body).toHaveProperty('message', 'Failed to delete user');
+    expect(MediaService.deleteAllUserImages).toHaveBeenCalledTimes(1);
+  });
 });

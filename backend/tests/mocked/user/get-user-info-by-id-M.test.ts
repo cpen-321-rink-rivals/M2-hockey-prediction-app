@@ -120,4 +120,45 @@ describe('Mocked GET /api/user/:id', () => {
     expect(response.status).toBe(500);
     expect(userModel.findUserInfoById).toHaveBeenCalledTimes(1);
   });
+
+  // Mocked behavior: Non-Error exception thrown
+  // Input: Valid user ID, non-Error exception thrown
+  // Expected behavior: Passes to error handler
+  // Expected output: 500 status (from error handler)
+  // Note: Tests the else branch when error is not instanceof Error
+  test('Handles non-Error exceptions', async () => {
+    jest
+      .spyOn(userModel, 'findUserInfoById')
+      .mockRejectedValueOnce('String error' as any);
+
+    const response = await request(app)
+      .get(`/api/user/${targetUserId}`)
+      .set('Authorization', `Bearer ${authToken}`);
+
+    expect(response.status).toBe(500);
+    expect(userModel.findUserInfoById).toHaveBeenCalledTimes(1);
+  });
+
+  // Mocked behavior: Error with empty message
+  // Input: Valid user ID, Error with empty message thrown
+  // Expected behavior: Returns 500 with fallback message
+  // Expected output: 500 status with default error message
+  // Note: Tests the || fallback in error.message || 'default'
+  test('Returns default message when error message is empty', async () => {
+    const emptyMessageError = new Error('');
+    jest
+      .spyOn(userModel, 'findUserInfoById')
+      .mockRejectedValueOnce(emptyMessageError);
+
+    const response = await request(app)
+      .get(`/api/user/${targetUserId}`)
+      .set('Authorization', `Bearer ${authToken}`);
+
+    expect(response.status).toBe(500);
+    expect(response.body).toHaveProperty(
+      'message',
+      'Failed to fetch user info by ID'
+    );
+    expect(userModel.findUserInfoById).toHaveBeenCalledTimes(1);
+  });
 });
