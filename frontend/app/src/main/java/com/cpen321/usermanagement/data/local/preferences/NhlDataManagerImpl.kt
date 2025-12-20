@@ -4,8 +4,10 @@ import android.util.Log
 import com.cpen321.usermanagement.data.remote.dto.Boxscore
 import com.cpen321.usermanagement.data.remote.dto.Game
 import com.cpen321.usermanagement.data.remote.dto.GameDay
+import com.cpen321.usermanagement.data.remote.dto.GoalieSeasonStats
 import com.cpen321.usermanagement.data.remote.dto.GoalieStats
 import com.cpen321.usermanagement.data.remote.dto.PlayerStats
+import com.cpen321.usermanagement.data.remote.dto.SkaterSeasonStats
 import com.cpen321.usermanagement.data.repository.NHLRepository
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
@@ -14,6 +16,9 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlin.math.ceil
+import kotlin.math.floor
+import kotlin.math.max
 import kotlin.random.Random
 
 /**
@@ -25,7 +30,7 @@ data class NhlDataState(
     val errorMessage: String? = null
 )
 
-enum class EventCategory { FORWARD, DEFENSE, GOALIE, TEAM, PENALTY }
+enum class EventCategory { FORWARD, DEFENSE, GOALIE, TEAM }
 enum class ComparisonType { GREATER_THAN, LESS_THAN }
 
 data class EventCondition(
@@ -50,6 +55,40 @@ class NhlDataManagerImpl @Inject constructor(
     companion object {
         private const val TAG = "NhlDataManager"
     }
+
+    // How likely events are to be picked
+    private val SUBJECT_WEIGHTS: Map<EventCategory, Map<String, Int>> = mapOf(
+
+        EventCategory.FORWARD to mapOf(
+            "goals" to 2,
+            "assists" to 3,
+            "sog" to 5,
+            "toi" to 4,
+            "blockedShots" to 2,
+            "hits" to 3,
+            "penaltyMinutes" to 1
+        ),
+
+        EventCategory.DEFENSE to mapOf(
+            "goals" to 1,
+            "assists" to 2,
+            "sog" to 2,
+            "toi" to 3,
+            "blockedShots" to 3,
+            "hits" to 2,
+            "penaltyMinutes" to 1
+        ),
+
+        EventCategory.GOALIE to mapOf(
+            "saves" to 1
+        ),
+
+        EventCategory.TEAM to mapOf(
+            "goals" to 1,
+            "sog" to 3,
+            "penaltyMinutes" to 1
+        )
+    )
 
     private val _uiState = MutableStateFlow(NhlDataState())
     override val uiState: StateFlow<NhlDataState> = _uiState.asStateFlow()
@@ -145,6 +184,26 @@ class NhlDataManagerImpl @Inject constructor(
         val homeRoster = homeRosterDeferred.await()
         val awayRoster = awayRosterDeferred.await()
 
+        // --- LOAD SEASON STATS ---
+        val homeStatsDeferred = async {
+            nhlRepository.getClubStats(game.homeTeam.abbrev).getOrNull()
+        }
+        val awayStatsDeferred = async {
+            nhlRepository.getClubStats(game.awayTeam.abbrev).getOrNull()
+        }
+
+        val homeStats = homeStatsDeferred.await()
+        val awayStats = awayStatsDeferred.await()
+
+        val skaterStatsById = (homeStats?.skaters.orEmpty() +
+                awayStats?.skaters.orEmpty())
+            .associateBy { it.playerId }
+
+        val goalieStatsById = (homeStats?.goalies.orEmpty() +
+                awayStats?.goalies.orEmpty())
+            .associateBy { it.playerId }
+
+
         val homePlayers = mapOf(
             EventCategory.FORWARD to (homeRoster?.forwards ?: emptyList()),
             EventCategory.DEFENSE to (homeRoster?.defensemen ?: emptyList()),
@@ -159,8 +218,8 @@ class NhlDataManagerImpl @Inject constructor(
 
         // --- SUBJECT POOLS ---
         val subjects = mapOf(
-            EventCategory.FORWARD to listOf("goals", "assists", "hits", "sog", "blockedShots", "toi"),
-            EventCategory.DEFENSE to listOf("goals", "assists", "hits", "sog", "blockedShots", "toi"),
+            EventCategory.FORWARD to listOf("goals", "assists", "hits", "sog", "blockedShots", "penaltyMinutes", "toi"),
+            EventCategory.DEFENSE to listOf("goals", "assists", "hits", "sog", "blockedShots", "penaltyMinutes", "toi"),
             EventCategory.GOALIE to listOf("saves"),
             EventCategory.TEAM to listOf("goals", "sog", "penaltyMinutes")
         )
@@ -172,18 +231,38 @@ class NhlDataManagerImpl @Inject constructor(
             val comparison = ComparisonType.GREATER_THAN
 
             return when (category) {
+
                 EventCategory.FORWARD, EventCategory.DEFENSE, EventCategory.GOALIE -> {
-                    val pool = if (team == game.homeTeam.abbrev) homePlayers[category] else awayPlayers[category]
+                    val pool = if (team == game.homeTeam.abbrev)
+                        homePlayers[category]
+                    else
+                        awayPlayers[category]
+
                     if (pool.isNullOrEmpty()) return null
 
                     val player = pool.random(random)
-                    val subject = subjects[category]!!.random(random)
-                    val threshold = randomThresholdFor(subject, category, random)
+                    val subject = weightedRandomSubject(category, random)
+
+                    // --- LOOK UP SEASON STATS (NEW) ---
+                    val seasonStats = when (category) {
+                        EventCategory.GOALIE -> goalieStatsById[player.id]
+                        EventCategory.FORWARD, EventCategory.DEFENSE -> skaterStatsById[player.id]
+                        else -> null
+                    }
+
+                    // --- DYNAMIC THRESHOLD WITH FALLBACK (NEW) ---
+                    val threshold = resolveThreshold(
+                        subject = subject,
+                        category = category,
+                        seasonStats = seasonStats,
+                        random = random
+                    )
+
                     val signature = "${category}_${team}_${player.id}_$subject"
-                    // Prevent duplicate events
                     if (generatedEventSignatures.contains(signature)) return null
 
                     generatedEventSignatures.add(signature)
+
                     EventCondition(
                         id = "${category}_${team}_${player.id}_${events.size}",
                         category = category,
@@ -196,14 +275,15 @@ class NhlDataManagerImpl @Inject constructor(
                     )
                 }
 
-                EventCategory.TEAM, EventCategory.PENALTY -> {
-                    val subject = subjects[EventCategory.TEAM]!!.random(random)
-                    val threshold = randomThresholdFor(subject, EventCategory.TEAM, random)
-                    val signature = "${category}_${team}_$subject"
+                EventCategory.TEAM -> {
+                    val subject = weightedRandomSubject(EventCategory.TEAM, random)
+                    val threshold = resolveThreshold(subject, EventCategory.TEAM, null, random)
 
+                    val signature = "${category}_${team}_$subject"
                     if (generatedEventSignatures.contains(signature)) return null
 
                     generatedEventSignatures.add(signature)
+
                     EventCondition(
                         id = "${category}_${team}_${events.size}",
                         category = category,
@@ -307,7 +387,7 @@ class NhlDataManagerImpl @Inject constructor(
     override fun formatEventLabel(event: EventCondition): String {
         val subject = when {
             !event.playerName.isNullOrEmpty() -> event.playerName
-            !event.teamAbbrev.isNullOrEmpty() && event.category in listOf(EventCategory.TEAM, EventCategory.PENALTY) -> event.teamAbbrev
+            !event.teamAbbrev.isNullOrEmpty() && event.category in listOf(EventCategory.TEAM) -> event.teamAbbrev
             else -> "Player"
         }
 
@@ -347,7 +427,7 @@ class NhlDataManagerImpl @Inject constructor(
         val subject = eventCondition.subject.removePrefix("player.").removePrefix("team.").removePrefix("goalie.")
 
         // TEAM-level queries (sums, or team fields)
-        if (eventCondition.category == EventCategory.TEAM || eventCondition.category == EventCategory.PENALTY) {
+        if (eventCondition.category == EventCategory.TEAM) {
             val teamAbbrev = eventCondition.teamAbbrev ?: return null
             val isHome = boxscore.homeTeam.abbrev == teamAbbrev
             val teamInfo = if (isHome) boxscore.homeTeam else boxscore.awayTeam
@@ -412,7 +492,7 @@ class NhlDataManagerImpl @Inject constructor(
             "hits" -> player.hits
             "sog" -> player.sog
             "blockedShots" -> player.blockedShots
-            "pim" -> player.pim ?: 0
+            "pim", "penaltyMinutes", "penaltiyminutes" -> player.pim ?: 0
             "toi" -> parseToiToMinutes(player.toi)
             else -> null
         }
@@ -511,55 +591,197 @@ class NhlDataManagerImpl @Inject constructor(
         }
     }
 
+    private fun weightedRandomSubject(
+        category: EventCategory,
+        random: Random
+    ): String {
+
+        val weightedSubjects = SUBJECT_WEIGHTS[category]
+            ?: error("No subject weights defined for $category")
+
+        val totalWeight = weightedSubjects.values.sum()
+        val roll = random.nextInt(totalWeight)
+
+        var cumulative = 0
+        for ((subject, weight) in weightedSubjects) {
+            cumulative += weight
+            if (roll < cumulative) {
+                return subject
+            }
+        }
+
+        // Should never happen
+        return weightedSubjects.keys.first()
+    }
+
     /**
      * Produce a random, reasonable threshold for a given subject.
      * Tuned to typical hockey stat ranges.
      */
-    private fun randomThresholdFor(
+    private fun resolveThreshold(
         subject: String,
         category: EventCategory,
+        seasonStats: Any?,
         random: Random
     ): Int {
 
-        val cleanSubject = subject.removePrefix("player.")
-            .removePrefix("team.")
-            .removePrefix("goalie.")
+        val clean = subject.lowercase()
 
-        return when (category) {
-
-            EventCategory.FORWARD -> when (cleanSubject) {
-                "goals" -> (1..2).random(random)
-                "assists" -> (1..2).random(random)
-                "hits" -> (2..4).random(random)
-                "sog" -> (3..6).random(random)
-                "blockedShots" -> (1..2).random(random)
-                "toi" -> (18..23).random(random)
-                else -> (1..3).random(random)
-            }
-
-            EventCategory.DEFENSE -> when (cleanSubject) {
-                "goals" -> 1        // rare
-                "assists" -> (1..2).random(random)
-                "hits" -> (2..4).random(random)
-                "sog" -> (1..3).random(random)
-                "blockedShots" -> (2..6).random(random)
-                "toi" -> (18..23).random(random)
-                else -> (1..3).random(random)
-            }
-
-            EventCategory.GOALIE -> when (cleanSubject) {
-                "saves" -> (26..33).random(random)
-                else -> (1..3).random(random)
-            }
-
-            EventCategory.TEAM -> when (cleanSubject) {
+        // ---------- TEAM EVENTS (ALWAYS STATIC) ----------
+        if (category == EventCategory.TEAM) {
+            return when (clean) {
                 "goals" -> (2..5).random(random)
                 "sog" -> (27..36).random(random)
-                "penaltyMinutes", "penalties" -> (4..12).random(random)
+                "penaltyminutes" -> (4..12).random(random)
+                else -> (1..3).random(random)
+            }
+        }
+
+        // ---------- TRY DYNAMIC ----------
+        if (seasonStats != null) {
+
+            when (category) {
+
+                EventCategory.GOALIE -> {
+                    val stats = seasonStats as? GoalieSeasonStats
+                    if (stats != null && stats.gamesPlayed > 0) {
+
+                        when (clean) {
+                            "saves" -> {
+                                val expected = stats.saves.toDouble() / stats.gamesPlayed
+                                return buildDynamicRange(clean, expected, random)
+                            }
+                        }
+                    }
+                }
+
+                EventCategory.FORWARD, EventCategory.DEFENSE -> {
+                    val stats = seasonStats as? SkaterSeasonStats
+                    if (stats != null && stats.gamesPlayed > 0) {
+
+                        val expected = when (clean) {
+                            "goals" -> stats.goals.toDouble() / stats.gamesPlayed
+                            "assists" -> stats.assists.toDouble() / stats.gamesPlayed
+                            "sog" -> stats.shots.toDouble() / stats.gamesPlayed
+                            "penaltyminutes" -> stats.penaltyMinutes.toDouble() / stats.gamesPlayed
+                            "toi" -> stats.avgTimeOnIcePerGame / 60.0
+                            else -> null
+                        }
+
+                        if (expected != null) {
+                            return buildDynamicRange(clean, expected, random)
+                        }
+                    }
+                }
+
+                else -> {}
+            }
+        }
+
+        // ---------- STATIC FALLBACK ----------
+        return when (category) {
+
+            EventCategory.FORWARD -> when (clean) {
+                "goals" -> (1..2).random(random)
+                "assists" -> (1..2).random(random)
+                "hits" -> (1..2).random(random)
+                "sog" -> (2..5).random(random)
+                "blockedshots" -> 1
+                "penaltyminutes" -> 2 * (1..2).random(random)
+                "toi" -> (18..23).random(random)
                 else -> (1..3).random(random)
             }
 
-            else -> (88..99).random(random)
+            EventCategory.DEFENSE -> when (clean) {
+                "goals" -> 1
+                "assists" -> (1..2).random(random)
+                "hits" -> (1..3).random(random)
+                "sog" -> (1..3).random(random)
+                "blockedshots" -> (1..3).random(random)
+                "penaltyminutes" -> 2 * (1..2).random(random)
+                "toi" -> (18..23).random(random)
+                else -> (1..3).random(random)
+            }
+
+            EventCategory.GOALIE -> when (clean) {
+                "saves" -> (26..33).random(random)
+                else -> (20..30).random(random)
+            }
+
+            EventCategory.TEAM -> when (clean) {
+                "goals" -> (2..5).random(random)
+                "sog" -> (27..36).random(random)
+                "penaltyminutes" -> (4..12).random(random)
+                else -> (1..3).random(random)
+            }
+
+            else -> (1..3).random(random)
+        }
+    }
+
+    //Many magic numbers to alter ranges
+    private fun buildDynamicRange(
+        subject: String,
+        expected: Double,
+        random: Random
+    ): Int {
+
+        val clean = subject.lowercase()
+
+        return when (clean) {
+
+            // ----- GOALS -----
+            "goals" -> {
+                when {
+                    expected < 0.4 -> 1
+                    expected < 0.8 -> random.nextInt(1, 2)   // 1–2
+                    expected < 1.4 -> random.nextInt(1, 3)   // 1–3
+                    else -> random.nextInt(2, 4)              // 2–4
+                }
+            }
+
+            // ----- ASSISTS -----
+            "assists" -> {
+                when {
+                    expected < 0.5 -> 1
+                    expected < 1.4 -> random.nextInt(1, 3)
+                    else -> random.nextInt(2, 4)
+                }
+            }
+
+            // ----- SHOTS ON GOAL -----
+            "sog" -> {
+                val min = max(1, floor(expected - 1).toInt())
+                val max = ceil(expected + 2).toInt()
+                random.nextInt(min, max + 1)
+            }
+
+            // ----- PENALTY MINUTES -----
+            "penaltyminutes" -> {
+                val base = max(2, ceil(expected).toInt())
+                random.nextInt(base, base + 2)
+            }
+
+            // ----- TIME ON ICE (minutes) -----
+            "toi" -> {
+                val min = max(10, floor(expected - 2).toInt())
+                val max = ceil(expected + 2).toInt()
+                random.nextInt(min, max + 1)
+            }
+
+            // ----- SAVES -----
+            "saves" -> {
+                val min = max(15, floor(expected - 5).toInt())
+                val max = ceil(expected + 7).toInt()
+                random.nextInt(min, max + 1)
+            }
+
+            // ----- FALLBACK -----
+            else -> {
+                val min = max(1, (expected * 0.8).toInt())
+                val max = max(min + 1, (expected * 1.2).toInt())
+                random.nextInt(min, max + 1)
+            }
         }
     }
 }

@@ -108,8 +108,6 @@ data class NameField(
     val default: String
 )
 
-
-
 // Boxscore data
 
 data class Boxscore(
@@ -189,4 +187,30 @@ data class GoalieStats(
     val toi: String,
     val shotsAgainst: Int,
     val saves: Int
+)
+
+//Season stats
+
+data class ClubStatsResponse(
+    val season: String,
+    val gameType: Int,
+    val skaters: List<SkaterSeasonStats>,
+    val goalies: List<GoalieSeasonStats>
+)
+
+data class SkaterSeasonStats(
+    val playerId: Long,
+    val gamesPlayed: Int,
+    val goals: Int,
+    val assists: Int,
+    val shots: Int,
+    val penaltyMinutes: Int,
+    val avgTimeOnIcePerGame: Double
+)
+
+data class GoalieSeasonStats(
+    val playerId: Long,
+    val gamesPlayed: Int,
+    val saves: Int,
+    val shotsAgainst: Int
 )

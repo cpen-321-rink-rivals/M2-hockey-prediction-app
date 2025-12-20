@@ -1,6 +1,7 @@
 package com.cpen321.usermanagement.data.repository
 
 import com.cpen321.usermanagement.data.remote.dto.Boxscore
+import com.cpen321.usermanagement.data.remote.dto.ClubStatsResponse
 import com.cpen321.usermanagement.data.remote.dto.GameDay
 import com.cpen321.usermanagement.data.remote.dto.TeamRosterResponse
 
@@ -11,4 +12,6 @@ interface NHLRepository {
     suspend fun getTeamRoster(teamCode: String): Result<TeamRosterResponse>
 
     suspend fun getBoxscore(gameId: Long): Result<Boxscore>
+
+    suspend fun getClubStats(teamAbbrev: String): Result<ClubStatsResponse>
 }

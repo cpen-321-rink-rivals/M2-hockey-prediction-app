@@ -1,6 +1,7 @@
 package com.cpen321.usermanagement.data.remote.api
 
 import com.cpen321.usermanagement.data.remote.dto.Boxscore
+import com.cpen321.usermanagement.data.remote.dto.ClubStatsResponse
 import com.cpen321.usermanagement.data.remote.dto.ScheduleResponse
 import com.cpen321.usermanagement.data.remote.dto.TeamRosterResponse
 import retrofit2.Response
@@ -19,4 +20,6 @@ interface NHLInterface {
     @GET("v1/gamecenter/{gameId}/boxscore")
     suspend fun getBoxscore(@Path("gameId") gameId: Long): Response<Boxscore>
 
+    @GET("v1/club-stats/{team}/now")
+    suspend fun getClubStats(@Path("team") teamCode: String): Response<ClubStatsResponse>
 }

@@ -3,6 +3,7 @@ package com.cpen321.usermanagement.data.repository
 import android.util.Log
 import com.cpen321.usermanagement.data.remote.api.NHLInterface
 import com.cpen321.usermanagement.data.remote.dto.Boxscore
+import com.cpen321.usermanagement.data.remote.dto.ClubStatsResponse
 import com.cpen321.usermanagement.data.remote.dto.GameDay
 import com.cpen321.usermanagement.data.remote.dto.TeamRosterResponse
 import com.cpen321.usermanagement.utils.JsonUtils.parseErrorMessage
@@ -76,4 +77,17 @@ class NHLRepositoryImpl @Inject constructor(
         }
     }
 
+    override suspend fun getClubStats(teamAbbrev: String): Result<ClubStatsResponse> {
+        return try {
+            val response = nhlInterface.getClubStats(teamAbbrev)
+            if (response.isSuccessful) {
+                response.body()?.let { Result.success(it) }
+                    ?: Result.failure(Exception("Empty club stats response"))
+            } else {
+                Result.failure(Exception("Failed club stats: ${response.code()}"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
 }
